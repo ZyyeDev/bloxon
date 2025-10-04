@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://502ewhd50t5o"
+path="res://.godot/imported/Bull Glove (Slap 2).ogg-32864c76016efebe5d54b5a9bebf503c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Bull Glove (Slap 2).ogg"
+dest_files=["res://.godot/imported/Bull Glove (Slap 2).ogg-32864c76016efebe5d54b5a9bebf503c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

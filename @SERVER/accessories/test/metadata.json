@@ -1,0 +1,7 @@
+{
+    "name": "test",
+    "type": "hat",
+    "price": 50,
+    "equipSlot": "head",
+    "description": "Hi"
+}

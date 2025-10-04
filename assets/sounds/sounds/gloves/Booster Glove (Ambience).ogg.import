@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b81g7lasuey87"
+path="res://.godot/imported/Booster Glove (Ambience).ogg-e98e9dc2805e45d74bf798df523b0c9d.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Booster Glove (Ambience).ogg"
+dest_files=["res://.godot/imported/Booster Glove (Ambience).ogg-e98e9dc2805e45d74bf798df523b0c9d.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

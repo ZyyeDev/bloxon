@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://6j1pjyyte4js"
+path="res://.godot/imported/Frostbite Glove (Ice Shatter).ogg-f3f6ab98c8b6b4f7943b056074376bc4.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Frostbite Glove (Ice Shatter).ogg"
+dest_files=["res://.godot/imported/Frostbite Glove (Ice Shatter).ogg-f3f6ab98c8b6b4f7943b056074376bc4.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

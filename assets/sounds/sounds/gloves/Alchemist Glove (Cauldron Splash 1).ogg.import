@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://d07h4fq50bh2w"
+path="res://.godot/imported/Alchemist Glove (Cauldron Splash 1).ogg-91d25acdf0a086fddeee647052918de4.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Alchemist Glove (Cauldron Splash 1).ogg"
+dest_files=["res://.godot/imported/Alchemist Glove (Cauldron Splash 1).ogg-91d25acdf0a086fddeee647052918de4.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

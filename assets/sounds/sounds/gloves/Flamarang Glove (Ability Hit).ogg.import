@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bljpr2jude2o4"
+path="res://.godot/imported/Flamarang Glove (Ability Hit).ogg-4f1ba630c053ba50db1865b30e075d52.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Flamarang Glove (Ability Hit).ogg"
+dest_files=["res://.godot/imported/Flamarang Glove (Ability Hit).ogg-4f1ba630c053ba50db1865b30e075d52.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

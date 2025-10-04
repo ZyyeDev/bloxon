@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bboadl0spikki"
+path="res://.godot/imported/Death Sound (M).ogg-36b1b3bf20b52348b1b0d7c70f165bda.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/death/Death Sound (M).ogg"
+dest_files=["res://.godot/imported/Death Sound (M).ogg-36b1b3bf20b52348b1b0d7c70f165bda.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

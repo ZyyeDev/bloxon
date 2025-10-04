@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://ctbbihovej6jn"
+path="res://.godot/imported/Blink Glove (Ability Use).ogg-5583bf8c88ff9026ecd3b4308d36e0fa.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Blink Glove (Ability Use).ogg"
+dest_files=["res://.godot/imported/Blink Glove (Ability Use).ogg-5583bf8c88ff9026ecd3b4308d36e0fa.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

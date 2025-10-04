@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://l484g6mrdh7t"
+path="res://.godot/imported/Coil Glove (Ability Use 1).ogg-67a6757c28bbe1521202646aaa3c755c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Coil Glove (Ability Use 1).ogg"
+dest_files=["res://.godot/imported/Coil Glove (Ability Use 1).ogg-67a6757c28bbe1521202646aaa3c755c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

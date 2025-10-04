@@ -1,0 +1,137 @@
+[gd_scene load_steps=9 format=3 uid="uid://d3826x21l2j3y"]
+
+[ext_resource type="Script" uid="uid://cdwn3qobt7xob" path="res://scripts/mainGame.gd" id="1_3pjqm"]
+[ext_resource type="AudioStream" uid="uid://cwbnefdcakavm" path="res://assets/sounds/Music.wav" id="2_b4od1"]
+[ext_resource type="Environment" uid="uid://swjxcwfoog07" path="res://scenes/mainGame.tres" id="2_gb8pf"]
+[ext_resource type="PackedScene" uid="uid://byubr8qbudcxe" path="res://Resources/house.tscn" id="4_gb8pf"]
+[ext_resource type="PackedScene" uid="uid://bc4wwer8xl54l" path="res://assets/models/3d/map/map.tscn" id="5_b4od1"]
+
+[sub_resource type="GDScript" id="GDScript_b4od1"]
+script/source = "extends AudioStreamPlayer
+
+func _on_finished() -> void:
+	play()
+"
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_gb8pf"]
+
+[sub_resource type="GDScript" id="GDScript_mwwrp"]
+script/source = "extends Camera3D
+
+@export var speed := 30.0
+@export var sensitivity := 0.003
+
+var yaw := 0.0
+var pitch := 0.0
+
+func _ready():
+	if Global.isClient: return
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _input(event):
+	if Global.isClient: return
+	if event is InputEventMouseMotion:
+		yaw -= event.relative.x * sensitivity
+		pitch = clamp(pitch - event.relative.y * sensitivity, -1.57, 1.57)
+		
+		rotation.y = yaw
+		rotation.x = pitch
+
+func _process(delta):
+	if Global.isClient:
+		queue_free()
+		return
+	
+	var movement := Vector3.ZERO
+	
+	if Input.is_action_pressed(\"ui_up\") or Input.is_key_pressed(KEY_W):
+		movement -= transform.basis.z
+	if Input.is_action_pressed(\"ui_down\") or Input.is_key_pressed(KEY_S):
+		movement += transform.basis.z
+	if Input.is_action_pressed(\"ui_left\") or Input.is_key_pressed(KEY_A):
+		movement -= transform.basis.x
+	if Input.is_action_pressed(\"ui_right\") or Input.is_key_pressed(KEY_D):
+		movement += transform.basis.x
+	if Input.is_key_pressed(KEY_SPACE):
+		movement.y += 1
+	if Input.is_key_pressed(KEY_SHIFT):
+		movement.y -= 1
+	
+	if movement.length() > 0:
+		movement = movement.normalized()
+		global_position += movement * speed * delta
+"
+
+[node name="MainGame" type="Node3D" node_paths=PackedStringArray("playersContainer")]
+script = ExtResource("1_3pjqm")
+playersContainer = NodePath("players")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_b4od1")
+volume_db = -11.415
+script = SubResource("GDScript_b4od1")
+
+[node name="players" type="Node" parent="."]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_gb8pf")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.857706, -0.365894, 0.361195, -0.0677956, 0.615899, 0.784903, -0.509651, -0.697703, 0.503454, 0, 0, 0)
+light_energy = 0.957
+shadow_enabled = true
+shadow_bias = 0.0
+directional_shadow_max_distance = 150.0
+
+[node name="brainrots" type="Node3D" parent="."]
+
+[node name="bspawn" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -310, 6, 4)
+
+[node name="bbye" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 218.356, 6, 4)
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_gb8pf")
+
+[node name="houses" type="Node3D" parent="NavigationRegion3D"]
+
+[node name="house2" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 144.852, 20.23, 95.18)
+id = 1
+
+[node name="house7" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 144.852, 20.23, -77.557)
+id = 5
+
+[node name="house3" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.852, 20.23, 95.18)
+id = 2
+
+[node name="house8" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 19.852, 20.23, -77.557)
+id = 6
+
+[node name="house4" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -105.148, 20.23, 95.18)
+id = 3
+
+[node name="house9" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -105.148, 20.23, -77.557)
+id = 7
+
+[node name="house5" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -230.148, 20.23, 95.18)
+id = 4
+
+[node name="house10" parent="NavigationRegion3D/houses" instance=ExtResource("4_gb8pf")]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, -230.148, 20.23, -77.557)
+id = 8
+
+[node name="Camera3D" type="Camera3D" parent="."]
+script = SubResource("GDScript_mwwrp")
+
+[node name="map2" parent="." instance=ExtResource("5_b4od1")]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -43.6056, 20.6422, 3.90372)
+
+[connection signal="finished" from="AudioStreamPlayer" to="AudioStreamPlayer" method="_on_finished"]

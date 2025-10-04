@@ -1,0 +1,51 @@
+[gd_scene load_steps=5 format=3 uid="uid://bvgg3h3hsytyy"]
+
+[ext_resource type="Script" uid="uid://bokv46vng1j1" path="res://scripts/brainrot_walk.gd" id="1_uh474"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_h5axs"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tu0nk"]
+size = Vector3(10, 10, 10)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_tu0nk"]
+
+[node name="brainrotWalk" type="Node3D"]
+script = ExtResource("1_uh474")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_h5axs")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_tu0nk")
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+
+[node name="SendData" type="Timer" parent="."]
+wait_time = 5.0
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_tu0nk")
+
+[node name="Cost" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+billboard = 1
+text = "$10
+"
+font_size = 64
+
+[node name="Generate" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.48933, 0)
+billboard = 1
+text = "20 $/s"
+font_size = 64
+
+[node name="Name" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.18663, 0)
+billboard = 1
+text = "meowmeowmeowmeowmeow"
+font_size = 120
+outline_size = 30
+
+[connection signal="timeout" from="SendData" to="." method="_on_send_data_timeout"]

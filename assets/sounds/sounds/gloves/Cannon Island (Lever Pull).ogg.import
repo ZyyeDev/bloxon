@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://s2ona6piqpu0"
+path="res://.godot/imported/Cannon Island (Lever Pull).ogg-3b2920c11e6a65af919e20553d36aeee.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Cannon Island (Lever Pull).ogg"
+dest_files=["res://.godot/imported/Cannon Island (Lever Pull).ogg-3b2920c11e6a65af919e20553d36aeee.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

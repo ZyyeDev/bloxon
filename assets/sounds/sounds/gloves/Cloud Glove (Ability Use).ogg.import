@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bhoa5lak7fl07"
+path="res://.godot/imported/Cloud Glove (Ability Use).ogg-e138f0c2ede28942cf3284c957dda72c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Cloud Glove (Ability Use).ogg"
+dest_files=["res://.godot/imported/Cloud Glove (Ability Use).ogg-e138f0c2ede28942cf3284c957dda72c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

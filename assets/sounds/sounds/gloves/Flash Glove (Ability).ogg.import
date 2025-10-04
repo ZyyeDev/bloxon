@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cjilsai0ufg0c"
+path="res://.godot/imported/Flash Glove (Ability).ogg-85ad306f93b42a4e22a836327d2bf5f0.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Flash Glove (Ability).ogg"
+dest_files=["res://.godot/imported/Flash Glove (Ability).ogg-85ad306f93b42a4e22a836327d2bf5f0.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

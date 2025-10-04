@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bewlawixtmkom"
+path="res://.godot/imported/Berserk Glove (Fully Charged 2).ogg-e503347db2a6b21f9008e516fa8ca3e9.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Berserk Glove (Fully Charged 2).ogg"
+dest_files=["res://.godot/imported/Berserk Glove (Fully Charged 2).ogg-e503347db2a6b21f9008e516fa8ca3e9.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

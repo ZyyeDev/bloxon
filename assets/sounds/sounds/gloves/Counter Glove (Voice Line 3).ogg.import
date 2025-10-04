@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://boe3bbeux7hw3"
+path="res://.godot/imported/Counter Glove (Voice Line 3).ogg-764c80657f8a099cef27cd628977b2f5.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Counter Glove (Voice Line 3).ogg"
+dest_files=["res://.godot/imported/Counter Glove (Voice Line 3).ogg-764c80657f8a099cef27cd628977b2f5.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

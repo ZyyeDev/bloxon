@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://bo0t4xrg8xgpk"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_hfaoq"]
+[ext_resource type="PackedScene" uid="uid://b7rep7gk2pypf" path="res://brainrots/models/chimpanzini bananini.tscn" id="2_hfaoq"]
+
+[node name="chimpanzini bananini" instance=ExtResource("1_hfaoq")]
+bName = "Chimpanzini Bananini"
+cost = 50000
+generate = 300
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="chimpanzini bananini" parent="." index="5" instance=ExtResource("2_hfaoq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.55298, 0)

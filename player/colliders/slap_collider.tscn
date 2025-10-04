@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8xhd1s6tvt1e"]
+
+[ext_resource type="Script" uid="uid://o34ueuldaqsl" path="res://scripts/slap_collider.gd" id="1_pa1ak"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_7s8b5"]
+size = Vector3(3, 1, 3)
+
+[node name="slapCollider" type="Area3D"]
+script = ExtResource("1_pa1ak")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_7s8b5")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

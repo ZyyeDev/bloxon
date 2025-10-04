@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dxglbey0li6cx"]
+
+[ext_resource type="Script" uid="uid://crr37dpkwjnwn" path="res://scripts/ToolBase.gd" id="1_ry5yh"]
+
+[node name="ToolBase" type="Node3D"]
+script = ExtResource("1_ry5yh")

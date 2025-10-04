@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b3t5to4kjtfib"
+path="res://.godot/imported/Elude Keypad (911 Sound).ogg-e5c7d2ab423d2e61d5bdcf27af15326b.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Elude Keypad (911 Sound).ogg"
+dest_files=["res://.godot/imported/Elude Keypad (911 Sound).ogg-e5c7d2ab423d2e61d5bdcf27af15326b.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

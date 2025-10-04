@@ -14,3 +14,16 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# just train the model yourself, it is 100mb > so i cant upload it to github
+model.pkl
+
+__pycache__/
+@BUILDS/
+server.exe
+server.pck
+android/
+@SERVER/server_data/player_data.dat
+@SERVER/server_data/server.db
+@SERVER/server_data/server.db-wal
+@SERVER/moderation/model_vectorizer.pkl

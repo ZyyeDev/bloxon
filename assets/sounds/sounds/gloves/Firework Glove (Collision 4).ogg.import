@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://81256ugv1cxy"
+path="res://.godot/imported/Firework Glove (Collision 4).ogg-43f8b489c82e6afc1937baa22914858e.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Firework Glove (Collision 4).ogg"
+dest_files=["res://.godot/imported/Firework Glove (Collision 4).ogg-43f8b489c82e6afc1937baa22914858e.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

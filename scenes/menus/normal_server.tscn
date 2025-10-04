@@ -1,0 +1,64 @@
+[gd_scene load_steps=5 format=3 uid="uid://bo01nlxypvlp3"]
+
+[ext_resource type="Script" uid="uid://bfk5xn1itwup5" path="res://scenes/menus/normal_server.gd" id="1_nod03"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dp6sa"]
+bg_color = Color(0.15, 0.15, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nod03"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3lst3"]
+bg_color = Color(0.2, 0.6, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="NormalServer" type="Panel" node_paths=PackedStringArray("plrsLabel", "pingLabel")]
+custom_minimum_size = Vector2(400, 120)
+theme_override_styles/panel = SubResource("StyleBoxFlat_dp6sa")
+script = ExtResource("1_nod03")
+plrsLabel = NodePath("_Label_93")
+pingLabel = NodePath("_Label_94")
+
+[node name="_Label_93" type="Label" parent="."]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 8.0
+offset_right = 149.0
+offset_bottom = 50.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 20
+text = "24/50 players"
+
+[node name="_Label_94" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 44.0
+offset_right = 38.0
+offset_bottom = 58.0
+theme_override_colors/font_color = Color(0.6, 0.8, 0.6, 1)
+theme_override_font_sizes/font_size = 10
+text = "45ms"
+
+[node name="_Button_95" type="Button" parent="."]
+layout_mode = 0
+offset_left = 944.0
+offset_top = 81.0
+offset_right = 1035.0
+offset_bottom = 112.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_nod03")
+theme_override_styles/normal = SubResource("StyleBoxFlat_3lst3")
+text = "Join Server"
+
+[connection signal="pressed" from="_Button_95" to="." method="_on__button_95_pressed"]

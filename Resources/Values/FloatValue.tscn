@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://b5wcj30gjcy5v"]
+
+[ext_resource type="PackedScene" uid="uid://da3s7rwu41ba4" path="res://Resources/Values/BaseValue.tscn" id="1_irdap"]
+[ext_resource type="Script" uid="uid://dqhobghlcf4s0" path="res://Resources/Values/FloatValue.gd" id="2_irdap"]
+
+[node name="BaseValue" instance=ExtResource("1_irdap")]
+script = ExtResource("2_irdap")
+Value = 0.0

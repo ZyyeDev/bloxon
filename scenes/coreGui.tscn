@@ -1,0 +1,491 @@
+[gd_scene load_steps=31 format=3 uid="uid://b6icgh6hd8axd"]
+
+[ext_resource type="Script" uid="uid://bcm7e0dtqdx2c" path="res://scenes/CoreGui.gd" id="1_mxl2n"]
+[ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="2_4msbc"]
+[ext_resource type="Texture2D" uid="uid://cd3g182k42n0b" path="res://assets/images/UI/Menu/icon_menu.png" id="2_l1elt"]
+[ext_resource type="Texture2D" uid="uid://dna5xb5qnsnoc" path="res://assets/images/UI/Chat.png" id="3_ouet7"]
+[ext_resource type="Texture2D" uid="uid://bl6ap6u6erips" path="res://assets/images/UI/Menu/icon_leave.png" id="4_ouet7"]
+[ext_resource type="Texture2D" uid="uid://bl0mtuxkvhe8y" path="res://assets/images/UI/WhiteOverlayAsset.png" id="6_4igou"]
+[ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="7_os41l"]
+[ext_resource type="PackedScene" uid="uid://bndfai4y54u78" path="res://scenes/inventorySlot.tscn" id="8_8tb8h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4igou"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_os41l"]
+bg_color = Color(0.238744, 0.238744, 0.238744, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8tb8h"]
+bg_color = Color(0.0728426, 0.0728426, 0.0728426, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4igou"]
+bg_color = Color(0.0941176, 0.0941176, 0.0941176, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_itj3c"]
+bg_color = Color(0.238744, 0.238744, 0.238744, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fngga"]
+bg_color = Color(0.0728426, 0.0728426, 0.0728426, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8tb8h"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_om1ke"]
+bg_color = Color(0, 0, 0, 0.513726)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ouet7"]
+bg_color = Color(0.0936694, 0.0936694, 0.0936693, 0.396078)
+
+[sub_resource type="GDScript" id="GDScript_ouet7"]
+script/source = "extends ScrollContainer
+
+@onready var vbar := get_v_scroll_bar()
+@onready var vbox := $VBoxContainer
+
+var always_autoscroll: bool = true
+
+func _ready() -> void:
+	vbox.child_order_changed.connect(_on_messages_updated)
+	vbox.minimum_size_changed.connect(_on_messages_updated)
+
+func _on_messages_updated() -> void:
+	if always_autoscroll:
+		scroll_vertical = vbar.max_value
+	else:
+		if scroll_vertical >= vbar.max_value - vbar.page - 10:
+			scroll_vertical = vbar.max_value
+
+func add_message(text: String) -> void:
+	var label := RichTextLabel.new()
+	label.bbcode_enabled = true
+	label.text = text
+	vbox.add_child(label)
+"
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_os41l"]
+
+[sub_resource type="Animation" id="Animation_p5soe"]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+
+[sub_resource type="Animation" id="Animation_ye8cs"]
+resource_name = "close"
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.466667)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, -677, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.466667)
+}
+
+[sub_resource type="Animation" id="Animation_exd0e"]
+resource_name = "open"
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position:x")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:position:y")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0),
+"points": PackedFloat32Array(-677, -0.25, 0, 0.25, 0, 0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5)
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5olex"]
+_data = {
+&"RESET": SubResource("Animation_p5soe"),
+&"close": SubResource("Animation_ye8cs"),
+&"open": SubResource("Animation_exd0e")
+}
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mwwrp"]
+bg_color = Color(0.141176, 0.266667, 0.384314, 1)
+
+[sub_resource type="Theme" id="Theme_mwwrp"]
+default_font_size = 20
+
+[sub_resource type="GDScript" id="GDScript_d5h3d"]
+script/source = "extends Sprite2D
+
+func _process(delta: float) -> void:
+	rotation += delta * 5
+"
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mxl2n"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4msbc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l1elt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ouet7"]
+
+[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit")]
+z_index = 100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_mxl2n")
+connectGui = NodePath("connectGui")
+gameGui = NodePath("Game")
+connectingLabel = NodePath("connectGui/Connecting")
+inventoryBox = NodePath("Game/Inventory")
+chatContainer = NodePath("Game/Chat")
+chatScrollContainer = NodePath("Game/Chat/ScrollContainer")
+chatVBContainer = NodePath("Game/Chat/ScrollContainer/VBoxContainer")
+chatLineEdit = NodePath("Game/Chat/LineEdit")
+
+[node name="Game" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="menu" type="Button" parent="Game"]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 5.0
+offset_right = 60.0
+offset_bottom = 57.0
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
+theme_override_styles/hover = SubResource("StyleBoxFlat_os41l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_8tb8h")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+
+[node name="IconMenu" type="Sprite2D" parent="Game/menu"]
+position = Vector2(25.5, 26.5)
+scale = Vector2(0.980769, 0.980769)
+texture = ExtResource("2_l1elt")
+
+[node name="chat" type="Button" parent="Game"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 5.0
+offset_right = 116.0
+offset_bottom = 57.0
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+
+[node name="Chat" type="Sprite2D" parent="Game/chat"]
+position = Vector2(26, 27)
+scale = Vector2(0.726415, 0.726415)
+texture = ExtResource("3_ouet7")
+
+[node name="JumpButton" type="Button" parent="Game"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -179.0
+offset_top = -160.0
+offset_right = -56.0
+offset_bottom = -50.0
+grow_horizontal = 0
+grow_vertical = 0
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_8tb8h")
+
+[node name="Virtual joystick left" parent="Game" instance=ExtResource("7_os41l")]
+layout_mode = 1
+offset_left = 52.0
+offset_top = -203.0
+offset_right = 197.0
+offset_bottom = -58.0
+joystick_mode = 1
+action_left = "move_left"
+action_right = "move_right"
+action_up = "move_forward"
+action_down = "move_backwards"
+
+[node name="Inventory" type="HBoxContainer" parent="Game"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -236.5
+offset_top = -49.0
+offset_right = 236.5
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Button" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button2" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button3" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button4" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button5" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button6" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button7" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button8" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="Button9" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
+layout_mode = 2
+
+[node name="escape" type="Control" parent="Game"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel2" type="Panel" parent="Game/escape"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_om1ke")
+
+[node name="leave" type="Button" parent="Game/escape"]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 563.0
+offset_right = 849.0
+offset_bottom = 627.0
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+
+[node name="IconLeave" type="Sprite2D" parent="Game/escape/leave"]
+position = Vector2(212, 33)
+texture = ExtResource("4_ouet7")
+
+[node name="Label" type="Label" parent="Game/escape/leave"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 11.0
+offset_right = 180.0
+offset_bottom = 53.0
+theme_override_font_sizes/font_size = 30
+text = "Leave"
+
+[node name="resume" type="Button" parent="Game/escape"]
+layout_mode = 0
+offset_left = 335.0
+offset_top = 563.0
+offset_right = 584.0
+offset_bottom = 627.0
+focus_mode = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+
+[node name="Label" type="Label" parent="Game/escape/resume"]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 12.0
+offset_right = 194.0
+offset_bottom = 54.0
+theme_override_font_sizes/font_size = 30
+text = "Resume"
+
+[node name="Chat" type="Control" parent="Game"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Game/Chat"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 63.0
+offset_right = 373.0
+offset_bottom = 230.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ouet7")
+horizontal_scroll_mode = 0
+script = SubResource("GDScript_ouet7")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Game/Chat/ScrollContainer"]
+custom_minimum_size = Vector2(352, 0)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LineEdit" type="LineEdit" parent="Game/Chat"]
+custom_minimum_size = Vector2(352, 40)
+layout_mode = 2
+offset_left = 13.0
+offset_top = 234.0
+offset_right = 374.0
+offset_bottom = 274.0
+size_flags_vertical = 10
+theme_override_styles/focus = SubResource("StyleBoxEmpty_os41l")
+placeholder_text = "Enter a message..."
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Game"]
+root_node = NodePath("../escape")
+libraries = {
+&"": SubResource("AnimationLibrary_5olex")
+}
+
+[node name="connectGui" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="connectGui"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 10.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mwwrp")
+metadata/_edit_use_anchors_ = true
+
+[node name="Connecting" type="Label" parent="connectGui"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 71.0
+offset_top = -54.0
+offset_right = 288.0
+offset_bottom = -26.0
+grow_vertical = 0
+theme = SubResource("Theme_mwwrp")
+text = "Connecting to server..."
+horizontal_alignment = 1
+
+[node name="LoadingSpinner" type="Sprite2D" parent="connectGui"]
+position = Vector2(34, 611)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("2_4msbc")
+script = SubResource("GDScript_d5h3d")
+
+[node name="Back" type="Button" parent="connectGui"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -92.0
+offset_top = 9.0
+offset_right = -9.0
+offset_bottom = 78.0
+grow_horizontal = 0
+focus_mode = 0
+theme_override_font_sizes/font_size = 50
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mxl2n")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4msbc")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_l1elt")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_ouet7")
+text = "  X  "
+
+[node name="WhiteOverlayAsset" type="Sprite2D" parent="."]
+modulate = Color(1, 0, 0, 0)
+position = Vector2(584, 986)
+scale = Vector2(2.304, 1.72933)
+texture = ExtResource("6_4igou")
+
+[connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
+[connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
+[connection signal="button_down" from="Game/JumpButton" to="." method="_on_jump_pressed"]
+[connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]
+[connection signal="pressed" from="Game/escape/resume" to="." method="_on_resume_pressed"]
+[connection signal="focus_entered" from="Game/Chat/LineEdit" to="." method="_on_line_edit_focus_entered"]
+[connection signal="focus_exited" from="Game/Chat/LineEdit" to="." method="_on_line_edit_focus_exited"]
+[connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
+[connection signal="pressed" from="connectGui/Back" to="." method="_on_back_pressed"]

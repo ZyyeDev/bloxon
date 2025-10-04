@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://c63k2xm0mm286"
+path="res://.godot/imported/Click Sound.wav-a78a52a9a5de06f94bb8c6d919030822.sample"
+
+[deps]
+
+source_file="res://assets/images/UI/Menu/robloxXBOXmenuSounds/Click Sound.wav"
+dest_files=["res://.godot/imported/Click Sound.wav-a78a52a9a5de06f94bb8c6d919030822.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0

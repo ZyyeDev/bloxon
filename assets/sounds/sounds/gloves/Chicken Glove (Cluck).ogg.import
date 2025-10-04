@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dus7e5cs71dpm"
+path="res://.godot/imported/Chicken Glove (Cluck).ogg-461a10ee46bd118088ec498caa540d89.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Chicken Glove (Cluck).ogg"
+dest_files=["res://.godot/imported/Chicken Glove (Cluck).ogg-461a10ee46bd118088ec498caa540d89.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

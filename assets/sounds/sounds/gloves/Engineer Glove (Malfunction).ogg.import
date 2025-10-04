@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cqkl7lmjcah8g"
+path="res://.godot/imported/Engineer Glove (Malfunction).ogg-109ccb1acf063c0fc94d5333066ab161.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Engineer Glove (Malfunction).ogg"
+dest_files=["res://.godot/imported/Engineer Glove (Malfunction).ogg-109ccb1acf063c0fc94d5333066ab161.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

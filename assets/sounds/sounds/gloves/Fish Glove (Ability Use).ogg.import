@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cnbqsn3yago54"
+path="res://.godot/imported/Fish Glove (Ability Use).ogg-93ce7dd1c0054d09dec9e3cf9e777d6c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Fish Glove (Ability Use).ogg"
+dest_files=["res://.godot/imported/Fish Glove (Ability Use).ogg-93ce7dd1c0054d09dec9e3cf9e777d6c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

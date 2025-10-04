@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b3fenbtdi3kmn"
+path="res://.godot/imported/Balloony Glove (Ability Use).ogg-87c145ccd8892b447430ab34843845bb.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Balloony Glove (Ability Use).ogg"
+dest_files=["res://.godot/imported/Balloony Glove (Ability Use).ogg-87c145ccd8892b447430ab34843845bb.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

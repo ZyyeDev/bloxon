@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://bdxy4orsu02ms"]
+
+[ext_resource type="PackedScene" uid="uid://da3s7rwu41ba4" path="res://Resources/Values/BaseValue.tscn" id="1_ecly0"]
+[ext_resource type="Script" uid="uid://dv8557wx5kknk" path="res://Resources/Values/boolValue.gd" id="2_ecly0"]
+
+[node name="BaseValue" instance=ExtResource("1_ecly0")]
+script = ExtResource("2_ecly0")
+Value = false

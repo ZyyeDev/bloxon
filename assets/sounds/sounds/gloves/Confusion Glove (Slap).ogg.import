@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://vjjol80v2myd"
+path="res://.godot/imported/Confusion Glove (Slap).ogg-518eeaddf11b9f61f7e682853bd04968.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Confusion Glove (Slap).ogg"
+dest_files=["res://.godot/imported/Confusion Glove (Slap).ogg-518eeaddf11b9f61f7e682853bd04968.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dju73sp38v0q6"
+path="res://.godot/imported/Main Menu (Xbox One) - ROBLOX Music.mp3-5a75dc3453c2afc861d0bcc449a6fda6.mp3str"
+
+[deps]
+
+source_file="res://assets/images/UI/Menu/robloxXBOXmenuSounds/Main Menu (Xbox One) - ROBLOX Music.mp3"
+dest_files=["res://.godot/imported/Main Menu (Xbox One) - ROBLOX Music.mp3-5a75dc3453c2afc861d0bcc449a6fda6.mp3str"]
+
+[params]
+
+loop=true
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

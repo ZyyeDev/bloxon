@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://k5yj4s6pyxsw"
+path="res://.godot/imported/Chicken Glove (Scream).ogg-8adf59706a315bbed6aa927e8c1585b0.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Chicken Glove (Scream).ogg"
+dest_files=["res://.godot/imported/Chicken Glove (Scream).ogg-8adf59706a315bbed6aa927e8c1585b0.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://b63nr2xsgi5n7"
+path="res://.godot/imported/Bomb Glove (Ability Explosion).ogg-b9f0e250910beeda6c81fd02318c78ff.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Bomb Glove (Ability Explosion).ogg"
+dest_files=["res://.godot/imported/Bomb Glove (Ability Explosion).ogg-b9f0e250910beeda6c81fd02318c78ff.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

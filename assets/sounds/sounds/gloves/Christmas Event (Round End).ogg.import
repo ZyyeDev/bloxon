@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://uj32f4finlod"
+path="res://.godot/imported/Christmas Event (Round End).ogg-ae6ae1fe57a9fa96a6a2063ab8f66f61.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Christmas Event (Round End).ogg"
+dest_files=["res://.godot/imported/Christmas Event (Round End).ogg-ae6ae1fe57a9fa96a6a2063ab8f66f61.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

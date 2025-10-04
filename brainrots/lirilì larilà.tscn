@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://dmblg6a40uwqr"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_t2d2x"]
+[ext_resource type="PackedScene" uid="uid://dnrbby7v8xkv4" path="res://brainrots/models/lirilì larilà.tscn" id="2_t2d2x"]
+
+[node name="Lirilì Larilà" instance=ExtResource("1_t2d2x")]
+bName = "lirilì larilà"
+cost = 250
+generate = 3
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="lirilì larilà" parent="." index="7" instance=ExtResource("2_t2d2x")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.55298, 0)

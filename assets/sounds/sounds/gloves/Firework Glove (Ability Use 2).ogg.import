@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bta18i2ypi2vc"
+path="res://.godot/imported/Firework Glove (Ability Use 2).ogg-bae565862c60f0f8ba3218937bcd3b6c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Firework Glove (Ability Use 2).ogg"
+dest_files=["res://.godot/imported/Firework Glove (Ability Use 2).ogg-bae565862c60f0f8ba3218937bcd3b6c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

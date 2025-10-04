@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://btcwunybjjd5p"
+path="res://.godot/imported/Eternal Bob (Cutscene SFX).ogg-12def9f7621f658a61a692ee97919920.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Eternal Bob (Cutscene SFX).ogg"
+dest_files=["res://.godot/imported/Eternal Bob (Cutscene SFX).ogg-12def9f7621f658a61a692ee97919920.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

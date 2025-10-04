@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://bndfai4y54u78"]
+
+[ext_resource type="Script" uid="uid://crhw6euewbwl6" path="res://scripts/inventory_slot.gd" id="1_0nltw"]
+[ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="1_0ynsv"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0nltw"]
+
+[sub_resource type="GDScript" id="GDScript_0nltw"]
+script/source = "@tool
+extends Sprite2D
+
+@export var daSize := Vector2(20, 20)
+
+func _process(delta) -> void:
+	if texture:
+		var tex_size = texture.get_size()
+		scale = daSize / tex_size
+"
+
+[node name="Button" type="Button" node_paths=PackedStringArray("imgRef")]
+custom_minimum_size = Vector2(49, 49)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1103.0
+offset_bottom = -599.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_0nltw")
+script = ExtResource("1_0nltw")
+imgRef = NodePath("Sprite2D")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(24, 24)
+scale = Vector2(0.382813, 0.382813)
+texture = ExtResource("1_0ynsv")
+script = SubResource("GDScript_0nltw")
+daSize = Vector2(49, 49)
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

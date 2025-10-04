@@ -1,0 +1,676 @@
+[gd_scene load_steps=33 format=3 uid="uid://bku4uu237na02"]
+
+[ext_resource type="AudioStream" uid="uid://dju73sp38v0q6" path="res://assets/images/UI/Menu/robloxXBOXmenuSounds/Main Menu (Xbox One) - ROBLOX Music.mp3" id="1_cpkd4"]
+[ext_resource type="Script" uid="uid://c46h1hory72we" path="res://scenes/menus/main_menu.gd" id="1_rb2ri"]
+[ext_resource type="Texture2D" uid="uid://bl52d4jl405ix" path="res://assets/images/UI/Menu/icon_home.png" id="3_5grun"]
+[ext_resource type="Shader" uid="uid://dae1fb2qjpx2p" path="res://assets/shader/cicleImg.gdshader" id="3_bemoo"]
+[ext_resource type="Texture2D" uid="uid://bwi50liih46v3" path="res://assets/images/fallbackPfp.png" id="4_5grun"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie7uq"]
+bg_color = Color(0.08, 0.08, 0.08, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l2vun"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bemoo"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wxjkf"]
+shader = ExtResource("3_bemoo")
+
+[sub_resource type="GDScript" id="GDScript_cv8r1"]
+script/source = "@tool
+extends Sprite2D
+
+@export var targetSize: Vector2 = Vector2(128, 128) 
+
+func _process(delta: float) -> void:
+	updateScale()
+
+func updateScale():
+	if texture == null:
+		return
+	var texSize = texture.get_size()
+	if texSize == Vector2.ZERO:
+		return
+	
+	var scaleX = targetSize.x / texSize.x
+	var scaleY = targetSize.y / texSize.y
+	scale = Vector2(scaleX, scaleY)
+"
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1s7wt"]
+bg_color = Color(0.12, 0.12, 0.12, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_cv8r1"]
+
+[sub_resource type="FontVariation" id="FontVariation_l2vun"]
+variation_embolden = 0.7
+
+[sub_resource type="Theme" id="Theme_bemoo"]
+default_font = SubResource("FontVariation_l2vun")
+default_font_size = 20
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2brji"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l2vun"]
+bg_color = Color(0.305925, 0.641728, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bemoo"]
+bg_color = Color(0, 0.465855, 0.840661, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxjkf"]
+bg_color = Color(0.2, 0.6, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wxjkf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2yjtc"]
+bg_color = Color(0.789827, 2.79158e-06, 1.2514e-06, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxwsn"]
+bg_color = Color(0.461862, 1.05888e-06, 2.64719e-07, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lgdhf"]
+bg_color = Color(0.601261, 2.02149e-06, 4.33177e-07, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5grun"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5grun"]
+bg_color = Color(0, 0, 0, 0.466667)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k7u30"]
+bg_color = Color(0.133196, 0.133196, 0.133196, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lfuba"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exsfm"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m2jyg"]
+
+[sub_resource type="Animation" id="Animation_u8qvy"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("bg:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 345)]
+}
+
+[sub_resource type="Animation" id="Animation_7vwwl"]
+resource_name = "hide"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("bg:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 345), Vector2(0.5, 647)]
+}
+
+[sub_resource type="Animation" id="Animation_38x55"]
+resource_name = "show"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("bg:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0.5, 647), Vector2(0, 345)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_lqecb"]
+_data = {
+&"RESET": SubResource("Animation_u8qvy"),
+&"hide": SubResource("Animation_7vwwl"),
+&"show": SubResource("Animation_38x55")
+}
+
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "friendContainterSmall", "friendsContainer", "homePageButton", "profilePageButton", "configPageButton")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_rb2ri")
+serverListContainter = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27/_VBoxContainer_29")
+nameLabel = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/NameLabel")
+selfPfp = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton/Sprite2D")
+homePage = NodePath("Control/HomePage")
+avatarPage = NodePath("Control/AvatarPage")
+configPage = NodePath("Control/ConfigPage")
+profilePage = NodePath("Control/ProfilePage")
+friendsPage = NodePath("Control/FriendsPage")
+FriendInfo = NodePath("Control/FriendInfo")
+friendContainterSmall = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall")
+friendsContainer = NodePath("Control/FriendsPage/GridContainer")
+homePageButton = NodePath("Control/leftBar/_VBoxContainer_6/homePageButton")
+profilePageButton = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton")
+configPageButton = NodePath("Control/leftBar/_VBoxContainer_6/configPageButton")
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("1_cpkd4")
+volume_db = -13.964
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="_ColorRect_4" type="ColorRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.12, 0.12, 1)
+
+[node name="leftBar" type="Panel" parent="Control"]
+layout_mode = 0
+offset_right = 80.0
+offset_bottom = 648.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ie7uq")
+
+[node name="_VBoxContainer_6" type="VBoxContainer" parent="Control/leftBar"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 80.0
+offset_right = 70.0
+offset_bottom = 480.0
+theme_override_constants/separation = 20
+
+[node name="homePageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+modulate = Color(0.701961, 0.701961, 0.701961, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
+icon = ExtResource("3_5grun")
+flat = true
+
+[node name="_VBoxContainer_12" type="VBoxContainer" parent="Control/leftBar/_VBoxContainer_6"]
+layout_mode = 2
+
+[node name="ProfilePageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12"]
+custom_minimum_size = Vector2(50, 60)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_bemoo")
+
+[node name="Sprite2D" type="Sprite2D" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton"]
+material = SubResource("ShaderMaterial_wxjkf")
+position = Vector2(30, 31)
+scale = Vector2(0.064, 0.064)
+texture = ExtResource("4_5grun")
+script = SubResource("GDScript_cv8r1")
+targetSize = Vector2(64, 64)
+
+[node name="NameLabel" type="Label" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "{USERNAME}"
+horizontal_alignment = 1
+
+[node name="configPageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+modulate = Color(0.4, 0.7, 1, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
+text = "c"
+flat = true
+
+[node name="HomePage" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+metadata/_edit_use_anchors_ = true
+
+[node name="_ScrollContainer_16" type="ScrollContainer" parent="Control/HomePage"]
+custom_minimum_size = Vector2(1000, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="_VBoxContainer_17" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16"]
+clip_contents = true
+custom_minimum_size = Vector2(1050, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 30
+
+[node name="_VBoxContainer_18" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="_Label_19" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_18"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "Home"
+
+[node name="_HSeparator_20" type="HSeparator" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_18"]
+layout_mode = 2
+
+[node name="_VBoxContainer_21" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="_HBoxContainer_22" type="HBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21"]
+layout_mode = 2
+
+[node name="_Label_23" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "   Friends"
+
+[node name="_Control_24" type="Control" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SeeAllFriends" type="Button" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_cv8r1")
+text = "See All"
+flat = true
+
+[node name="friendContainterSmall" type="GridContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21"]
+layout_mode = 2
+theme_override_constants/h_separation = 15
+theme_override_constants/v_separation = 15
+columns = 6
+
+[node name="Join Game" type="Button" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme = SubResource("Theme_bemoo")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+text = "Join Game"
+
+[node name="_VBoxContainer_27" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="_Label_28" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Servers"
+
+[node name="_VBoxContainer_29" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27/_VBoxContainer_29"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.526423, 0.526423, 0.526423, 1)
+theme_override_font_sizes/font_size = 10
+text = "Fetching servers..."
+
+[node name="_VBoxContainer_30" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="_Label_31" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Private Servers"
+
+[node name="_VBoxContainer_32" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30/_VBoxContainer_32"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.526423, 0.526423, 0.526423, 1)
+theme_override_font_sizes/font_size = 10
+text = "Fetching servers..."
+
+[node name="ConfigPage" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+metadata/_edit_use_anchors_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/ConfigPage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="LogOut" type="Button" parent="Control/ConfigPage/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2yjtc")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xxwsn")
+theme_override_styles/normal = SubResource("StyleBoxFlat_lgdhf")
+text = "Log Out"
+
+[node name="AvatarPage" type="Panel" parent="Control"]
+visible = false
+layout_mode = 0
+offset_left = 80.0
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+
+[node name="ProfilePage" type="Panel" parent="Control"]
+visible = false
+layout_mode = 0
+offset_left = 80.0
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/ProfilePage"]
+layout_mode = 0
+offset_right = 1076.0
+offset_bottom = 230.0
+alignment = 1
+
+[node name="Panel" type="Panel" parent="Control/ProfilePage/HBoxContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_5grun")
+
+[node name="Sprite2D2" type="Sprite2D" parent="Control/ProfilePage/HBoxContainer/Panel"]
+material = SubResource("ShaderMaterial_wxjkf")
+position = Vector2(0, 116)
+scale = Vector2(0.128, 0.128)
+texture = ExtResource("4_5grun")
+script = SubResource("GDScript_cv8r1")
+
+[node name="PlayerName" type="RichTextLabel" parent="Control/ProfilePage/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+bbcode_enabled = true
+text = "{username}"
+fit_content = true
+scroll_active = false
+vertical_alignment = 1
+
+[node name="AddFriend" type="Button" parent="Control/ProfilePage/HBoxContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 4
+text = "Add friend"
+
+[node name="ReportUser" type="Button" parent="Control/ProfilePage/HBoxContainer"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 4
+text = "Report User"
+
+[node name="FriendsPage" type="Panel" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_right = 1112.0
+offset_bottom = 608.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+
+[node name="LineEdit" type="LineEdit" parent="Control/FriendsPage"]
+layout_mode = 0
+offset_left = 22.0
+offset_top = 20.0
+offset_right = 511.0
+offset_bottom = 51.0
+placeholder_text = "Search users..."
+
+[node name="FriendList" type="Button" parent="Control/FriendsPage"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 68.0
+offset_right = 319.0
+offset_bottom = 116.0
+text = "Friend List"
+
+[node name="FriendRequests" type="Button" parent="Control/FriendsPage"]
+layout_mode = 0
+offset_left = 342.0
+offset_top = 68.0
+offset_right = 651.0
+offset_bottom = 116.0
+text = "Friend Requests"
+
+[node name="GridContainer" type="GridContainer" parent="Control/FriendsPage"]
+layout_mode = 0
+offset_top = 120.0
+offset_right = 1004.0
+offset_bottom = 220.0
+columns = 12
+
+[node name="Label" type="Label" parent="Control/FriendsPage/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
+text = "  No friends :("
+
+[node name="FriendRequestList" type="GridContainer" parent="Control/FriendsPage"]
+visible = false
+layout_mode = 0
+offset_top = 120.0
+offset_right = 1004.0
+offset_bottom = 220.0
+columns = 12
+
+[node name="Label" type="Label" parent="Control/FriendsPage/FriendRequestList"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
+text = "  No friend requests"
+
+[node name="Control" type="Control" parent="Control/FriendsPage"]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="backFriendList" type="Button" parent="Control/FriendsPage/Control"]
+layout_mode = 2
+offset_left = 12.0
+offset_top = 98.0
+offset_right = 180.0
+offset_bottom = 129.0
+theme_override_colors/font_hover_pressed_color = Color(0.351342, 0.597707, 0.773707, 1)
+theme_override_colors/font_color = Color(0.255922, 0.477791, 0.63383, 1)
+theme_override_colors/font_pressed_color = Color(0.208883, 0.408456, 0.547767, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_cv8r1")
+text = "Go back to friend list"
+flat = true
+
+[node name="GridContainer" type="GridContainer" parent="Control/FriendsPage/Control"]
+layout_mode = 0
+offset_top = 145.0
+offset_right = 1004.0
+offset_bottom = 245.0
+columns = 12
+
+[node name="Label" type="Label" parent="Control/FriendsPage/Control/GridContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
+text = "  No friends :("
+
+[node name="FriendInfo" type="Panel" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -576.5
+offset_top = -323.0
+offset_right = 576.5
+offset_bottom = 323.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_5grun")
+
+[node name="bg" type="Panel" parent="Control/FriendInfo"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -576.5
+offset_top = -301.0
+offset_right = 576.5
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_k7u30")
+
+[node name="_VBoxContainer_33" type="VBoxContainer" parent="Control/FriendInfo/bg"]
+layout_mode = 2
+offset_top = 37.0
+offset_right = 1153.0
+offset_bottom = 297.0
+theme_override_constants/separation = 10
+
+[node name="Join Friend" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme = SubResource("Theme_bemoo")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+text = "Join Friend"
+
+[node name="_HSeparator_20" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+layout_mode = 2
+
+[node name="View Friend Profile" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme = SubResource("Theme_bemoo")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+text = "View Profile"
+
+[node name="_HSeparator_21" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+layout_mode = 2
+
+[node name="Cancel" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme = SubResource("Theme_bemoo")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+text = "Cancel"
+
+[node name="hide" type="Button" parent="Control/FriendInfo"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+offset_top = -1.0
+offset_right = 1153.0
+offset_bottom = 345.0
+theme = SubResource("Theme_bemoo")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_lfuba")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_exsfm")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_m2jyg")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Control/FriendInfo"]
+libraries = {
+&"": SubResource("AnimationLibrary_lqecb")
+}
+
+[node name="UpdateServers" type="Timer" parent="."]
+wait_time = 15.0
+autostart = true
+
+[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/homePageButton" to="." method="_on_home_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/configPageButton" to="." method="_on_config_page_button_pressed"]
+[connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22/SeeAllFriends" to="." method="_on_see_all_friends_pressed"]
+[connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/Join Game" to="." method="_on_join_game_pressed"]
+[connection signal="pressed" from="Control/ConfigPage/VBoxContainer/LogOut" to="." method="_on_log_out_pressed"]
+[connection signal="pressed" from="Control/ProfilePage/HBoxContainer/AddFriend" to="." method="_on_add_friend_pressed"]
+[connection signal="text_submitted" from="Control/FriendsPage/LineEdit" to="." method="_on_line_edit_text_submitted"]
+[connection signal="pressed" from="Control/FriendsPage/FriendList" to="." method="_on_friend_list_pressed"]
+[connection signal="pressed" from="Control/FriendsPage/FriendRequests" to="." method="_on_friend_requests_pressed"]
+[connection signal="pressed" from="Control/FriendsPage/Control/backFriendList" to="." method="_on_back_friend_list_pressed"]
+[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Join Friend" to="." method="_on_join_friend_pressed"]
+[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
+[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Cancel" to="." method="hideFriendInfo"]
+[connection signal="pressed" from="Control/FriendInfo/hide" to="." method="hideFriendInfo"]
+[connection signal="timeout" from="UpdateServers" to="." method="_on_update_servers_timeout"]

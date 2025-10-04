@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://74kg1068c0a8"
+path="res://.godot/imported/Ghost Glove (Slap).ogg-c978a9086df61bc3a372caf744815f2b.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Ghost Glove (Slap).ogg"
+dest_files=["res://.godot/imported/Ghost Glove (Slap).ogg-c978a9086df61bc3a372caf744815f2b.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

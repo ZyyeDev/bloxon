@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c2xvnrqaafica"
+path="res://.godot/imported/Bob & Rob Portal (Ambience).ogg-a30440b82043c6cc9539aa86e385481a.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Bob & Rob Portal (Ambience).ogg"
+dest_files=["res://.godot/imported/Bob & Rob Portal (Ambience).ogg-a30440b82043c6cc9539aa86e385481a.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

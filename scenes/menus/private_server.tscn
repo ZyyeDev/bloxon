@@ -1,0 +1,64 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6widkbpyoksw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxs4w"]
+bg_color = Color(0.18, 0.15, 0.22, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.3, 0.5, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ypm2q"]
+bg_color = Color(0.6, 0.3, 0.8, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="privateServer" type="Panel"]
+custom_minimum_size = Vector2(400, 100)
+theme_override_styles/panel = SubResource("StyleBoxFlat_xxs4w")
+
+[node name="_Label_112" type="Label" parent="."]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 15.0
+offset_bottom = 15.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Mike's Private Server"
+
+[node name="_Label_113" type="Label" parent="."]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 35.0
+offset_right = 15.0
+offset_bottom = 35.0
+theme_override_colors/font_color = Color(0.8, 0.7, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Owner: MikeDev"
+
+[node name="_Label_114" type="Label" parent="."]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 55.0
+offset_right = 15.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "5/10 players"
+
+[node name="_Button_115" type="Button" parent="."]
+layout_mode = 0
+offset_left = 953.0
+offset_top = 61.0
+offset_right = 1039.0
+offset_bottom = 92.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_ypm2q")
+text = "Join"

@@ -1,0 +1,175 @@
+[gd_scene load_steps=9 format=3 uid="uid://ded7toxjrqw4y"]
+
+[ext_resource type="Script" uid="uid://dvsqess7iqhbk" path="res://scripts/global/utils/errorBox.gd" id="1_7tkpy"]
+[ext_resource type="Shader" uid="uid://dtbxdm1f7lfjj" path="res://assets/shader/blur.gdshader" id="2_eqjjv"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_npie7"]
+shader = ExtResource("2_eqjjv")
+shader_parameter/sigma = 3.3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_002qg"]
+bg_color = Color(0.2, 0.2, 0.2, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7tkpy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jp0v5"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tkpy"]
+bg_color = Color(0.9, 0.9, 0.9, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jagoy"]
+bg_color = Color(0.9, 0.9, 0.9, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ErrorBox" type="Control" node_paths=PackedStringArray("titleLbl", "primaryLbl", "errorLbl", "leaveBtn")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_7tkpy")
+titleLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_7/_Label_8")
+primaryLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11/_Label_12")
+errorLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11/_Label_13")
+leaveBtn = NodePath("_Panel_5/_VBoxContainer_6/_Control_14/_Button_15")
+
+[node name="_ColorRect_4" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_npie7")
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.4)
+
+[node name="_Panel_5" type="Panel" parent="."]
+custom_minimum_size = Vector2(350, 200)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -185.0
+offset_top = -83.0
+offset_right = 165.0
+offset_bottom = 117.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_002qg")
+
+[node name="_VBoxContainer_6" type="VBoxContainer" parent="_Panel_5"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 0
+
+[node name="_Control_7" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="_Label_8" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -67.0
+offset_top = -13.0
+offset_right = 64.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Disconnected"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="_HSeparator_9" type="HSeparator" parent="_Panel_5/_VBoxContainer_6"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="_Control_10" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="_VBoxContainer_11" type="VBoxContainer" parent="_Panel_5/_VBoxContainer_6/_Control_10"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -172.0
+offset_top = -31.0
+offset_right = 171.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="_Label_12" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "You have been kicked due to unexpected client behavior."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="_Label_13" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+text = "(Error Code: 268)"
+horizontal_alignment = 1
+
+[node name="_Control_14" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="_Button_15" type="Button" parent="_Panel_5/_VBoxContainer_6/_Control_14"]
+custom_minimum_size = Vector2(270, 35)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -135.0
+offset_top = -20.0
+offset_right = 135.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7tkpy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jp0v5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7tkpy")
+theme_override_styles/normal = SubResource("StyleBoxFlat_jagoy")
+text = "Leave"
+
+[connection signal="pressed" from="_Panel_5/_VBoxContainer_6/_Control_14/_Button_15" to="." method="_on__button_15_pressed"]

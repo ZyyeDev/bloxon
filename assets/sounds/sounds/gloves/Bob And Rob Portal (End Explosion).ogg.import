@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://v643setm2a78"
+path="res://.godot/imported/Bob And Rob Portal (End Explosion).ogg-ffd5cc1effd663da2809dfdc0f2a8bd5.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Bob And Rob Portal (End Explosion).ogg"
+dest_files=["res://.godot/imported/Bob And Rob Portal (End Explosion).ogg-ffd5cc1effd663da2809dfdc0f2a8bd5.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

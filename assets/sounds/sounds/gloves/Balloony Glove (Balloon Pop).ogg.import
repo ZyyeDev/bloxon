@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dhf6pc0ofes1p"
+path="res://.godot/imported/Balloony Glove (Balloon Pop).ogg-2e97b100c69eebcb18fd607b927db63c.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Balloony Glove (Balloon Pop).ogg"
+dest_files=["res://.godot/imported/Balloony Glove (Balloon Pop).ogg-2e97b100c69eebcb18fd607b927db63c.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

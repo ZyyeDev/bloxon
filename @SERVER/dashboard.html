@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Server Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #1a1a1a;
+            border: 1px solid #333;
+        }
+        .header {
+            background: #222;
+            border-bottom: 1px solid #333;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header-left h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        .header-left p {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #444; }
+        .btn.danger { background: #dc3545; border-color: #dc3545; }
+        .btn.danger:hover { background: #c82333; }
+        .btn.warning { background: #fd7e14; border-color: #fd7e14; color: #000; }
+        .btn.warning:hover { background: #e8681c; }
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ccc;
+            font-size: 0.85rem;
+        }
+        .auto-refresh input[type="checkbox"] { margin: 0; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            border-bottom: 1px solid #333;
+        }
+        .stat {
+            padding: 20px;
+            text-align: center;
+            border-right: 1px solid #333;
+        }
+        .stat:last-child { border-right: none; }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        .stat-label {
+            color: #999;
+            font-size: 0.8rem;
+        }
+        .content {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        th {
+            background: #2a2a2a;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #333;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            font-size: 0.85rem;
+        }
+        tr:hover { background: #252525; }
+        .uid {
+            font-family: monospace;
+            color: #ccc;
+        }
+        .status {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .status.healthy { background: #1e4620; color: #4ade80; }
+        .status.warning { background: #422006; color: #fbbf24; }
+        .status.starting { background: #1e3a8a; color: #60a5fa; }
+        .progress-bar {
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            height: 6px;
+            margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 2px;
+        }
+        .ip-blocked { color: #ef4444; }
+        .ip-warning { color: #fbbf24; }
+        .ip-normal { color: #4ade80; }
+        .block-form {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .block-form input {
+            background: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            width: 60px;
+        }
+        .block-form button {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .header { flex-direction: column; gap: 15px; }
+            .header-controls { width: 100%; justify-content: center; }
+            th, td { padding: 8px; font-size: 0.8rem; }
+            .block-form { flex-direction: column; gap: 2px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>Server Dashboard</h1>
+                <p>Server monitoring and management</p>
+            </div>
+            <div class="header-controls">
+                <div class="auto-refresh">
+                    <input type="checkbox" id="autoRefresh" checked>
+                    <label for="autoRefresh">Auto-refresh (5s)</label>
+                </div>
+                <button class="btn" onclick="refreshData()">Manual Refresh</button>
+                <!-- <button class="btn danger" onclick="restartAllServers()">Restart All Servers</button> -->
+            </div>
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stat">
+                <div class="stat-value" id="totalServers">0</div>
+                <div class="stat-label">Total Servers</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalPlayers">0</div>
+                <div class="stat-label">Online Players</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="activeServers">0</div>
+                <div class="stat-label">Active Servers</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="totalCapacity">0</div>
+                <div class="stat-label">Total Capacity</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">Servers</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Server ID</th>
+                            <th>Address</th>
+                            <th>Players</th>
+                            <th>Status</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serversTableBody">
+                        <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Rate Limiting & IP Monitoring</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Requests (15s)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rateLimitTableBody">
+                        <tr><td colspan="4" class="empty-state">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshEnabled = true;
+        let refreshInterval;
+
+        document.getElementById('autoRefresh').addEventListener('change', function() {
+            autoRefreshEnabled = this.checked;
+            if (autoRefreshEnabled) {
+                startAutoRefresh();
+            } else {
+                clearInterval(refreshInterval);
+            }
+        });
+
+        function startAutoRefresh() {
+            clearInterval(refreshInterval);
+            if (autoRefreshEnabled) {
+                refreshInterval = setInterval(refreshData, 5000);
+            }
+        }
+
+        async function refreshData() {
+            const container = document.querySelector('.container');
+            container.classList.add('loading');
+
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('totalServers').textContent = data.stats.total_servers;
+                document.getElementById('totalPlayers').textContent = data.stats.total_players;
+                document.getElementById('activeServers').textContent = data.stats.active_servers;
+                document.getElementById('totalCapacity').textContent = data.stats.total_capacity;
+
+                // Update servers table
+                const serversBody = document.getElementById('serversTableBody');
+                if (data.servers.length === 0) {
+                    serversBody.innerHTML = '<tr><td colspan="5" class="empty-state">No servers running</td></tr>';
+                } else {
+                    serversBody.innerHTML = data.servers.map(server => {
+                        const utilization = server.utilization;
+                        const fillColor = utilization < 70 ? '#4ade80' : utilization < 90 ? '#fbbf24' : '#ef4444';
+                        const statusClass = server.status;
+
+                        return `
+                            <tr>
+                                <td class="uid">${server.short_uid}</td>
+                                <td>${server.ip}:${server.port}</td>
+                                <td>
+                                    ${server.player_count}/${server.max_players}
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${utilization}%; background: ${fillColor};"></div>
+                                    </div>
+                                </td>
+                                <td><span class="status ${statusClass}">${server.status}</span></td>
+                                <td>${server.last_seen}s</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                // Update rate limit table
+                const rateLimitBody = document.getElementById('rateLimitTableBody');
+                if (data.rate_limits.length === 0) {
+                    rateLimitBody.innerHTML = '<tr><td colspan="4" class="empty-state">No active rate limits</td></tr>';
+                } else {
+                    rateLimitBody.innerHTML = data.rate_limits.map(item => {
+                        const statusClass = item.blocked ? 'ip-blocked' : item.requests > 15 ? 'ip-warning' : 'ip-normal';
+                        const statusText = item.blocked ? `Blocked (${item.block_expires}s)` : item.requests > 15 ? 'High Traffic' : 'Normal';
+
+                        return `
+                            <tr>
+                                <td class="uid">${item.ip}</td>
+                                <td>${item.requests}/20</td>
+                                <td class="${statusClass}">${statusText}</td>
+                                <td>
+                                    ${!item.blocked ? `
+                                        <div class="block-form">
+                                            <input type="number" id="duration-${item.ip}" value="60" min="1" max="1440">
+                                            <button onclick="blockIp('${item.ip}', document.getElementById('duration-${item.ip}').value)">Block (min)</button>
+                                        </div>
+                                    ` : 'Blocked'}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+            } catch (error) {
+                console.error('Failed to refresh data:', error);
+            } finally {
+                container.classList.remove('loading');
+            }
+        }
+
+        async function blockIp(ip, duration) {
+            try {
+                const response = await fetch('/admin/block_ip', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        duration: parseInt(duration)
+                    })
+                });
+
+                if (response.ok) {
+                    refreshData();
+                } else {
+                    alert('Failed to block IP');
+                }
+            } catch (error) {
+                console.error('Error blocking IP:', error);
+                alert('Error blocking IP');
+            }
+        }
+
+        async function restartAllServers() {
+            return;
+            if (!confirm('Are you sure you want to restart all servers? This will disconnect all players.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/admin/restart_servers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Restarted ${result.servers} servers successfully`);
+                    refreshData();
+                } else {
+                    alert('Failed to restart servers');
+                }
+            } catch (error) {
+                console.error('Error restarting servers:', error);
+                alert('Error restarting servers');
+            }
+        }
+
+        // Initialize
+        refreshData();
+        startAutoRefresh();
+    </script>
+</body>
+</html>

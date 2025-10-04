@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://crnjcowq7t6hu"
+path="res://.godot/imported/Brick Glove (1000 Bricks).ogg-08c716212d19f6cdc5f47b72e9223ddf.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Brick Glove (1000 Bricks).ogg"
+dest_files=["res://.godot/imported/Brick Glove (1000 Bricks).ogg-08c716212d19f6cdc5f47b72e9223ddf.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

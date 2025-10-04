@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bcu2kaxjjipoo"
+path="res://.godot/imported/Counter Glove (Explosion).ogg-598e7eb38ab06109156cfdf1e2f44fc9.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Counter Glove (Explosion).ogg"
+dest_files=["res://.godot/imported/Counter Glove (Explosion).ogg-598e7eb38ab06109156cfdf1e2f44fc9.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

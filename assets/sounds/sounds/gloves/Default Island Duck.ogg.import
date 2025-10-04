@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cf0cb3pcr1tea"
+path="res://.godot/imported/Default Island Duck.ogg-5d5da9770e16a85769d68fc5eee5d0bf.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Default Island Duck.ogg"
+dest_files=["res://.godot/imported/Default Island Duck.ogg-5d5da9770e16a85769d68fc5eee5d0bf.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

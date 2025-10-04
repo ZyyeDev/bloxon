@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cufl780wvjd11"
+path="res://.godot/imported/Druid Glove (Ability SFX 1).ogg-d77cce466b257d96b8ad9d0e038eb404.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/sounds/gloves/Druid Glove (Ability SFX 1).ogg"
+dest_files=["res://.godot/imported/Druid Glove (Ability SFX 1).ogg-d77cce466b257d96b8ad9d0e038eb404.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

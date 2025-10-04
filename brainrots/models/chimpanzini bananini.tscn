@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7rep7gk2pypf"]
+
+[ext_resource type="ArrayMesh" uid="uid://c2lgr8atk3xkj" path="res://assets/models/3d/brairots/chimpanzini bananini/chimpanzini bananini.obj" id="1_wjiq6"]
+
+[node name="chimpanzini bananini" type="Node3D"]
+
+[node name="ChimpanziniBananini" type="MeshInstance3D" parent="."]
+transform = Transform3D(-3.93403e-08, 0, 0.9, 0, 0.9, 0, -0.9, 0, -3.93403e-08, 0, -2.38096, 0)
+mesh = ExtResource("1_wjiq6")

@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://b75s4cux7sv4"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_m6h74"]
+[ext_resource type="PackedScene" uid="uid://dlchtn8nnko3w" path="res://brainrots/models/noobini pizzanini.tscn" id="2_q7878"]
+
+[node name="noobini pizzanini" instance=ExtResource("1_m6h74")]
+bName = "noobini pizzanini"
+cost = 25
+generate = 1
+
+[node name="NoobiniPizzanini" parent="." index="0" instance=ExtResource("2_q7878")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0286622, -4.54576, -0.0100722)
+
+[node name="MeshInstance3D" parent="." index="1"]
+visible = false
+
+[node name="NavigationAgent3D" parent="." index="3"]
+avoidance_enabled = true
+debug_enabled = true
