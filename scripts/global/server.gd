@@ -311,10 +311,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 		var loaded_money = data.get("money", 100)
 		var loaded_rebirths = data.get("rebirths", 0)
 		
-		if typeof(loaded_money) != TYPE_FLOAT and typeof(loaded_money) != TYPE_INT:
+		if loaded_money <= 0:
 			loaded_money = 100
-		if loaded_money < 0:
-			loaded_money = 0
 		
 		data["money"] = loaded_money
 		playerData[user_id] = data.duplicate(true)

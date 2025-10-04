@@ -1096,3 +1096,5 @@ shape = SubResource("BoxShape3D_aqqqq")
 
 [connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
 [connection signal="body_entered" from="Area3D" to="." method="_on_area_3d_body_entered"]
+[connection signal="body_entered" from="StealArea" to="." method="_on_steal_area_body_entered"]
+[connection signal="body_exited" from="StealArea" to="." method="_on_steal_area_body_exited"]

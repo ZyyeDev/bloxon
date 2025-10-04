@@ -15,4 +15,4 @@ func _ready():
 	if Global.isClient:
 		while not Client.is_connected:
 			await Global.wait(1)
-		$AudioStreamPlayer.play()
+		#$AudioStreamPlayer.play()

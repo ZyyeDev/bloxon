@@ -37,7 +37,7 @@ var brainrots = {}
 
 var noportIp = "92.176.163.239"
 var masterIp = "http://"+noportIp+":8080"
-var localPlayer = null
+var localPlayer:player = null
 var currentInvSelect = -1
 
 var ERROR_CODES = {
@@ -242,10 +242,11 @@ func server_try_grab(brUID, pUID):
 	if !isClient and brUID in brainrots and brainrots[brUID]:
 		var br = brainrots[brUID]
 		
-		if br.pGet != "":
-			print("Brainrot already grabbed by: ", br.pGet)
-		
 		var plr = getPlayer(pUID)
+		
+		# if we dont have space, then don't grab it
+		if not whatHousePlr(pUID).ref.getAvailableSpace():
+			return
 		
 		if plr and br.cost <= plr.moneyValue.Value:
 			plr.moneyValue.Value -= br.cost
@@ -602,3 +603,68 @@ func rebirth():
 	var plr = getPlayer(sender)
 	
 	plr.rebirthsVal.Value += 1
+
+@rpc("any_peer")
+func trySteal(slot_name, plruid):
+	var peer_id = multiplayer.get_remote_sender_id()
+	
+	if !isClient:
+		var phouse:house = whatHousePlr(plruid).ref
+		var houseOwner:player = getPlayer(plruid)
+		var actionPlayer:player = getPlayer(peer_id)
+		var actionPlrHouse:house = whatHousePlr(peer_id)
+		
+		print("trySteal called - Slot: ", slot_name, " | House Owner: ", plruid, " | Action Player: ", peer_id)
+		print("phouse exists: ", phouse != null)
+		print("brainrots dict: ", phouse.brainrots if phouse else "null")
+		
+		if !phouse:
+			print("ERROR: phouse is null")
+			return
+			
+		if !phouse.brainrots.has(slot_name):
+			print("ERROR: Invalid slot name: ", slot_name)
+			return
+		
+		print("Slot data: ", phouse.brainrots[slot_name])
+		
+		if phouse.brainrots[slot_name]["brainrot"]["id"] == "":
+			print("ERROR: No brainrot in slot: ", slot_name)
+			return
+		
+		var buid = phouse.brainrots[slot_name]["brainrot"]["UID"]
+		var brainrot_id = phouse.brainrots[slot_name]["brainrot"]["id"]
+		
+		print("Loading brainrot scene: ", brainrot_id)
+		var temp = load("res://brainrots/%s.tscn" % brainrot_id).instantiate()
+		var bcost = temp.cost
+		var bgenerate = temp.generate
+		var brarity = temp.rarity
+		temp.queue_free()
+		temp = null
+		
+		print("Brainrot loaded - cost: ", bcost, " | generate: ", bgenerate)
+		print("Comparing peer_id (", peer_id, " type:", typeof(peer_id), ") with plruid (", plruid, " type:", typeof(plruid), ")")
+		print("Are they equal? ", str(peer_id) == str(plruid))
+		print("String comparison: ", str(peer_id) == str(plruid))
+		
+		if str(peer_id) == str(plruid):
+			print("Player selling brainrot for: $", int(round(bcost * 0.35)))
+			print("houseOwner exists: ", houseOwner != null)
+			if houseOwner:
+				print("Adding money to player, current value: ", houseOwner.moneyValue.Value)
+				houseOwner.moneyValue.Value += int(round(bcost * 0.10))
+				print("New money value: ", houseOwner.moneyValue.Value)
+			print("Calling removeBrainrot on slot: ", slot_name)
+			phouse.removeBrainrot(slot_name)
+			print("removeBrainrot completed")
+		else:
+			print("Player ", peer_id, " attempting to steal from house owned by ", plruid)
+			print("actionPlayer exists: ", actionPlayer != null)
+			if actionPlayer:
+				phouse.rpc("updateBrainrotStealing", true, slot_name)
+				actionPlayer.rpc("changeBrainrotHolding",brainrot_id)
+				actionPlayer.get_node("stealingSlot").Value = slot_name
+				actionPlayer.stealingSlot.Value = int(slot_name)
+				actionPlayer.whoImStealing.Value = int(houseOwner.uid)
+				print("Steal initiated - Brainrot: ", brainrot_id, " | Slot: ", slot_name)

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b6aufxxn67q3l"
+path="res://.godot/imported/cash register.mp3-ddb856054d84a532dfd39271b5aaf483.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/cash register.mp3"
+dest_files=["res://.godot/imported/cash register.mp3-ddb856054d84a532dfd39271b5aaf483.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

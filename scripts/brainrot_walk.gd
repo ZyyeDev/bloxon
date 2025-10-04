@@ -17,7 +17,7 @@ func _ready() -> void:
 	if Global.isClient:
 		proximity_prompt = ProximityPrompt.new()
 		proximity_prompt.prompt_text = "Collect"
-		proximity_prompt.hold_duration = .5
+		proximity_prompt.hold_duration = .25
 		proximity_prompt.detection_radius = 10
 		proximity_prompt.prompt_activated.connect(tryGrab)
 		proximity_prompt.name = "ProximityPrompt"
@@ -51,18 +51,23 @@ func set_initial_target():
 		print("No target found for brainrot: ", UID)
 
 func tryGrab():
-	if pGet != "":
-		print("Brainrot already grabbed by: ", pGet)
+	if Global.whatHouseIm().ref.getAvailableSpace() == null:
+		Global.localPlayer.get_node("MainUi").addBottomMsg(
+			"[outline_size=8][outline_color=#000000][color=#ff0000]You don't have space in your base![/color][/outline_color][/outline_size]",
+			5)
+		var snd = AudioStreamPlayer.new()
+		snd.volume_db = -20
+		snd.stream = load("res://assets/sounds/error.ogg")
+		Global.localPlayer.add_child(snd)
+		snd.play()
+		Debris.addItem(snd,snd.stream.get_length())
 		return
 	
 	if Global.localPlayer.get_node("moneyVal").Value >= cost:
 		Global.localPlayer.get_node("MainUi").addBottomMsg("[outline_size=8][outline_color=#000000][color=#99FF66]Successfully purchased %s [/color][/outline_color][/outline_size]" % [bName], 5.0)
 	
 	if Global.isClient:
-		print("Calling Global.tryGrab with UID: ", UID)
 		Global.tryGrab(UID)
-	else:
-		print("Not calling tryGrab - not a client")
 
 func _process(delta: float) -> void:
 	if oldcost != cost and !Global.isClient:

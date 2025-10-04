@@ -1,6 +1,13 @@
-[gd_scene load_steps=12 format=3 uid="uid://hiwa4m8nb6lr"]
+[gd_scene load_steps=13 format=3 uid="uid://hiwa4m8nb6lr"]
 
 [ext_resource type="Script" uid="uid://cs7rvdocctujd" path="res://player/UI/mainUi.gd" id="1_7l3lq"]
+
+[sub_resource type="GDScript" id="GDScript_1rl2n"]
+script/source = "extends Button
+
+func _ready() -> void:
+	focus_mode = Control.FOCUS_NONE
+"
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rsn2p"]
 bg_color = Color(8.59736e-06, 0.0446646, 0.212426, 0.580392)
@@ -113,8 +120,10 @@ offset_right = 58.0
 offset_bottom = 308.0
 grow_vertical = 2
 text = "R"
+script = SubResource("GDScript_1rl2n")
 
 [node name="RebirthPanel" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

@@ -43,10 +43,19 @@ func createPlayer(UID, position: Vector3, isLocal = false):
 	playerClone.uid = UID
 	playerClone.global_position = position
 	playerClone.name = str(UID)
-	var user_id = get_user_id_for_uid(UID)
+	
+	var user_id = int(get_user_id_for_uid(UID))
+	
 	if user_id > 0:
-		playerClone.rpc("changeColors", await Client.getAvatar(user_id, Global.token))
+		print("getting avatar data from user id ",user_id,isLocal)
+		var avatarData = await Client.getAvatar(user_id, Global.token)
+		print("avatar data is ",avatarData)
+		if !Global.isClient:
+			playerClone.rpc("changeColors", avatarData)
+		else:
+			playerClone.changeColors(avatarData)
 	else:
+		printerr("user id is < 0 and cant get avatar data ",user_id,isLocal)
 		playerClone.rpc("changeColors", {})
 	
 	if isLocal:

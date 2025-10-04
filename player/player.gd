@@ -41,6 +41,9 @@ class_name player
 @export_group("Others")
 @export var moneyValue: IntValue
 @export var rebirthsVal: IntValue
+@export var stealingSlot: IntValue
+@export var whoImStealing: IntValue
+
 @export var BubbleBox: Sprite3D
 
 var network_position: Vector3
@@ -425,3 +428,7 @@ func addBubbleBox(msg):
 	if is_instance_valid(msgins):
 		if msgins:
 			msgins.Hide()
+
+@rpc("authority","call_local","reliable")
+func changeBrainrotHolding(newHolding):
+	brainrotHolding = newHolding
