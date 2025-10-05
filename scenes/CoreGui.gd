@@ -1,4 +1,4 @@
-@icon("res://assets/EditorIcons/SurfaceGui.png")
+#@icon("res://assets/EditorIcons/SurfaceGui.png")
 extends Control
 class_name core_gui
 
@@ -13,6 +13,8 @@ class_name core_gui
 @export var chatScrollContainer:ScrollContainer
 @export var chatVBContainer:VBoxContainer
 @export var chatLineEdit:LineEdit
+@export_subgroup("Mobile")
+@export var JumpButton:Button
 
 var paused = false
 var chatOpen = false
@@ -21,6 +23,7 @@ var chatTexting = false
 const MAX_MESSAGE_LENGTH = 200
 
 func _ready() -> void: 
+	await get_tree().process_frame
 	updateInv()
 	chatLineEdit.max_length = MAX_MESSAGE_LENGTH
 	if Global.isClient:
@@ -36,7 +39,10 @@ func _ready() -> void:
 				i.queue_free()
 		)
 	else:
+		print("DESTROYING COREGUI CUZ SERVER!")
 		queue_free()
+	
+	JumpButton.focus_mode = FOCUS_NONE
 
 func _process(delta: float) -> void:
 	if !Global.isClient: return
@@ -141,6 +147,10 @@ func _on_jump_pressed() -> void:
 	Input.action_press("jump")
 	await get_tree().process_frame
 	Input.action_release("jump")
+	JumpButton.icon = load("res://assets/images/UI/Mobile/jumpPressed.png")
+
+func _on_jump_button_button_up() -> void:
+	JumpButton.icon = load("res://assets/images/UI/Mobile/jump.png")
 
 func _on_line_edit_focus_entered() -> void:
 	chatTexting = true
