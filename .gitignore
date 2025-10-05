@@ -27,3 +27,7 @@ android/
 @SERVER/server_data/server.db
 @SERVER/server_data/server.db-wal
 @SERVER/moderation/model_vectorizer.pkl
+@SERVER/server.console.exe
+@SERVER/server_data/friend_requests.dat
+@SERVER/server_data/friends.dat
+@SERVER/server_data/server.db-shm
