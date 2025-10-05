@@ -50,7 +50,6 @@ var ERROR_CODES = {
 var alrHasError = false
 
 func _ready() -> void:
-	if Engine.is_editor_hint(): isClient = true
 	if isClient:
 		startClient()
 	else:
@@ -573,8 +572,7 @@ func receiveChatMessage(message: String, senderUID: String):
 			username = player.name
 			player.addBubbleBox(message)
 		
-		if CoreGui and CoreGui.has_method("addChatMessage"):
-			CoreGui.addChatMessage(username, message)
+		CoreGui.addChatMessage(username, message)
 		
 		print("[CHAT] ", username, ": ", message)
 
@@ -612,7 +610,7 @@ func trySteal(slot_name, plruid):
 		var phouse:house = whatHousePlr(plruid).ref
 		var houseOwner:player = getPlayer(plruid)
 		var actionPlayer:player = getPlayer(peer_id)
-		var actionPlrHouse:house = whatHousePlr(peer_id)
+		var actionPlrHouse = whatHousePlr(peer_id)
 		
 		print("trySteal called - Slot: ", slot_name, " | House Owner: ", plruid, " | Action Player: ", peer_id)
 		print("phouse exists: ", phouse != null)
@@ -634,6 +632,7 @@ func trySteal(slot_name, plruid):
 		
 		var buid = phouse.brainrots[slot_name]["brainrot"]["UID"]
 		var brainrot_id = phouse.brainrots[slot_name]["brainrot"]["id"]
+		var slot_index = phouse.brainrots[slot_name]["index"]
 		
 		print("Loading brainrot scene: ", brainrot_id)
 		var temp = load("res://brainrots/%s.tscn" % brainrot_id).instantiate()
@@ -646,15 +645,19 @@ func trySteal(slot_name, plruid):
 		print("Brainrot loaded - cost: ", bcost, " | generate: ", bgenerate)
 		print("Comparing peer_id (", peer_id, " type:", typeof(peer_id), ") with plruid (", plruid, " type:", typeof(plruid), ")")
 		print("Are they equal? ", str(peer_id) == str(plruid))
-		print("String comparison: ", str(peer_id) == str(plruid))
 		
 		if str(peer_id) == str(plruid):
-			print("Player selling brainrot for: $", int(round(bcost * 0.35)))
+			print("Player selling brainrot for: $", int(round(bcost * 0.10)))
 			print("houseOwner exists: ", houseOwner != null)
 			if houseOwner:
 				print("Adding money to player, current value: ", houseOwner.moneyValue.Value)
 				houseOwner.moneyValue.Value += int(round(bcost * 0.10))
 				print("New money value: ", houseOwner.moneyValue.Value)
+				
+				if get_parent().has_node("Server"):
+					var server = get_parent().get_node("Server")
+					server.updatePlayerMoney(str(peer_id), houseOwner.moneyValue.Value)
+			
 			print("Calling removeBrainrot on slot: ", slot_name)
 			phouse.removeBrainrot(slot_name)
 			print("removeBrainrot completed")
@@ -663,8 +666,7 @@ func trySteal(slot_name, plruid):
 			print("actionPlayer exists: ", actionPlayer != null)
 			if actionPlayer:
 				phouse.rpc("updateBrainrotStealing", true, slot_name)
-				actionPlayer.rpc("changeBrainrotHolding",brainrot_id)
-				actionPlayer.get_node("stealingSlot").Value = slot_name
-				actionPlayer.stealingSlot.Value = int(slot_name)
-				actionPlayer.whoImStealing.Value = int(houseOwner.uid)
-				print("Steal initiated - Brainrot: ", brainrot_id, " | Slot: ", slot_name)
+				actionPlayer.rpc("changeBrainrotHolding", brainrot_id)
+				actionPlayer.stealingSlot.Value = slot_index
+				actionPlayer.whoImStealing.Value = int(plruid)
+				print("Steal initiated - Brainrot: ", brainrot_id, " | Slot name: ", slot_name, " | Slot index: ", slot_index)
