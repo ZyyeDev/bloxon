@@ -189,6 +189,11 @@ func _on_peer_disconnected(id):
 	
 	var user_id = uidToUserId.get(str(id))
 	if user_id:
+		var plr = Global.getPlayer(str(id))
+		if plr and plr.moneyValue:
+			playerData[user_id]["money"] = plr.moneyValue.Value
+			print("Captured money before save: $", plr.moneyValue.Value)
+		
 		print("Saving data for user_id: ", user_id)
 		await savePlayerData(user_id)
 		uidToUserId.erase(str(id))
@@ -213,6 +218,13 @@ func _notification(what):
 func cleanup_server():
 	server_running = false
 	print("Server shutting down, saving all player data...")
+	
+	for peer_id in uidToUserId:
+		var user_id = uidToUserId[peer_id]
+		var plr = Global.getPlayer(peer_id)
+		if plr and plr.moneyValue and user_id in playerData:
+			playerData[user_id]["money"] = plr.moneyValue.Value
+	
 	await saveAllPlayerData()
 	if heartbeat_timer:
 		heartbeat_timer.queue_free()
@@ -311,7 +323,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 		var loaded_money = data.get("money", 100)
 		var loaded_rebirths = data.get("rebirths", 0)
 		
-		if loaded_money <= 0:
+		if loaded_money < 0:
 			loaded_money = 100
 		
 		data["money"] = loaded_money
@@ -397,6 +409,13 @@ func loadPlayerData(user_id: int, peer_id: int):
 
 func saveAllPlayerData():
 	print("Saving all player data - ", playerData.size(), " players")
+	
+	for peer_id in uidToUserId:
+		var user_id = uidToUserId[peer_id]
+		var plr = Global.getPlayer(peer_id)
+		if plr and plr.moneyValue and user_id in playerData:
+			playerData[user_id]["money"] = plr.moneyValue.Value
+	
 	for user_id in playerData:
 		await savePlayerData(user_id)
 	print("All player data saved")
