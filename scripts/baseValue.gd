@@ -7,10 +7,11 @@ var value = null:
 		if value != val:
 			value = val
 			changed.emit(value)
-			if !Global.isClient:
+			if !Global.isClient and !_is_receiving:
 				rpc("sendData", value)
 
 signal changed(newValue)
+var _is_receiving = false
 
 func _ready():
 	if !Global.isClient:
@@ -23,4 +24,6 @@ func _on_new_peer_connected(id):
 @rpc("any_peer", "call_remote", "reliable")
 func sendData(newVal):
 	if Global.isClient:
+		_is_receiving = true
 		value = newVal
+		_is_receiving = false
