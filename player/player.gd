@@ -49,9 +49,16 @@ class_name player
 var network_position: Vector3
 var network_rotation: float
 var network_velocity: Vector3
+var network_grounded: bool = false
+var network_anim: String = "idle"
+var network_anim_speed: float = 1.0
 var movement_sync_timer: float = 0.0
 var last_position: Vector3
 var last_rotation: Vector3
+var last_velocity: Vector3
+var last_grounded: bool = false
+var last_anim: String = ""
+var last_anim_speed: float = 1.0
 
 var oldtoolHolding = -1
 var toolHoldingInst = null
@@ -65,8 +72,8 @@ var desired_velocity : Vector3 = Vector3.ZERO
 
 const ANIMATION_BLEND : float = 7.0
 const LERP_VALUE : float = 0.15
-const NETWORK_LERP_SPEED : float = 10.0
-const SYNC_INTERVAL : float = 0.1
+const NETWORK_LERP_SPEED : float = 15.0
+const SYNC_INTERVAL : float = 0.05
 const _horizontal : Vector3 = Vector3(1,0,1)
 
 var is_mobile : bool = false
@@ -79,13 +86,15 @@ var camera_touch_index : int = -1
 var oldBrainrotHolding = ""
 var oldBrainrotInst = null
 
+var current_anim_name = "idle"
+
 func _ready():
 	_collider_margin = playerCollider.shape.margin
 	
 	if localPlayer:
 		Global.localPlayer = self
 	
-	is_mobile = true#OS.get_name() == "Android" or OS.get_name() == "iOS"
+	is_mobile = OS.get_name() == "Android" or OS.get_name() == "iOS"
 	
 	var screen_size = get_viewport().get_visible_rect().size
 	joystick_area = Rect2(0, 0, screen_size.x * 0.3, screen_size.y) 
@@ -101,9 +110,9 @@ func _ready():
 			spawn_position = myhouse.ref.plrSpawn.global_position
 			global_position = spawn_position
 	else:
-		set_physics_process(false)
 		network_position = global_position
 		network_rotation = player_mesh.rotation.y
+		network_velocity = Vector3.ZERO
  
 func get_or_create_override_material(mesh_instance: MeshInstance3D, surface_index: int = 0) -> Material:
 	var override_material = mesh_instance.get_surface_override_material(surface_index)
@@ -119,7 +128,11 @@ func get_or_create_override_material(mesh_instance: MeshInstance3D, surface_inde
 	
 	return override_material
 
+@rpc("authority", "call_remote", "reliable")
 func changeColors(data):
+	if not data.has("bodyColors"):
+		return
+		
 	var bodyColors = data.bodyColors
 	
 	print(uid, " | ",bodyColors)
@@ -147,6 +160,8 @@ func init():
 		spring_arm_pivot = cameraMiddle
 		last_position = global_position
 		last_rotation = player_mesh.rotation
+		last_velocity = velocity
+		last_grounded = grounded
 	else:
 		if cameraMiddle:
 			cameraMiddle.queue_free() 
@@ -241,11 +256,17 @@ func handle_local_physics(delta):
 		move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 		move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forward")
 	
+	var target_anim = "idle"
+	var target_anim_speed = 1.0
+	
 	if move_direction.x != 0 or move_direction.z != 0:
-		$animations.speed_scale = walkspeed/16
-		$animations.play("walk")
-	else:
-		$animations.play("idle")
+		target_anim_speed = walkspeed/16.0
+		target_anim = "walk"
+	
+	if target_anim != current_anim_name:
+		$animations.play(target_anim)
+		current_anim_name = target_anim
+	$animations.speed_scale = target_anim_speed
 	
 	move_direction = move_direction.rotated(Vector3.UP, spring_arm_pivot.rotation.y)
 	
@@ -273,23 +294,49 @@ func handle_local_physics(delta):
 		die()
 
 func handle_remote_physics(delta):
-	velocity.y -= (Global.fromStud(gravity) * delta)*1
+	global_position = global_position.lerp(network_position, NETWORK_LERP_SPEED * delta)
+	player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, network_rotation, NETWORK_LERP_SPEED * delta)
 	
-	move_and_slide()
+	if network_grounded:
+		velocity = network_velocity
+	else:
+		velocity.y -= (Global.fromStud(gravity) * delta) * 1
+	
+	if network_anim != current_anim_name and network_anim != "":
+		$animations.play(network_anim)
+		current_anim_name = network_anim
+	$animations.speed_scale = network_anim_speed
 
-func update_network_transform(pos: Vector3, rot_y: float):
+func update_network_transform(pos: Vector3, rot_y: float, vel: Vector3, is_grounded: bool, anim_name: String, anim_speed: float):
 	if !localPlayer:
-		global_position = global_position.lerp(pos, NETWORK_LERP_SPEED * get_physics_process_delta_time())
-		player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, rot_y, NETWORK_LERP_SPEED * get_physics_process_delta_time())
+		network_position = pos
+		network_rotation = rot_y
+		network_velocity = vel
+		network_grounded = is_grounded
+		network_anim = anim_name
+		network_anim_speed = anim_speed
 
 func handle_network_sync(delta):
+	movement_sync_timer += delta
+	
+	if movement_sync_timer < SYNC_INTERVAL:
+		return
+	
 	var pos_changed = global_position.distance_to(last_position) > 0.01
 	var rot_changed = abs(player_mesh.rotation.y - last_rotation.y) > 0.01
+	var vel_changed = velocity.distance_to(last_velocity) > 0.1
+	var ground_changed = grounded != last_grounded
+	var anim_changed = current_anim_name != last_anim
+	var anim_speed_changed = abs($animations.speed_scale - last_anim_speed) > 0.01
 	
-	if pos_changed or rot_changed: 
-		PlayerManager.updatePlayerPosition.rpc(uid, global_position, Vector3(0, player_mesh.rotation.y, 0))
+	if pos_changed or rot_changed or vel_changed or ground_changed or anim_changed or anim_speed_changed: 
+		PlayerManager.updatePlayerPosition.rpc(uid, global_position, Vector3(0, player_mesh.rotation.y, 0), velocity, grounded, current_anim_name, $animations.speed_scale)
 		last_position = global_position
 		last_rotation = player_mesh.rotation
+		last_velocity = velocity
+		last_grounded = grounded
+		last_anim = current_anim_name
+		last_anim_speed = $animations.speed_scale
 	
 	movement_sync_timer = 0.0
 
@@ -310,7 +357,7 @@ func _input(event):
 	if is_mobile:
 		handle_mobile_input(event)
 	else:
-		pass#handle_desktop_input(event)
+		pass
 
 func handle_mobile_input(event):
 	if event is InputEventScreenTouch:
@@ -370,7 +417,7 @@ func _process(_delta):
 		if oldBrainrotInst:
 			oldBrainrotInst.queue_free()
 			oldBrainrotInst = null
-		if oldBrainrotInst == "":
+		if brainrotHolding == "":
 			$animations/AnimationPlayer.stop()
 		else:
 			$animations/AnimationPlayer.play("holdBrainrot")
@@ -413,7 +460,6 @@ func die():
 func syncDie():
 	global_position = spawn_position
 
-#@rpc("authority","call_remote","reliable")
 func addBottomMsg(msg,time):
 	$MainUi.addBottomMsg(msg,time)
 
