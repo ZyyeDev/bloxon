@@ -1,9 +1,10 @@
-[gd_scene load_steps=31 format=3 uid="uid://b6icgh6hd8axd"]
+[gd_scene load_steps=42 format=3 uid="uid://b6icgh6hd8axd"]
 
 [ext_resource type="Script" uid="uid://bcm7e0dtqdx2c" path="res://scenes/CoreGui.gd" id="1_mxl2n"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="2_4msbc"]
 [ext_resource type="Texture2D" uid="uid://cd3g182k42n0b" path="res://assets/images/UI/Menu/icon_menu.png" id="2_l1elt"]
 [ext_resource type="Texture2D" uid="uid://dna5xb5qnsnoc" path="res://assets/images/UI/Chat.png" id="3_ouet7"]
+[ext_resource type="Texture2D" uid="uid://djcu0tug55voq" path="res://assets/images/UI/Mobile/jump.png" id="4_itj3c"]
 [ext_resource type="Texture2D" uid="uid://bl6ap6u6erips" path="res://assets/images/UI/Menu/icon_leave.png" id="4_ouet7"]
 [ext_resource type="Texture2D" uid="uid://bl0mtuxkvhe8y" path="res://assets/images/UI/WhiteOverlayAsset.png" id="6_4igou"]
 [ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="7_os41l"]
@@ -47,6 +48,26 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8tb8h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fngga"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_om1ke"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exd0e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_p5soe"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ye8cs"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5olex"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_oisry"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fiajr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_24jmn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7hh5n"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_om1ke"]
 bg_color = Color(0, 0, 0, 0.513726)
@@ -185,7 +206,7 @@ func _process(delta: float) -> void:
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ouet7"]
 
-[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit")]
+[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "JumpButton")]
 z_index = 100
 layout_mode = 3
 anchors_preset = 15
@@ -203,6 +224,7 @@ chatContainer = NodePath("Game/Chat")
 chatScrollContainer = NodePath("Game/Chat/ScrollContainer")
 chatVBContainer = NodePath("Game/Chat/ScrollContainer/VBoxContainer")
 chatLineEdit = NodePath("Game/Chat/LineEdit")
+JumpButton = NodePath("Game/JumpButton")
 
 [node name="Game" type="Control" parent="."]
 layout_mode = 1
@@ -254,21 +276,33 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -179.0
-offset_top = -160.0
-offset_right = -56.0
-offset_bottom = -50.0
+offset_left = -191.0
+offset_top = -173.0
+offset_right = -62.0
+offset_bottom = -44.0
 grow_horizontal = 0
 grow_vertical = 0
 focus_mode = 0
 theme_override_styles/focus = SubResource("StyleBoxEmpty_8tb8h")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_fngga")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_om1ke")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_exd0e")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_p5soe")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_ye8cs")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_5olex")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_oisry")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_fiajr")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_24jmn")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_7hh5n")
+icon = ExtResource("4_itj3c")
+expand_icon = true
 
 [node name="Virtual joystick left" parent="Game" instance=ExtResource("7_os41l")]
 layout_mode = 1
-offset_left = 52.0
-offset_top = -203.0
-offset_right = 197.0
-offset_bottom = -58.0
+offset_left = 73.0
+offset_top = -214.0
+offset_right = 218.0
+offset_bottom = -69.0
 joystick_mode = 1
 action_left = "move_left"
 action_right = "move_right"
@@ -483,6 +517,7 @@ texture = ExtResource("6_4igou")
 [connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
 [connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
 [connection signal="button_down" from="Game/JumpButton" to="." method="_on_jump_pressed"]
+[connection signal="button_up" from="Game/JumpButton" to="." method="_on_jump_button_button_up"]
 [connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]
 [connection signal="pressed" from="Game/escape/resume" to="." method="_on_resume_pressed"]
 [connection signal="focus_entered" from="Game/Chat/LineEdit" to="." method="_on_line_edit_focus_entered"]

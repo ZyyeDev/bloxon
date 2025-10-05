@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://dmr0fcamx7t56"]
 
 [ext_resource type="Script" uid="uid://blkaq2ptke55i" path="res://addons/virtual_joystick/virtual_joystick.gd" id="1_8x4dy"]
-[ext_resource type="Texture2D" uid="uid://bm30au8mjfc2f" path="res://addons/virtual_joystick/textures/joystick_base_outline.png" id="2_jhjs2"]
-[ext_resource type="Texture2D" uid="uid://dt13r06u87fib" path="res://addons/virtual_joystick/textures/joystick_tip_arrows.png" id="3_3etdg"]
+[ext_resource type="Texture2D" uid="uid://sy5etntul64t" path="res://assets/images/UI/Mobile/stick.png" id="2_ettsy"]
+[ext_resource type="Texture2D" uid="uid://ggi78bcskcyb" path="res://assets/images/UI/Mobile/stickbg.png" id="3_0bity"]
 
 [node name="Virtual Joystick" type="Control"]
 layout_mode = 3
@@ -16,6 +16,7 @@ grow_vertical = 0
 script = ExtResource("1_8x4dy")
 
 [node name="Base" type="TextureRect" parent="."]
+modulate = Color(1, 1, 1, 0.709804)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -30,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(68.5, 68.5)
 mouse_force_pass_scroll_events = false
-texture = ExtResource("2_jhjs2")
+texture = ExtResource("2_ettsy")
 expand_mode = 1
 stretch_mode = 5
 
@@ -48,6 +49,6 @@ offset_bottom = 37.5
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(37, 37)
-texture = ExtResource("3_3etdg")
+texture = ExtResource("3_0bity")
 expand_mode = 1
 stretch_mode = 5
