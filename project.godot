@@ -26,9 +26,8 @@ Debris="*res://scripts/global/utils/debris.gd"
 Game="*res://scripts/global/utils/game.gd"
 Server="*res://scripts/global/server.gd"
 NetworkManager="*res://scripts/global/utils/NetworkManager.gd"
-CoreGui="*res://scenes/coreGui.tscn"
+CoreGui="*res://scenes/CoreGui.tscn"
 LocalData="*res://scripts/global/utils/LocalData.gd"
-Temp="res://TEMP.gd"
 uuid="*res://addons/uuid/uuid.gd"
 ToolController="*res://scripts/global/ToolController.gd"
 
@@ -122,3 +121,4 @@ pointing/emulate_touch_from_mouse=true
 
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
+shader_compiler/shader_cache/strip_debug=true
