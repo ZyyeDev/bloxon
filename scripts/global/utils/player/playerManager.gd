@@ -5,6 +5,7 @@ var playersContainer : Node
 var localplayer : player
 
 var players = {}
+var pending_avatar_data = {}
 
 func _ready():
 	if !Global.isClient:
@@ -15,7 +16,7 @@ func setPlayers(playersContainerRef : Node):
 	playersContainer = playersContainerRef
 
 @rpc("authority", "call_remote", "reliable")
-func createPlayer(UID, position: Vector3, isLocal = false):
+func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	print_rich("[color=green] Adding player: ", UID, "[/color]")
 	 
 	if not playersContainer:
@@ -44,25 +45,24 @@ func createPlayer(UID, position: Vector3, isLocal = false):
 	playerClone.global_position = position
 	playerClone.name = str(UID)
 	
-	var user_id = int(get_user_id_for_uid(UID))
-	
-	if user_id > 0:
-		print("getting avatar data from user id ",user_id,isLocal)
-		var avatarData = await Client.getAvatar(user_id, Global.token)
-		print("avatar data is ",avatarData)
-		if !Global.isClient:
-			playerClone.rpc("changeColors", avatarData)
-		else:
-			playerClone.changeColors(avatarData)
-	else:
-		printerr("user id is < 0 and cant get avatar data ",user_id,isLocal)
-		playerClone.rpc("changeColors", {})
-	
 	if isLocal:
 		localplayer = playerClone
 	
 	players[UID] = playerClone
 	playersContainer.add_child(playerClone)
+	
+	if not avatar_data.is_empty():
+		playerClone.changeColors(avatar_data)
+	else:
+		var user_id = int(get_user_id_for_uid(UID))
+		if user_id > 0:
+			pending_avatar_data[UID] = true
+			var avatarData = await Client.getAvatar(user_id, Global.token)
+			if UID in players and is_instance_valid(players[UID]):
+				players[UID].changeColors(avatarData)
+				if !Global.isClient:
+					players[UID].rpc("changeColors", avatarData)
+			pending_avatar_data.erase(UID)
 	 
 	await get_tree().process_frame
 	playerClone.init()
@@ -76,13 +76,14 @@ func removePlayer(UID):
 		if players[UID]:
 			players[UID].queue_free()
 		players.erase(UID)
+	pending_avatar_data.erase(UID)
 
 @rpc("any_peer", "call_remote", "unreliable")
-func updatePlayerPosition(UID, position: Vector3, rotation: Vector3):
+func updatePlayerPosition(UID, position: Vector3, rotation: Vector3, velocity: Vector3, is_grounded: bool, anim_name: String, anim_speed: float):
 	if UID in players:
 		var player = players[UID] 
 		if player and not player.localPlayer: 
-			player.update_network_transform(position, rotation.y)
+			player.update_network_transform(position, rotation.y, velocity, is_grounded, anim_name, anim_speed)
 	else:
 		if Global.isClient and UID != Global.UID:
 			createPlayer(UID, position, false)
@@ -101,25 +102,34 @@ func _on_peer_connected(id):
 				spawn_pos = house_node.plrSpawn.global_position
 		
 		await get_tree().process_frame
-		 
+		
+		var user_id = int(get_user_id_for_uid(str(id)))
+		var avatar_data = {}
+		if user_id > 0:
+			avatar_data = await Client.getAvatar(user_id, Global.token)
+		
 		for existing_uid in players:
 			var existing_player = players[existing_uid]
 			if existing_player:
-				rpc_id(id, "createPlayer", existing_uid, existing_player.global_position, false)
+				var existing_user_id = int(get_user_id_for_uid(existing_uid))
+				var existing_avatar = {}
+				if existing_user_id > 0:
+					existing_avatar = await Client.getAvatar(existing_user_id, Global.token)
+				rpc_id(id, "createPlayer", existing_uid, existing_player.global_position, false, existing_avatar)
 		 
-		var new_player = await createPlayer(str(id), spawn_pos, false)
+		var new_player = await createPlayer(str(id), spawn_pos, false, avatar_data)
 		if new_player: 
-			var user_id = Server.uidToUserId.get(str(id))
-			if user_id and user_id in Server.playerData:
-				var saved_money = Server.playerData[user_id].get("money", 100)
+			var server_user_id = Server.uidToUserId.get(str(id))
+			if server_user_id and server_user_id in Server.playerData:
+				var saved_money = Server.playerData[server_user_id].get("money", 100)
 				new_player.moneyValue.Value = saved_money
 				print("Set new player money to saved value: $", saved_money)
 			
-			rpc_id(id, "createPlayer", str(id), spawn_pos, true)
+			rpc_id(id, "createPlayer", str(id), spawn_pos, true, avatar_data)
 			 
 			for peer_id in get_tree().get_multiplayer().get_peers():
 				if peer_id != id:
-					rpc_id(peer_id, "createPlayer", str(id), spawn_pos, false)
+					rpc_id(peer_id, "createPlayer", str(id), spawn_pos, false, avatar_data)
 
 func _on_peer_disconnected(id):
 	if !Global.isClient:
