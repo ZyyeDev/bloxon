@@ -328,55 +328,65 @@ func getAvailableSpace():
 func _on_steal_area_body_entered(body: Node3D) -> void:
 	if body.is_in_group("plr"):
 		var plr:player = body
-		if !Global.isClient:
-			if Global.getPlayer(plr.whoImStealing.Value) and Global.whatHousePlr(plr.whoImStealing.Value):
-				var source_house = Global.getHouse(Global.whatHousePlr(plr.whoImStealing.Value)).ref
-				var source_slot_index = plr.stealingSlot.Value
-				
-				var source_slot = null
-				for slot_name in source_house.brainrots:
-					if source_house.brainrots[slot_name]["index"] == source_slot_index:
-						source_slot = slot_name
-						break
-				
-				if source_slot and source_house.brainrots.has(source_slot):
-					var stolen_brainrot_id = source_house.brainrots[source_slot]["brainrot"]["id"]
-					var stolen_money = source_house.brainrots[source_slot]["money"]
-					
-					if stolen_brainrot_id != "":
-						var space = getAvailableSpace()
-						if space != null:
-							source_house.removeBrainrot(source_slot)
-							
-							var newList = {}
-							for slot_name in brainrots:
-								newList[slot_name] = brainrots[slot_name].duplicate(true)
-							
-							newList[space]["brainrot"]["id"] = stolen_brainrot_id
-							var temp = load("res://brainrots/"+stolen_brainrot_id+".tscn").instantiate()
-							newList[space]["brainrot"]["generate"] = temp.generate
-							temp.queue_free()
-							newList[space]["brainrot"]["UID"] = str(Time.get_unix_time_from_system()) + str(randi())
-							newList[space]["money"] = stolen_money
-							
-							brainrots = newList
-							if id in Global.houses:
-								Global.houses[id]["brainrots"] = newList
-							
-							updateBrainrots(newList)
-							rpc("updateBrainrots", newList)
-				
-				plr.stealingSlot.Value = -1
-				plr.whoImStealing.Value = -1
 		
-		for i in brainrots:
-			if brainrots[i].has("proximity_prompt") and brainrots[i]["proximity_prompt"]:
-				if is_instance_valid(brainrots[i]["proximity_prompt"]):
-					brainrots[i]["proximity_prompt"].enabled = true
+		if str(plr.uid) == str(plrAssigned):
+			for i in brainrots:
+				if brainrots[i].has("proximity_prompt") and brainrots[i]["proximity_prompt"]:
+					if is_instance_valid(brainrots[i]["proximity_prompt"]):
+						brainrots[i]["proximity_prompt"].enabled = true
+		
+		if !Global.isClient:
+			if plr.stealingSlot.Value >= 0 and plr.whoImStealing.Value >= 0 and str(plr.uid) == str(plrAssigned):
+				if Global.getPlayer(str(plr.whoImStealing.Value)) and Global.whatHousePlr(str(plr.whoImStealing.Value)):
+					var source_house_data = Global.whatHousePlr(str(plr.whoImStealing.Value))
+					var source_house = source_house_data.ref
+					var source_slot_index = plr.stealingSlot.Value
+					
+					var source_slot = null
+					for slot_name in source_house.brainrots:
+						if int(source_house.brainrots[slot_name]["index"]) == int(source_slot_index):
+							source_slot = slot_name
+							break
+					
+					if source_slot and source_house.brainrots.has(source_slot):
+						var stolen_brainrot_id = source_house.brainrots[source_slot]["brainrot"]["id"]
+						var stolen_money = source_house.brainrots[source_slot]["money"]
+						var stolen_generate = source_house.brainrots[source_slot]["brainrot"]["generate"]
+						
+						if stolen_brainrot_id != "":
+							var space = getAvailableSpace()
+							if space != null:
+								source_house.removeBrainrot(source_slot)
+								
+								var newList = {}
+								for slot_name in brainrots:
+									newList[slot_name] = brainrots[slot_name].duplicate(true)
+								
+								newList[space]["brainrot"]["id"] = stolen_brainrot_id
+								newList[space]["brainrot"]["generate"] = stolen_generate
+								newList[space]["brainrot"]["UID"] = str(Time.get_unix_time_from_system()) + str(randi())
+								newList[space]["money"] = stolen_money
+								
+								brainrots = newList
+								if id in Global.houses:
+									Global.houses[id]["brainrots"] = newList
+								
+								updateBrainrots(newList)
+								rpc("updateBrainrots", newList)
+								
+								plr.stealingSlot.Value = -1
+								plr.whoImStealing.Value = -1
+								plr.rpc("changeBrainrotHolding", "")
+							else:
+								plr.stealingSlot.Value = -1
+								plr.whoImStealing.Value = -1
+								plr.rpc("changeBrainrotHolding", "")
 
 func _on_steal_area_body_exited(body: Node3D) -> void:
 	if body.is_in_group("plr"):
-		for i in brainrots:
-			if brainrots[i].has("proximity_prompt") and brainrots[i]["proximity_prompt"]:
-				if is_instance_valid(brainrots[i]["proximity_prompt"]):
-					brainrots[i]["proximity_prompt"].enabled = false
+		var plr:player = body
+		if str(plr.uid) == str(plrAssigned):
+			for i in brainrots:
+				if brainrots[i].has("proximity_prompt") and brainrots[i]["proximity_prompt"]:
+					if is_instance_valid(brainrots[i]["proximity_prompt"]):
+						brainrots[i]["proximity_prompt"].enabled = false
