@@ -1,9 +1,10 @@
 from aiohttp import web
 import time
 import os
+import asyncio
 import auth_utils
 from friends import addFriendDirect, removeFriend, getFriends, sendFriendRequest, getFriendRequests, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest
-from avatar_service import getFullAvatar, getAccessory, buyItem, listMarketItems, getUserAccessories, addAccessoryFromFolder
+from avatar_service import getFullAvatar, getAccessory, buyItem, listMarketItems, getUserAccessories, addAccessoryFromFolder, equipAccessory, unequipAccessory
 from currency_system import creditCurrency, debitCurrency, getCurrency, transferCurrency
 from player_data import getPlayerData, savePlayerData, createPlayerData, updatePlayerAvatar, setPlayerServer, getPlayerFullProfile
 from pfp_service import getPfp, updateUserPfp
@@ -151,6 +152,60 @@ async def buyItemEndpoint(httpRequest):
 
     result = buyItem(userId, itemId)
     if result["success"]:
+        return web.json_response(result)
+    else:
+        return web.json_response(result, status=400)
+
+async def equipAccessoryEndpoint(httpRequest):
+    clientIp = httpRequest.remote
+    if not checkRateLimit(clientIp):
+        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
+
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    token = requestData.get("token")
+    if not token or not validateToken(token):
+        return web.json_response({"error": "invalid_token"}, status=401)
+
+    userId = requestData.get("userId")
+    accessoryId = requestData.get("accessoryId")
+
+    if not userId or not accessoryId:
+        return web.json_response({"error": "missing_required_fields"}, status=400)
+
+    result = equipAccessory(userId, accessoryId)
+    if result["success"]:
+        asyncio.create_task(updateUserPfp(userId))
+        return web.json_response(result)
+    else:
+        return web.json_response(result, status=400)
+
+async def unequipAccessoryEndpoint(httpRequest):
+    clientIp = httpRequest.remote
+    if not checkRateLimit(clientIp):
+        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
+
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    token = requestData.get("token")
+    if not token or not validateToken(token):
+        return web.json_response({"error": "invalid_token"}, status=401)
+
+    userId = requestData.get("userId")
+    accessoryId = requestData.get("accessoryId")
+
+    if not userId or not accessoryId:
+        return web.json_response({"error": "missing_required_fields"}, status=400)
+
+    result = unequipAccessory(userId, accessoryId)
+    if result["success"]:
+        asyncio.create_task(updateUserPfp(userId))
         return web.json_response(result)
     else:
         return web.json_response(result, status=400)
@@ -332,6 +387,11 @@ async def updateAvatarEndpoint(httpRequest):
         return web.json_response({"error": "missing_required_fields"}, status=400)
 
     result = updatePlayerAvatar(userId, avatarData)
+
+    if result["success"]:
+        await updateUserPfp(userId)
+        #asyncio.create_task(updateUserPfp(userId))
+
     return web.json_response(result)
 
 async def getPlayerProfileEndpoint(httpRequest):
@@ -518,6 +578,8 @@ def addNewRoutes(webApp):
         web.post("/avatar/get_full", getFullAvatarEndpoint),
         web.post("/avatar/get_accessory", getAccessoryEndpoint),
         web.post("/avatar/buy_item", buyItemEndpoint),
+        web.post("/avatar/equip", equipAccessoryEndpoint),
+        web.post("/avatar/unequip", unequipAccessoryEndpoint),
         web.post("/avatar/list_market", listMarketItemsEndpoint),
         web.post("/avatar/get_user_accessories", getUserAccessoriesEndpoint),
         web.post("/avatar/add_from_folder", addAccessoryFromFolderEndpoint),

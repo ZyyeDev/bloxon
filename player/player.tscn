@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=4 uid="uid://c51n1q7iukno3"]
+[gd_scene load_steps=38 format=4 uid="uid://c51n1q7iukno3"]
 
 [ext_resource type="Script" uid="uid://deyohpk41p88f" path="res://player/player.gd" id="1_063y0"]
 [ext_resource type="Texture2D" uid="uid://bws3ourj3f7pp" path="res://assets/images/UI/mouse/ArrowCursor.png" id="2_8fpuw"]
@@ -6,14 +6,17 @@
 [ext_resource type="Texture2D" uid="uid://dxmct6paew4e6" path="res://assets/models/player/parts/Rig1_diff.png" id="2_qjkh3"]
 [ext_resource type="PackedScene" uid="uid://hiwa4m8nb6lr" path="res://player/UI/mainUi.tscn" id="4_1xtq5"]
 [ext_resource type="Texture2D" uid="uid://d0gg78en70o" path="res://assets/images/UI/MouseLockedCursor.png" id="4_qjkh3"]
-[ext_resource type="AudioStream" uid="uid://bna0ykfeg6oom" path="res://assets/sounds/roblox/snd_bass.wav" id="7_hg6s5"]
-[ext_resource type="AudioStream" uid="uid://dsykyxssmp4jb" path="res://assets/sounds/roblox/snd_die.wav" id="7_rgyib"]
+[ext_resource type="AudioStream" uid="uid://bna0ykfeg6oom" path="res://assets/sounds/player/snd_bass.wav" id="7_hg6s5"]
+[ext_resource type="AudioStream" uid="uid://dsykyxssmp4jb" path="res://assets/sounds/player/snd_die.wav" id="7_rgyib"]
+[ext_resource type="AudioStream" uid="uid://dfj0qceesqm0o" path="res://assets/sounds/player/snd_action_jump_land.mp3" id="8_ebec5"]
 [ext_resource type="Script" uid="uid://dgv0d6b5ac2o6" path="res://scripts/sound.gd" id="8_hg6s5"]
+[ext_resource type="AudioStream" uid="uid://oc8qwuy0385o" path="res://assets/sounds/player/snd_action_jump.wav" id="9_yllr7"]
+[ext_resource type="AudioStream" uid="uid://dt1k4r4cfhj3x" path="res://assets/sounds/player/snd_action_falling.ogg" id="10_kb6p2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g6k8r"]
 resource_name = "Rig1Mtl"
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_boad6"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_ebec5"]
 _surfaces = [{
 "aabb": AABB(-0.5, -1, -0.5, 1, 2, 1),
 "format": 34896613377,
@@ -44,13 +47,13 @@ _surfaces = [{
 "vertex_data": PackedByteArray("oxAAAFvvVNWjEP//W+9U1f//UQhb7+TZW+8AAFvvVNX//633W+8L0Vvv//9b71TVW+///6MQ//9b7///W+//////rfejEOTZ//9RCKMQC9Fb7wAAW+//v1vvAACjEP+/oxAAAKMQVNVb7wAAoxBU1QAAUQijEOTZoxAAAFvv//+jEAAAoxD//6MQ//9b7/+/AACt96MQC9GjEP//oxD/v1vv//+jEFTVoxD//6MQVNWjEAAAoxD//6MQAABb7///W+8AAKMQ//9b7wAAW+///1vv//+jEP//W+///1vv//+jEP//oxD//6MQ//9b7///oxBRCP///7+jEK33////v1vvUQj///+/AABRCFvvyMwAAK33W+8Z31vvrff///+/W++t9wAA//9b71EIAAD//6MQUQgAAP//oxCt9wAA//8AAK33W+9U1QAAUQhb71TVqipU1VTVqip0JUUtqipU1Tcw4ydU1aoq/3//v/9//790JUUtNzDjJwAA/38AAP9/VFVUVVRVVFWK2rnS/3//P/9//z////9/x88b2P///3+qqqqqqqqqqv9//z//f/8//3//P/9//z//f/+//3//v/9//7//f/+/////////////////Nclj2/HfBtD//////7//v/+//7//v/+//7//v1TVVNVU1VTV")
 }]
 blend_shape_mode = 0
-shadow_mesh = SubResource("ArrayMesh_boad6")
+shadow_mesh = SubResource("ArrayMesh_ebec5")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hg6s5"]
 resource_name = "Rig1Mtl"
 albedo_texture = ExtResource("2_qjkh3")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_5dymw"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_kb6p2"]
 _surfaces = [{
 "aabb": AABB(-1, -1, -0.5, 2, 2, 1),
 "format": 34896613377,
@@ -81,13 +84,13 @@ _surfaces = [{
 "vertex_data": PackedByteArray("UQgAAFvvVNUAAK33W+/k2a33//9b71TVrfcAAFvvVNVRCP//W+9U1QAAUQhb7wvRUQgAAKMQ//9RCAAAW+///wAAUQijEOTZAACt96MQC9FRCP//W+//v1EI//+jEP+/UQj//6MQVNX//633oxDk2a33//+jEFTVUQgAAKMQVNWt9wAAoxBU1f//UQijEAvRrfcAAFvv/7+t9wAAoxD/v633//9b7///rff//6MQ//9RCAAAoxD//1EIAABb7///rfcAAKMQ//+t9wAAW+///633//+jEP//rff//1vv//9RCP//oxD//1EI//9b7///UQhRCP///79RCK33////v633UQj///+///9RCFvvGd///633W+/IzK33rff///+/UQhRCAAA//9RCK33AAD//633rfcAAP//rfdRCAAA/////1EIW+9U1f//rfdb71TVqipU1YraudJU1aoqqipU1VTVqirHzxvY/3//P/9//z+K2rnSx88b2P///3////9/qqqqqnQlRS2qqqqqVFVUVVRVVFU3MOMnAAD/fwAA/3//f/+//3//v/9//z//f/8//3//P/9//z//f/+//3//v/9//7//f/+/////////////////DSD4L8k2myT//////7//v/+//7//v/+//7//v6oqqiqqKqoq")
 }]
 blend_shape_mode = 0
-shadow_mesh = SubResource("ArrayMesh_5dymw")
+shadow_mesh = SubResource("ArrayMesh_kb6p2")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2ieo8"]
 resource_name = "Rig1Mtl"
 albedo_texture = ExtResource("2_qjkh3")
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_ebec5"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_wodsf"]
 _surfaces = [{
 "aabb": AABB(-0.598925, -0.601212, -0.598925, 1.19785, 1.20242, 1.19785),
 "format": 34359742465,
@@ -118,7 +121,7 @@ _surfaces = [{
 "vertex_data": PackedByteArray("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ufs8vgjpGT+U+nK+nn0VvgjpGT+1ioa+0a7CvQjpGT8dA5K+zlDcvW8NFD/Jjs2+8/gHPQjpGT8f+Ji++zE3PepeAz/s3gK/zlDcPW8NFD/Jjs2+nn0VPgjpGT+1ioa+ufs8PgjpGT+U+nK+vLOWPupeAz+wOde+6x90Pm8NFD+9Uq6+M4r/f////z+Tpde0////P////7////+//3///////7/KNP9/////PwAA/7////+/Mwr/f////z8AAP+/////v/9/AAD///+/k6UnS////z8AAP+/BkD/vwAA/78GQP+/////vwAAAuD/f///AAC23cv1/3////8/y3X/f////z//f///////v////7////+//38AAP///7///zOK////vwuvhhf///+/////vwAAAuALr4YXoAKfoZo9hfqNCu2//7//f////z/JtP9/////P3mFmb3///8//3///////79kwhPD////v+jKPtr///+/6MrAJf///7//f///////v/9/AAD///+//38AAP///7//P/9/////P9Za6Ur///8/AAAziv///7/WWhW1////PxRDmb3///8/ZMJ5BSQAuLr/fwAAFg3/v+jKwCUvBC+g///L9QAAGcXoyj7aLwTP3/9///8DPP+/GNf/f////z+5eKKj////P+vk/3////8/lU4rnf///z/qvGVC////P+tk/3////8/hXplQv///z+Flwwv////PxlX/3////8/oiPoqv///78rHZXO////v1U1qdr///+/AAATm////78rHWkx////v5o96zz///+/pFtiJ////z/zUIYX////v3loDC////8//38AAP///7//fwAA////v+DImzH///+/0+JpMf///78W1aKj////P9Pilc7///+/hZfy0P///z//f///////v/d8nNj///8//38AAAAAAN7/fwAAAACg1tPiaTHDArSfHjdFF90oDcDzUIYXpzxZwSsdaTGUQGDBAADL9TMK/7///+vkAACJzdPilc7DAkngXNy5+BUA5rorHZXOlECdvlU1qdomPxa+Yaf3/DkAtrppsSud////P+Wo/3////8/LsJnYf///z9psdNi////PxOb/3////8/XNwWVf///7///+Wo////v///E5v///+////JtP///79U36m0////v7atDeH///+/C6946P///7+asR23////P1qknNj///8//3///////7/EjkjS////P/9///////+/eWjy0P///z//f///////v51YpNv///+//3///////7/zUHjo////v7loHbf///8/Hjdjzv///7+qNKqg////PxMb/3////8/AADlqP///7+YHi9C////v+gqXFz///8/VTVVJf///7/mKP9/////P9A9Z2H///8/ZE7hSP///z9IUvEe////v/9/AAD///+//38AAP///7//fwAA////vzpxti3///8/lU7TYv///z//fwAA////vweDYif///8//38AAP///7/HYGdh////P0WX4Uj///8/RYdcXP///z/xnrYt////P2GnWiT///+//38AAP///7//fwAA////v/+TqqD///8/tq3EDlAAf6v/fwAAAAAlxp1YBwORCuK//38AAG87/79VNVUlJj/owWbhOB8nAHSroiNFBzAK9L+YHjgfFCkSwP//GNcAAHLUAAAY1+Yo/79m4cbgJwCJ1AAA6+QTG/+/AAA0y8o0/7+qIP/r8xoKwODIuegcAG3UC6946LQCU95IUjrx/yjXv/NQeOi/PK6+9blpYv///z+aseFI////P8m0/3////8/c6hpYv///z80y/9/////P/+//3////8/GNf/f////z80y/9/////P+Wo/3////8/VMtUX////z8W1Vxc////P+vk/3////8/y/X/f////z8uwpee////P1TLqqD///8/9bmVnf///z9zqJWd////Pzefl57///8/RZcdt////z9Fh6Kj////PxOb/3////8/M4r/f////z83n2dh////P/+TVF////8//2uqoP///z/Ldf9/////P+tk/3////8/R3GYuf///z/HYJee////PzpxSNL///8/i1eVnf///z+5eFxc////P/9rVF////8/GVf/f////z81S/9/////PzVL/3////8//z//f////z8JRpWd////P7lo4Uj///8/i1dpYv///z/KNP9/////PwlGaWL///8/5ij/f////z/QPZee////P2ROHbf///8/6Cqio////z8TG/9/////PzMK/3////8/qjRUX////z+qIKm0////vwAAM4r///+/AAATm////7+ZOVHI////v5gez73///+/oiMWVf///7+VHQjG////vwAAybT///+/SFIN4f///78AAOWo////vwAAybT///+/qiBVS////7+VHfY5////vx43mzH///+/nVhaJP///7//fwAA////v/9/AAD///+//38AAP///79RSGZG////Pw1hti3///8//38AAP///7/3fGIn////P/9/AAD///+//38AAP///7+3jmZG////P8SOti3///8/WqRiJ////z+2rfEe////v2XGrTf///+/VN9VS////79p4vY5////v2bhL0L///+///8Tm////7///8m0////v///M4r///+////lqP///79c3Oiq////v623mLn///8/ZuHPvf///7/gyGPO////v2niCMb///+//3///////79hp6Tb////v/GeSNL///8//3///////7//f///////vweDnNj///8//3///////78NYUjS////P6RbnNj///8//3///////7//f///////v/9/AAAAANfb/38AAAAAwM9hpwcDGQAUxeDIRRccAJCr/38AAPEf/79IUsQO7igvwJk5uA4MG+i/lR1zKKg0+L+qIP8T8xr0vwAANMvKNP+/AAAY1+Yo/78AAOvkExv/v5Udi9eoNAXAmB7G4BQp678eN7no3Sjwv/9///9NDP+/nVj3/CsKDMD/f///AAD4z6IjufgwCgrAAADL9TMK/79lxkbxLQB5sratOvFfAHbUVN//6xYAhbJp4ovXDQCqpf//6+QAAInN//80ywAAZNr//8v1AAAZxVzcRQcVABfFVN//ExYAec3//xjXAABy1P//NMsAAGTaaeJzKA0AU9r/fwAA////v16TDC////8//38AAP///7+smwwv////P/9/AAD///+/z56qSv///z//fwAA////v/9/AAD///+//38AAP///79miWMr////P/9/AAD///+/eYVlQv///z//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//KFjK////z/Zq6pK////P623Zkb///8//38AAP///79kwus8////v8+eVLX///8/t46Yuf///z9miZvU////P/9///////+//3///////7//f///////v16T8tD///8//3///////7/Zq1S1////P6yb8tD///8//3///////7/8oZvU////P+q8mb3///8//3///////7//f///////v2XGUcj///+/Y6v8If///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///78Lr6wb////v/9/AAD///+/qcrZK////7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v5h2Yyv///8/R3FmRv///z+Fepm9////P5h2m9T///8//3///////7+gbPLQ////Py9hVLX///8//3///////7//f///////v1Jk8tD///8/JVRUtf///z//f///////vy9hqkr///8//38AAP///7+gbAwv////P/9/AAD///+/JVSqSv///z//fwAA////v/9/AAD///+//38AAP///79SZAwv////P/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////vwJeYyv///8/UUiYuf///z8CXpvU////P/9///////+/mj0Tw////7//f///////v5tUAt7///+//3///////7/zUFLk////v/9///////+//3///////7//f///////v/9///////+//3///////7//f///////vwuvUuT///+//3///////7//f///////v6nKJdT///+/Y6sC3v///7//fwAA////v/NQrBv///+//38AAP///7//fwAA////v/9/AAD///+/VTXZK////7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7//fwAA////v/9/AAD///+//38AAP///7+bVPwh////vxRDZUL///8/mTmtN////79VNSXU////vwuvXxMCAFzaqcrQHhQAlqVjq2YJVABTsmXGuA4tAIXNmj15BY0KEcCbVGYJXRsnwP9/AABSLf+//38AAFc3/7/zUF8TnjQJwFU10B7QNAnAVTUu4dA09b+ZOUbxDBsVwPNQn+y6NADA/3///7A3/7//f///QS3/v/9///+CH/+/m1SY9lgb1b//f///AACKxmTChfokAEbFY6uY9k8Ars3/f///AACo1v9///8AAKvbqcou4RQAZ9oLr5/sEwBO2g==")
 }]
 blend_shape_mode = 0
-shadow_mesh = SubResource("ArrayMesh_ebec5")
+shadow_mesh = SubResource("ArrayMesh_wodsf")
 
 [sub_resource type="GDScript" id="GDScript_61pyf"]
 script/source = "extends Node3D
@@ -137,6 +140,7 @@ const MIN_ZOOM = -3.0
 const MAX_ZOOM = 10.0
 const ROTATION_SENSITIVITY = 0.005
 const ZOOM_SMOOTHING = 0.3
+const PINCH_SENSITIVITY = 0.02
 
 @onready var normalSpringLength = spring_arm.spring_length
 
@@ -145,23 +149,29 @@ var lastMousePosition: Vector2
 var isRightMousePressed = false
 var shiftlock = false
 var touchStartPositions = {}
-var initialPinchDistance = 0.0
+var lastPinchDistance = 0.0
 
 var targetSpringLength: float
 
 func _ready():
+	if Global.isClient and !Client.is_connected:
+		queue_free()
+		return
 	lastMousePosition = get_viewport().get_mouse_position()
 	set_process_input(true)
 	targetSpringLength = normalSpringLength + (ZOOM_SPEED * 4)
 	spring_arm.spring_length = targetSpringLength
 	spring_arm.margin = base_margin
+	spring_arm.add_excluded_object($\"../CollisionShape3D\".get_parent())
 
 func _process(delta):
+	if Global.isClient and !Client.is_connected: return
 	head.visible = spring_arm.spring_length > 0.1
 	
 	spring_arm.spring_length = lerp(spring_arm.spring_length, targetSpringLength, ZOOM_SMOOTHING)
 
 func _unhandled_input(event):
+	if Global.isClient and !Client.is_connected: return
 	match event.get_class():
 		\"InputEventMouseMotion\":
 			handleMouseMotion(event)
@@ -197,7 +207,7 @@ func handleScreenTouch(event: InputEventScreenTouch):
 		touchStartPositions[event.index] = event.position
 		if touchStartPositions.size() == 2:
 			var positions = touchStartPositions.values()
-			initialPinchDistance = positions[0].distance_to(positions[1])
+			lastPinchDistance = positions[0].distance_to(positions[1])
 	else:
 		touchStartPositions.erase(event.index)
 
@@ -211,12 +221,14 @@ func handlePinchZoom(event: InputEventScreenDrag):
 	if touchStartPositions.size() != 2:
 		return
 	
+	touchStartPositions[event.index] = event.position
 	var positions = touchStartPositions.values()
 	var currentDistance = positions[0].distance_to(positions[1])
-	var zoomDelta = (currentDistance - initialPinchDistance) * 0.01
+	var distanceChange = lastPinchDistance - currentDistance
+	var zoomDelta = distanceChange * PINCH_SENSITIVITY
 	
-	zoomCamera(-zoomDelta)
-	initialPinchDistance = currentDistance
+	zoomCamera(zoomDelta)
+	lastPinchDistance = currentDistance
 
 func handleRightMouseButton(event: InputEventMouseButton):
 	isRightMousePressed = event.pressed
@@ -266,6 +278,7 @@ func rotateCamera(delta: Vector2):
 	spring_arm.rotation.x = clamp(spring_arm.rotation.x, -PI/2 + 0.1, PI/3)
 
 func _physics_process(_delta):
+	if Global.isClient and !Client.is_connected: return
 	camera.fov = lerp(camera.fov, normal_fov, CAMERA_BLEND)
 
 func zoomCamera(delta: float):
@@ -409,7 +422,7 @@ tracks/9/keys = {
 tracks/10/type = "value"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("Node3D/Right Left:position")
+tracks/10/path = NodePath("Node3D/Right Leg:position")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
@@ -421,7 +434,7 @@ tracks/10/keys = {
 tracks/11/type = "value"
 tracks/11/imported = false
 tracks/11/enabled = true
-tracks/11/path = NodePath("Node3D/Right Left:rotation")
+tracks/11/path = NodePath("Node3D/Right Leg:rotation")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
@@ -592,7 +605,7 @@ tracks/9/keys = {
 tracks/10/type = "value"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("Node3D/Right Left:position")
+tracks/10/path = NodePath("Node3D/Right Leg:position")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
@@ -604,7 +617,7 @@ tracks/10/keys = {
 tracks/11/type = "value"
 tracks/11/imported = false
 tracks/11/enabled = true
-tracks/11/path = NodePath("Node3D/Right Left:rotation")
+tracks/11/path = NodePath("Node3D/Right Leg:rotation")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
@@ -745,7 +758,7 @@ tracks/9/keys = {
 tracks/10/type = "value"
 tracks/10/imported = false
 tracks/10/enabled = true
-tracks/10/path = NodePath("Node3D/Right Left:position")
+tracks/10/path = NodePath("Node3D/Right Leg:position")
 tracks/10/interp = 1
 tracks/10/loop_wrap = true
 tracks/10/keys = {
@@ -757,7 +770,7 @@ tracks/10/keys = {
 tracks/11/type = "value"
 tracks/11/imported = false
 tracks/11/enabled = true
-tracks/11/path = NodePath("Node3D/Right Left:rotation")
+tracks/11/path = NodePath("Node3D/Right Leg:rotation")
 tracks/11/interp = 1
 tracks/11/loop_wrap = true
 tracks/11/keys = {
@@ -829,6 +842,34 @@ tracks/3/keys = {
 "values": [Vector3(0, 0, 0)]
 }
 
+[sub_resource type="Animation" id="Animation_2ieo8"]
+resource_name = "ToolHold"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Node3D/Right Arm:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-1.63, 1.51455, 0.493787)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Node3D/Right Arm:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-1.5708, 0, 0)]
+}
+
 [sub_resource type="Animation" id="Animation_hg6s5"]
 resource_name = "holdBrainrot"
 length = 0.001
@@ -885,6 +926,7 @@ tracks/3/keys = {
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_2ieo8"]
 _data = {
 &"RESET": SubResource("Animation_8t03j"),
+&"ToolHold": SubResource("Animation_2ieo8"),
 &"holdBrainrot": SubResource("Animation_hg6s5")
 }
 
@@ -909,9 +951,10 @@ Torso = NodePath("Node3D/Torso")
 RightArm = NodePath("Node3D/Right Arm")
 LeftArm = NodePath("Node3D/Left Arm")
 LeftLeg = NodePath("Node3D/Left Leg")
-RightLeg = NodePath("Node3D/Right Left")
-walkspeed = 40.0
+RightLeg = NodePath("Node3D/Right Leg")
+walkspeed = 80.0
 gravity = 82.404
+step_height = 2.0
 spring_arm_pivot = NodePath("cameraMiddle/SpringArm3D")
 moneyValue = NodePath("moneyVal")
 rebirthsVal = NodePath("rebirthsVal")
@@ -939,7 +982,7 @@ metadata/_custom_type_script = "uid://5ktd6l6g5r75"
 
 [node name="Node3D" type="Node3D" parent="."]
 
-[node name="Right Left" type="MeshInstance3D" parent="Node3D"]
+[node name="Right Leg" type="MeshInstance3D" parent="Node3D"]
 transform = Transform3D(1.08692, 0, 0, 0, 1.06, 0, 0, 0, 1.06721, -0.54737, -1.08896, 0.0136515)
 mesh = SubResource("ArrayMesh_rgyib")
 skeleton = NodePath("../..")
@@ -1027,15 +1070,49 @@ libraries = {
 
 [node name="MainUi" parent="." instance=ExtResource("4_1xtq5")]
 
+[node name="footstepSounds" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(0.833333, 0, 0, 0, 0.833333, 0, 0, 0, 0.833333, 0, 0, 0)
+volume_db = -23.256
+attenuation_filter_db = 0.0
+script = ExtResource("8_hg6s5")
+metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
+
+[node name="landSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(0.833333, 0, 0, 0, 0.833333, 0, 0, 0, 0.833333, 0, 0, 0)
+stream = ExtResource("8_ebec5")
+volume_db = -13.772
+attenuation_filter_db = 0.0
+script = ExtResource("8_hg6s5")
+metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
+
+[node name="jumpSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(0.833333, 0, 0, 0, 0.833333, 0, 0, 0, 0.833333, 0, 0, 0)
+stream = ExtResource("9_yllr7")
+volume_db = -21.392
+area_mask = 0
+attenuation_filter_db = 0.0
+script = ExtResource("8_hg6s5")
+metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
+
+[node name="airSound" type="AudioStreamPlayer3D" parent="."]
+transform = Transform3D(0.833333, 0, 0, 0, 0.833333, 0, 0, 0, 0.833333, 0, 0, 0)
+stream = ExtResource("10_kb6p2")
+volume_db = -17.583
+attenuation_filter_db = 0.0
+script = ExtResource("8_hg6s5")
+metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
+
 [node name="dieSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("7_rgyib")
 volume_db = -6.154
+attenuation_filter_db = 0.0
 script = ExtResource("8_hg6s5")
 metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
 
 [node name="bassSound" type="AudioStreamPlayer3D" parent="."]
 stream = ExtResource("7_hg6s5")
 volume_db = -14.359
+attenuation_filter_db = 0.0
 script = ExtResource("8_hg6s5")
 metadata/_custom_type_script = "uid://dgv0d6b5ac2o6"
 

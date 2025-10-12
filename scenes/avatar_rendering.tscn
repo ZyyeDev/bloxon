@@ -1,0 +1,103 @@
+[gd_scene load_steps=4 format=3 uid="uid://b15xwyym8cl5k"]
+
+[ext_resource type="PackedScene" uid="uid://c51n1q7iukno3" path="res://player/player.tscn" id="1_mssls"]
+
+[sub_resource type="GDScript" id="GDScript_mssls"]
+script/source = "extends Node3D
+
+func _ready(): 
+	DisplayServer.window_set_size(Vector2i(512, 512))
+	DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_TRANSPARENT, true)
+	get_viewport().msaa_2d = Viewport.MSAA_8X
+	get_viewport().msaa_3d = Viewport.MSAA_8X
+	
+	var args = OS.get_cmdline_args()
+	if \"--pfp-render\" in args:
+		await render_pfp_mode()
+
+func get_custom_args() -> PackedStringArray:
+	return OS.get_cmdline_args()
+
+func render_pfp_mode():
+	var config_path = get_arg_value(\"--avatar-config\")
+	var output_path = get_arg_value(\"--output\")
+	
+	if config_path == \"\" or output_path == \"\":
+		print(\"Error: Missing required arguments\")
+		get_tree().quit(1)
+		return
+	
+	var avatar_data = load_avatar_config(config_path)
+	if avatar_data == null:
+		print(\"Error: Failed to load avatar config\")
+		get_tree().quit(1)
+		return
+	
+	setup_pfp_scene(avatar_data)
+	
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	await capture_screenshot(output_path)
+	
+	get_tree().quit()
+
+func load_avatar_config(path: String) -> Dictionary:
+	var file = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	if error == OK:
+		return json.data
+	else:
+		return {}
+
+func setup_pfp_scene(avatar_data: Dictionary):
+	$CharacterBody3D.changeColors(avatar_data)
+
+func capture_screenshot(output_path: String) -> void:
+	await RenderingServer.frame_post_draw
+	
+	var img: Image = get_viewport().get_texture().get_image()
+	
+	img.convert(Image.FORMAT_RGBA8)
+	
+	var error = img.save_png(output_path)
+	if error != OK:
+		print(\"Error saving screenshot: \", error)
+	else:
+		print(\"Screenshot saved to: \", output_path)
+
+func get_arg_value(arg_name: String) -> String:
+	var args = OS.get_cmdline_args()
+	for i in range(args.size()):
+		if args[i] == arg_name and i + 1 < args.size():
+			return args[i + 1]
+	return \"\"
+"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_s52yx"]
+size = Vector3(10.2351, 0.200195, 6.54126)
+
+[node name="AvatarRendering" type="Node3D"]
+script = SubResource("GDScript_mssls")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95137, -0.399902, -0.934937)
+shape = SubResource("BoxShape3D_s52yx")
+
+[node name="CharacterBody3D" parent="." instance=ExtResource("1_mssls")]
+transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, -0.523991, 2.29687, -0.212534)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.999722, 0.00119297, -0.0235666, 0, 0.998721, 0.0505565, 0.0235968, -0.0505424, 0.998443, -0.559953, 5.53911, 3.04994)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 0, 0)

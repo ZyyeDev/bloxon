@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://d1p3bmffx8pgi"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_0pb4n"]
+[ext_resource type="PackedScene" uid="uid://c15g1qo3pqjpp" path="res://brainrots/models/Boneca Ambalabu.tscn" id="3_p2osl"]
+
+[node name="Boneca Ambalabu" instance=ExtResource("1_0pb4n")]
+bName = "Boneca Ambalabu"
+cost = 5000
+generate = 40
+rarity = 1
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="Boneca Ambalabu" parent="." index="1" instance=ExtResource("3_p2osl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.971338, -4.09692, -0.0100722)
+
+[node name="NavigationAgent3D" parent="." index="3"]
+avoidance_enabled = true
+debug_enabled = true

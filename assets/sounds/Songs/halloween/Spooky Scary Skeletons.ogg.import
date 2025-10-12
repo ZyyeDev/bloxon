@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://oax40nocvqi"
+path="res://.godot/imported/Spooky Scary Skeletons.ogg-852010da0100e1700540fac25db06c54.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/Songs/halloween/Spooky Scary Skeletons.ogg"
+dest_files=["res://.godot/imported/Spooky Scary Skeletons.ogg-852010da0100e1700540fac25db06c54.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://b4eyygbsen48i"
+path="res://.godot/imported/Boneca Ambalabu.obj-4a6c6cbd6dddcec9f1a7540ded74d3fa.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Boneca Ambalabu.obj-4a6c6cbd6dddcec9f1a7540ded74d3fa.mesh"]
+
+source_file="res://assets/models/3d/brairots/Boneca Ambalabu/Boneca Ambalabu.obj"
+dest_files=["res://.godot/imported/Boneca Ambalabu.obj-4a6c6cbd6dddcec9f1a7540ded74d3fa.mesh", "res://.godot/imported/Boneca Ambalabu.obj-4a6c6cbd6dddcec9f1a7540ded74d3fa.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

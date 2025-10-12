@@ -1,0 +1,104 @@
+newmtl Borbardillo0051Mtl
+Material Color
+Ka 0.0528416 0.238828 0.0657539
+Kd 0.0528416 0.238828 0.0657539
+Ks 0.00476611 0.0215413 0.00593074 
+
+d 1
+
+Ns 0
+
+map_Ka Borbardillo0051_diff.png
+map_Kd Borbardillo0051_diff.png
+map_d Borbardillo0051_diff.png
+
+map_Bump Borbardillo0051_nmap.png
+
+map_Ns Borbardillo0051_spec.png
+
+newmtl Sphere1Mtl
+Material Color
+Ka 0.0134734 0.363604 0.0581872
+Kd 0.0134734 0.363604 0.0581872
+Ks 0.00121525 0.0327956 0.00524826 
+
+d 1
+
+Ns 0
+
+map_Ka Borbardillo0051_diff.png
+map_Kd Borbardillo0051_diff.png
+map_d Borbardillo0051_diff.png
+
+map_Bump Borbardillo0051_nmap.png
+
+map_Ns Borbardillo0051_spec.png
+
+newmtl Cube0021Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0336986 0.0332455 0.034615 
+
+d 1
+
+Ns 0
+
+map_Ka Borbardillo0051_diff.png
+map_Kd Borbardillo0051_diff.png
+map_d Borbardillo0051_diff.png
+
+map_Bump Borbardillo0051_nmap.png
+
+map_Ns Borbardillo0051_spec.png
+
+newmtl Sphere0011Mtl
+Material Color
+Ka 0.271577 0.715465 0.0581872
+Kd 0.271577 0.715465 0.0581872
+Ks 0.0244952 0.0645322 0.00524826 
+
+d 1
+
+Ns 0
+
+map_Ka Borbardillo0051_diff.png
+map_Kd Borbardillo0051_diff.png
+map_d Borbardillo0051_diff.png
+
+map_Bump Borbardillo0051_nmap.png
+
+map_Ns Borbardillo0051_spec.png
+
+newmtl Borbardillo0011Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0322335 0.0318 0.03311 
+
+d 1
+
+Ns 255
+
+map_Ka Borbardillo0011_diff.png
+map_Kd Borbardillo0011_diff.png
+map_d Borbardillo0011_diff.png
+
+newmtl Borbardillo0041Mtl
+Material Color
+Ka 0.547994 0.851252 0.320382
+Kd 0.547994 0.851252 0.320382
+Ks 0.0494269 0.0767796 0.0288972 
+
+d 1
+
+Ns 0
+
+map_Ka Borbardillo0051_diff.png
+map_Kd Borbardillo0051_diff.png
+map_d Borbardillo0051_diff.png
+
+map_Bump Borbardillo0051_nmap.png
+
+map_Ns Borbardillo0051_spec.png
+

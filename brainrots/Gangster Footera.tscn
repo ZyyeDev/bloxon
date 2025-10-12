@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://cc44coo7i5w5o"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_sy0y0"]
+[ext_resource type="PackedScene" uid="uid://cxljm4ojrb0le" path="res://brainrots/models/Gangster Footera.tscn" id="2_sy0y0"]
+
+[node name="Gangster Footera" instance=ExtResource("1_sy0y0")]
+bName = "Gangster Footera"
+cost = 4000
+generate = 30
+rarity = 1
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="Gangster Footera" parent="." index="5" instance=ExtResource("2_sy0y0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.55298, 0)

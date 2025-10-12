@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://dladnj8sub7xt"
+path="res://.godot/imported/cash register.ogg-e839d3261f937441a57768b2f3b60c12.oggvorbisstr"
+
+[deps]
+
+source_file="res://assets/sounds/cash register.ogg"
+dest_files=["res://.godot/imported/cash register.ogg-e839d3261f937441a57768b2f3b60c12.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

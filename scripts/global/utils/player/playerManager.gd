@@ -6,6 +6,7 @@ var localplayer : player
 
 var players = {}
 var pending_avatar_data = {}
+var players_being_created = {}  # Track players currently being created
 
 func _ready():
 	if !Global.isClient:
@@ -33,11 +34,26 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	
 	if UID in players:
 		print("Player ", UID, " already exists, skipping creation")
-		return players[UID] 
+		return players[UID]
+	
+	# Check if already being created
+	if UID in players_being_created:
+		print("Player ", UID, " is already being created, waiting...")
+		var wait_count = 0
+		while UID in players_being_created and wait_count < 50:
+			await get_tree().process_frame
+			wait_count += 1
+		if UID in players:
+			return players[UID]
+		print("WARNING: Player creation timeout for ", UID)
+		return null
+	
+	players_being_created[UID] = true
 	
 	var playerClone = playerScene.instantiate()
 	if not playerClone:
 		print("Error: Failed to instantiate player")
+		players_being_created.erase(UID)
 		return null
 		
 	playerClone.localPlayer = isLocal
@@ -51,6 +67,17 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	players[UID] = playerClone
 	playersContainer.add_child(playerClone)
 	
+	## run in another thread cuz it took a lot of time to get this or smth (like 1 or 2 secs, even more tho!)
+	call_deferred("avatarData",avatar_data,playerClone,UID)
+	 
+	playerClone.init()
+	
+	players_being_created.erase(UID)
+	print("Player ", UID, " successfully created and added to tree")
+	
+	return playerClone
+
+func avatarData(avatar_data,playerClone,UID):
 	if not avatar_data.is_empty():
 		playerClone.changeColors(avatar_data)
 	else:
@@ -63,11 +90,6 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 				if !Global.isClient:
 					players[UID].rpc("changeColors", avatarData)
 			pending_avatar_data.erase(UID)
-	 
-	await get_tree().process_frame
-	playerClone.init()
-	
-	return playerClone
 
 @rpc("authority", "call_remote", "reliable")
 func removePlayer(UID):
@@ -76,6 +98,7 @@ func removePlayer(UID):
 		if players[UID]:
 			players[UID].queue_free()
 		players.erase(UID)
+	players_being_created.erase(UID)
 	pending_avatar_data.erase(UID)
 
 @rpc("any_peer", "call_remote", "unreliable")
@@ -90,60 +113,65 @@ func updatePlayerPosition(UID, position: Vector3, rotation: Vector3, velocity: V
 
 func _on_peer_connected(id):
 	if !Global.isClient:
-		print("Peer connected: ", id)
+		print("PlayerManager: Peer connected: ", id)
 		
-		await get_tree().process_frame
-		
-		var assigned_house_id = Global.assignHouse(str(id))
-		var spawn_pos = Vector3.ZERO
-		if assigned_house_id:
-			var house_node = Global.getHouse(assigned_house_id)
-			if house_node and house_node.plrSpawn:
-				spawn_pos = house_node.plrSpawn.global_position
-		
+		# Don't create player here - let Server.register_client_account handle it
+		# Just prepare for avatar data fetching
 		await get_tree().process_frame
 		
 		var user_id = int(get_user_id_for_uid(str(id)))
 		var avatar_data = {}
 		if user_id > 0:
+			print("Pre-fetching avatar data for peer ", id)
 			avatar_data = await Client.getAvatar(user_id, Global.token)
+			Global.avatarData[str(id)] = avatar_data
 		
+		# Sync existing players to the new peer
 		for existing_uid in players:
 			var existing_player = players[existing_uid]
-			if existing_player:
+			if existing_player and is_instance_valid(existing_player):
 				var existing_user_id = int(get_user_id_for_uid(existing_uid))
 				var existing_avatar = {}
 				if existing_user_id > 0:
 					existing_avatar = await Client.getAvatar(existing_user_id, Global.token)
 				rpc_id(id, "createPlayer", existing_uid, existing_player.global_position, false, existing_avatar)
-		 
-		var new_player = await createPlayer(str(id), spawn_pos, false, avatar_data)
-		if new_player: 
-			var server_user_id = Server.uidToUserId.get(str(id))
-			if server_user_id and server_user_id in Server.playerData:
-				var saved_money = Server.playerData[server_user_id].get("money", 100)
-				new_player.moneyValue.Value = saved_money
-				print("Set new player money to saved value: $", saved_money)
-			
-			rpc_id(id, "createPlayer", str(id), spawn_pos, true, avatar_data)
-			 
-			for peer_id in get_tree().get_multiplayer().get_peers():
-				if peer_id != id:
-					rpc_id(peer_id, "createPlayer", str(id), spawn_pos, false, avatar_data)
+
+func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dictionary = {}):
+	"""Called by Server after registration to create the player"""
+	if Global.isClient:
+		return null
+	
+	print("PlayerManager: Creating player for peer ", peer_id, " at ", spawn_pos)
+	
+	var new_player = await createPlayer(str(peer_id), spawn_pos, false, avatar_data)
+	if new_player:
+		var server_user_id = Server.uidToUserId.get(str(peer_id))
+		if server_user_id and server_user_id in Server.playerData:
+			var saved_money = Server.playerData[server_user_id].get("money", 100)
+			var saved_rebirths = Server.playerData[server_user_id].get("rebirths", 0)
+			new_player.moneyValue.Value = saved_money
+			if new_player.rebirthsVal:
+				new_player.rebirthsVal.Value = saved_rebirths
+			print("Set new player stats - Money: $", saved_money, " Rebirths: ", saved_rebirths)
+		
+		# Tell the client to create their local player
+		rpc_id(peer_id, "createPlayer", str(peer_id), spawn_pos, true, avatar_data)
+		
+		# Tell all other peers about the new player
+		for other_peer_id in get_tree().get_multiplayer().get_peers():
+			if other_peer_id != peer_id:
+				rpc_id(other_peer_id, "createPlayer", str(peer_id), spawn_pos, false, avatar_data)
+		
+		print("PlayerManager: Player ", peer_id, " created and synced to all clients")
+	else:
+		print("ERROR: Failed to create player for peer ", peer_id)
+	
+	return new_player
 
 func _on_peer_disconnected(id):
 	if !Global.isClient:
-		print("Peer disconnected: ", id)
-		 
-		for house_id in Global.houses:
-			if Global.houses[house_id]["plr"] == str(id):
-				Global.houses[house_id]["plr"] = ""
-				var house_node = Global.getHouse(house_id)
-				if house_node:
-					house_node.plrAssigned = ""
-				Global.rpc("client_house_assigned", house_id, "")
-				break
-		 
+		print("PlayerManager: Peer disconnected: ", id)
+		
 		removePlayer(str(id))
 		rpc("removePlayer", str(id))
 

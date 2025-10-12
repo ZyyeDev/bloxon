@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://b6icgh6hd8axd"]
+[gd_scene load_steps=45 format=3 uid="uid://b6icgh6hd8axd"]
 
 [ext_resource type="Script" uid="uid://bcm7e0dtqdx2c" path="res://scenes/CoreGui.gd" id="1_mxl2n"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="2_4msbc"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://bl0mtuxkvhe8y" path="res://assets/images/UI/WhiteOverlayAsset.png" id="6_4igou"]
 [ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="7_os41l"]
 [ext_resource type="PackedScene" uid="uid://bndfai4y54u78" path="res://scenes/inventorySlot.tscn" id="8_8tb8h"]
+[ext_resource type="PackedScene" uid="uid://c68wutjgvpa1s" path="res://scenes/slider_bar.tscn" id="8_tnugu"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4igou"]
 
@@ -69,9 +70,6 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7hh5n"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_om1ke"]
-bg_color = Color(0, 0, 0, 0.513726)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ouet7"]
 bg_color = Color(0.0936694, 0.0936694, 0.0936693, 0.396078)
 
@@ -102,6 +100,9 @@ func add_message(text: String) -> void:
 "
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_os41l"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_om1ke"]
+bg_color = Color(0, 0, 0, 0.513726)
 
 [sub_resource type="Animation" id="Animation_p5soe"]
 length = 0.001
@@ -188,6 +189,82 @@ _data = {
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mwwrp"]
 bg_color = Color(0.141176, 0.266667, 0.384314, 1)
 
+[sub_resource type="Shader" id="Shader_47vhm"]
+code = "shader_type canvas_item;
+
+uniform highp float spin_rotation_speed = 2.0;
+uniform highp float move_speed = 7.0;
+uniform highp vec2 offset = vec2(0., 0.);
+uniform highp vec4 colour_1 : source_color = vec4(0.871, 0.267, 0.231, 1.0);
+uniform highp vec4 colour_2 : source_color = vec4(0.0, 0.42, 0.706, 1.0);
+uniform highp vec4 colour_3 : source_color = vec4(0.086, 0.137, 0.145, 1.0);
+uniform highp float contrast = 3.5;
+uniform highp float lighting = 0.4;
+uniform highp float spin_amount = 0.25;
+uniform highp float pixel_filter = 740.;
+uniform bool is_rotating = false;
+#define SPIN_EASE 1.0
+
+
+vec4 effect(vec2 screenSize, vec2 screen_coords){
+
+	highp float pixel_size = length(screenSize.xy) / pixel_filter;
+    highp vec2 uv = (floor(screen_coords.xy*(1./pixel_size))*pixel_size - 0.5*screenSize.xy)/length(screenSize.xy) - offset;
+    highp float uv_len = length(uv);
+
+
+    highp float speed = (spin_rotation_speed*SPIN_EASE*0.2);
+	if(is_rotating){
+		speed = TIME * speed;
+	}
+	speed += 302.2;
+    highp float new_pixel_angle = (atan(uv.y, uv.x)) + speed - SPIN_EASE*20.*(1.*spin_amount*uv_len + (1. - 1.*spin_amount));
+    highp vec2 mid = (screenSize.xy/length(screenSize.xy))/2.;
+    uv = (vec2((uv_len * cos(new_pixel_angle) + mid.x), (uv_len * sin(new_pixel_angle) + mid.y)) - mid);
+
+    uv *= 30.;
+    speed = TIME*(move_speed);
+	highp vec2 uv2 = vec2(uv.x+uv.y);
+
+	for(int i=0; i < 5; i++) {
+		uv2 += sin(max(uv.x, uv.y)) + uv;
+		uv  += 0.5*vec2(cos(5.1123314 + 0.353*uv2.y + speed*0.131121),sin(uv2.x - 0.113*speed));
+		uv  -= 1.0*cos(uv.x + uv.y) - 1.0*sin(uv.x*0.711 - uv.y);
+	}
+
+
+    highp float contrast_mod = (0.25*contrast + 0.5*spin_amount + 1.2);
+	highp float paint_res = min(2., max(0.,length(uv)*(0.035)*contrast_mod));
+    highp float c1p = max(0.,1. - contrast_mod*abs(1.-paint_res));
+    highp float c2p = max(0.,1. - contrast_mod*abs(paint_res));
+    highp float c3p = 1. - min(1., c1p + c2p);
+	
+	highp float ligth = (lighting - 0.2) * max(c1p*5. - 4., 0.) + lighting * max(c2p*5. - 4., 0.); 
+	highp vec4 ret_col = (0.3/contrast)*colour_1 + (1. - 0.3/contrast)*(colour_1*c1p + colour_2*c2p + vec4(c3p*colour_3.rgb, c3p*colour_1.a)) + ligth;
+	return ret_col;
+}
+
+
+void fragment() {
+    vec2 uv = UV;
+	COLOR *= effect(TEXTURE_PIXEL_SIZE, uv);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_beuod"]
+shader = SubResource("Shader_47vhm")
+shader_parameter/spin_rotation_speed = 2.0
+shader_parameter/move_speed = 1.0
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/colour_1 = Color(2.16588e-07, 0.202442, 0.357726, 1)
+shader_parameter/colour_2 = Color(0, 0.42, 0.706, 1)
+shader_parameter/colour_3 = Color(0.086, 0.137, 0.145, 1)
+shader_parameter/contrast = 1.22
+shader_parameter/lighting = -0.13
+shader_parameter/spin_amount = 0.25
+shader_parameter/pixel_filter = 740.0
+shader_parameter/is_rotating = false
+
 [sub_resource type="Theme" id="Theme_mwwrp"]
 default_font_size = 20
 
@@ -246,11 +323,8 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
 theme_override_styles/hover = SubResource("StyleBoxFlat_os41l")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_8tb8h")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
-
-[node name="IconMenu" type="Sprite2D" parent="Game/menu"]
-position = Vector2(25.5, 26.5)
-scale = Vector2(0.980769, 0.980769)
-texture = ExtResource("2_l1elt")
+icon = ExtResource("2_l1elt")
+expand_icon = true
 
 [node name="chat" type="Button" parent="Game"]
 layout_mode = 0
@@ -349,6 +423,37 @@ layout_mode = 2
 [node name="Button9" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
 layout_mode = 2
 
+[node name="Chat" type="Control" parent="Game"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Game/Chat"]
+layout_mode = 0
+offset_left = 13.0
+offset_top = 63.0
+offset_right = 373.0
+offset_bottom = 230.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ouet7")
+horizontal_scroll_mode = 0
+script = SubResource("GDScript_ouet7")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Game/Chat/ScrollContainer"]
+custom_minimum_size = Vector2(352, 0)
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LineEdit" type="LineEdit" parent="Game/Chat"]
+custom_minimum_size = Vector2(352, 40)
+layout_mode = 2
+offset_left = 13.0
+offset_top = 234.0
+offset_right = 374.0
+offset_bottom = 274.0
+size_flags_vertical = 10
+theme_override_styles/focus = SubResource("StyleBoxEmpty_os41l")
+placeholder_text = "Enter a message..."
+
 [node name="escape" type="Control" parent="Game"]
 layout_mode = 1
 anchors_preset = 15
@@ -357,7 +462,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel2" type="Panel" parent="Game/escape"]
+[node name="Bg" type="Panel" parent="Game/escape"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -412,36 +517,67 @@ offset_bottom = 54.0
 theme_override_font_sizes/font_size = 30
 text = "Resume"
 
-[node name="Chat" type="Control" parent="Game"]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="PlayerList" type="VBoxContainer" parent="Game/escape"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 78.0
+offset_top = 95.0
+offset_right = -62.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Game/Chat"]
+[node name="SettingsMenu" type="VBoxContainer" parent="Game/escape"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 78.0
+offset_top = 95.0
+offset_right = -62.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AudioLabel" type="Label" parent="Game/escape/SettingsMenu"]
+layout_mode = 2
+text = "Audio Volume"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioBar" parent="Game/escape/SettingsMenu" instance=ExtResource("8_tnugu")]
+layout_mode = 2
+alignment = 1
+canBeZero = true
+
+[node name="GraphicsLabel" type="Label" parent="Game/escape/SettingsMenu"]
+layout_mode = 2
+text = "Graphics"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GraphicsBar" parent="Game/escape/SettingsMenu" instance=ExtResource("8_tnugu")]
+layout_mode = 2
+alignment = 1
+
+[node name="Players" type="Button" parent="Game/escape"]
 layout_mode = 0
-offset_left = 13.0
-offset_top = 63.0
-offset_right = 373.0
-offset_bottom = 230.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_ouet7")
-horizontal_scroll_mode = 0
-script = SubResource("GDScript_ouet7")
+offset_left = 358.0
+offset_top = 40.0
+offset_right = 546.0
+offset_bottom = 78.0
+text = "Players"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Game/Chat/ScrollContainer"]
-custom_minimum_size = Vector2(352, 0)
-layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="LineEdit" type="LineEdit" parent="Game/Chat"]
-custom_minimum_size = Vector2(352, 40)
-layout_mode = 2
-offset_left = 13.0
-offset_top = 234.0
-offset_right = 374.0
-offset_bottom = 274.0
-size_flags_vertical = 10
-theme_override_styles/focus = SubResource("StyleBoxEmpty_os41l")
-placeholder_text = "Enter a message..."
+[node name="Settings" type="Button" parent="Game/escape"]
+layout_mode = 0
+offset_left = 574.0
+offset_top = 40.0
+offset_right = 762.0
+offset_bottom = 78.0
+text = "Settings"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Game"]
 root_node = NodePath("../escape")
@@ -470,6 +606,16 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_mwwrp")
 metadata/_edit_use_anchors_ = true
 
+[node name="ColorRect" type="ColorRect" parent="connectGui"]
+material = SubResource("ShaderMaterial_beuod")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0)
+
 [node name="Connecting" type="Label" parent="connectGui"]
 layout_mode = 1
 anchors_preset = 2
@@ -491,6 +637,7 @@ texture = ExtResource("2_4msbc")
 script = SubResource("GDScript_d5h3d")
 
 [node name="Back" type="Button" parent="connectGui"]
+visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -518,9 +665,12 @@ texture = ExtResource("6_4igou")
 [connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
 [connection signal="button_down" from="Game/JumpButton" to="." method="_on_jump_pressed"]
 [connection signal="button_up" from="Game/JumpButton" to="." method="_on_jump_button_button_up"]
+[connection signal="editing_toggled" from="Game/Chat/LineEdit" to="." method="_on_line_edit_editing_toggled"]
+[connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
 [connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]
 [connection signal="pressed" from="Game/escape/resume" to="." method="_on_resume_pressed"]
-[connection signal="focus_entered" from="Game/Chat/LineEdit" to="." method="_on_line_edit_focus_entered"]
-[connection signal="focus_exited" from="Game/Chat/LineEdit" to="." method="_on_line_edit_focus_exited"]
-[connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
+[connection signal="changed" from="Game/escape/SettingsMenu/AudioBar" to="." method="_on_audio_bar_changed"]
+[connection signal="changed" from="Game/escape/SettingsMenu/GraphicsBar" to="." method="_on_graphics_bar_changed"]
+[connection signal="pressed" from="Game/escape/Players" to="." method="_on_players_pressed"]
+[connection signal="pressed" from="Game/escape/Settings" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="connectGui/Back" to="." method="_on_back_pressed"]

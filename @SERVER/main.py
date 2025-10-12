@@ -27,6 +27,7 @@ from friends import (
 )
 from avatar_service import loadAccessoriesData, saveAccessoriesData
 from pfp_service import ensurePfpDirectory
+from config import SERVER_PUBLIC_IP, BASE_PORT, GODOT_SERVER_BIN, DATASTORE_PASSWORD
 import atexit
 
 shutdown_lock = threading.Lock()
@@ -42,13 +43,9 @@ userAccounts = {}
 userTokens = {}
 authRateLimitDict = defaultdict(deque)
 
-DATASTORE_PASSWORD = "@MEOW"
-GODOT_SERVER_BIN = "server.exe"
-BASE_PORT = 5000
 MAX_SERVERS = 200
 maxRequestsPer15Sec = 100
 authMaxRequests = 100
-SERVER_PUBLIC_IP = "92.176.163.239"
 
 DATA_DIR = "server_data"
 DB_FILE = os.path.join(DATA_DIR, "server.db")
@@ -409,10 +406,8 @@ async def spawnServer(serverUid, serverPort):
         "--headless",
         f"--uid", f"{serverUid}",
         f"--port", f"{serverPort}",
-        f"--master", f"http://{SERVER_PUBLIC_IP}:8080",
+        f"--master", f"http://{SERVER_PUBLIC_IP}:{BASE_PORT}",
         "--server",
-        #stdout=subprocess.DEVNULL,
-        #stderr=subprocess.DEVNULL
     )
     processList[serverUid] = serverProc
     await asyncio.sleep(2)

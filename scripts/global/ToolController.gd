@@ -1,7 +1,6 @@
 extends Node
 
 var first_icon = false
-
 var toolData = {}
 
 func _ready() -> void:
@@ -10,22 +9,23 @@ func _ready() -> void:
 		print("Could not open folder (tools)")
 		var errMsg = "Tools folder don't exist. Please report this error: "+str(Global.ERROR_CODES.CORRUPTED_FILES)
 		OS.alert(errMsg)
-		# idk what msg in that does cuz i dont see anything idk
 		OS.crash(errMsg)
 		return
 	dir.list_dir_begin()
 	while true:
 		var fname = dir.get_next()
 		if fname == "": break
-		if fname == "ToolBase.tscn": continue # we dont want the base tool ofc
+		if fname == "ToolBase.tscn": continue
 		
 		var loaded = load("res://assets/Tools/"+fname)
+		if not loaded: continue
 		var tempTool = loaded.instantiate()
 		tempTool.register = false
 		var itemId = tempTool.itemId
 		var toolName = tempTool.toolName
 		var toolTip = tempTool.toolTip
 		var CanDrop = tempTool.canDrop
+		tempTool.queue_free()
 		
 		var data = {
 			id = itemId,
@@ -33,34 +33,40 @@ func _ready() -> void:
 			tip = toolTip,
 			canDrop = CanDrop
 		}
-		toolData[loaded] = data
+		toolData[fname.replace(".tscn","")] = data
 
 func createTextureFrom3D(loadedItem) -> Texture:
-	var item = loadedItem.instantiate()
+	var item = load("res://assets/Tools/"+loadedItem+".tscn").instantiate()
 	
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(256, 256)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	viewport.world_3d = World3D.new()
 	
 	var camera := Camera3D.new()
 	camera.current = true
-	camera.position = Vector3(0, 0, 3)
+	camera.position = Vector3(0, 0, 2)
 	camera.look_at(Vector3.ZERO, Vector3.UP)
 	viewport.add_child(camera)
 	
-	var temp_parent := Node3D.new()
-	temp_parent.add_child(item)
-	viewport.add_child(temp_parent)
+	var light := DirectionalLight3D.new()
+	light.light_energy = 1.0
+	light.rotation_degrees = Vector3(-45, 45, 0)
+	viewport.add_child(light)
 	
-	if not first_icon:
-		for light in get_tree().get_nodes_in_group("icon_lights"):
-			if light is DirectionalLight3D or light is OmniLight3D or light is SpotLight3D:
-				light.visible = false
-	else:
-		first_icon = false
+	var ambient := WorldEnvironment.new()
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0, 0, 0, 0)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.4, 0.4, 0.4)
+	ambient.environment = env
+	viewport.add_child(ambient)
 	
-	item.global_position = Vector3.ZERO
+	item.position = Vector3.ZERO
+	viewport.add_child(item)
+	
 	get_tree().root.add_child(viewport)
 	
 	await RenderingServer.frame_post_draw
@@ -75,13 +81,16 @@ func createTextureFrom3D(loadedItem) -> Texture:
 	return texture
 
 func getToolByName(_name):
-	for v in toolData:
-		if v.Name == _name:
-			return v
+	for packed_scene in toolData:
+		var data = toolData[packed_scene]
+		if data.Name == _name:
+			return packed_scene
 	return null
 
 func getToolById(id):
-	for v in toolData:
-		if v.id == id:
-			return v
+	for packed_scene in toolData:
+		var data = toolData[packed_scene]
+		print(data)
+		if int(data.id) == int(id):
+			return packed_scene
 	return null

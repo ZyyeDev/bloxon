@@ -28,10 +28,12 @@ var label: Label
 var touch_button: Button
 var panel: PanelContainer
 
-const IS_MOBILE = OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")
-const UI_SCALE = 1.5 if IS_MOBILE else 1.0
+var is_mobile: bool = false
+var ui_scale: float = 1.0
 
 func _init():
+	is_mobile = OS.get_name() in ["Android", "iOS"]
+	ui_scale = 1.5 if is_mobile else 1.0
 	setup_3d_components()
 
 func _ready():
@@ -54,7 +56,7 @@ func setup_ui_components():
 	prompt_ui.z_index = 100
 	
 	panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(240, 100) * UI_SCALE if IS_MOBILE else Vector2(200, 80)
+	panel.custom_minimum_size = Vector2(240, 100) * ui_scale if is_mobile else Vector2(200, 80)
 	
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.1, 0.9)
@@ -82,7 +84,7 @@ func setup_ui_components():
 	label = Label.new()
 	label.text = prompt_text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", int(16 * UI_SCALE))
+	label.add_theme_font_size_override("font_size", int(16 * ui_scale))
 	label.add_theme_color_override("font_color", Color.WHITE)
 	vbox.add_child(label)
 	
@@ -90,7 +92,7 @@ func setup_ui_components():
 	progress_bar.min_value = 0
 	progress_bar.max_value = hold_duration
 	progress_bar.value = 0
-	progress_bar.custom_minimum_size = Vector2(200, 24) * UI_SCALE if IS_MOBILE else Vector2(180, 20)
+	progress_bar.custom_minimum_size = Vector2(200, 24) * ui_scale if is_mobile else Vector2(180, 20)
 	progress_bar.show_percentage = false
 	
 	var progress_style = StyleBoxFlat.new()
@@ -111,11 +113,12 @@ func setup_ui_components():
 	
 	vbox.add_child(progress_bar)
 	
-	if IS_MOBILE:
+	if is_mobile:
 		touch_button = Button.new()
 		touch_button.text = "HOLD TO INTERACT"
-		touch_button.custom_minimum_size = Vector2(200, 50) * UI_SCALE
-		touch_button.add_theme_font_size_override("font_size", int(14 * UI_SCALE))
+		touch_button.custom_minimum_size = Vector2(200, 50) * ui_scale
+		touch_button.add_theme_font_size_override("font_size", int(14 * ui_scale))
+		touch_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		
 		var button_style = StyleBoxFlat.new()
 		button_style.bg_color = Color(0.2, 0.5, 1.0, 0.9)
@@ -136,6 +139,8 @@ func setup_ui_components():
 		touch_button.button_down.connect(_on_touch_start)
 		touch_button.button_up.connect(_on_touch_end)
 		vbox.add_child(touch_button)
+		
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	prompt_ui.visible = false
 	get_viewport().add_child(prompt_ui)
@@ -158,10 +163,12 @@ func _on_body_exited(body):
 func show_prompt():
 	if not enabled:
 		return
+	sphere_shape.radius = detection_radius
 	showing.emit()
 	prompt_ui.visible = true
 
 func hide_prompt():
+	sphere_shape.radius = detection_radius
 	hiding.emit()
 	prompt_ui.visible = false
 
@@ -175,6 +182,7 @@ func update_prompt_position():
 	var screen_pos = camera.unproject_position(world_pos)
 	
 	await get_tree().process_frame
+	if !is_instance_valid(panel): return
 	var panel_size = panel.size
 	prompt_ui.position = screen_pos - panel_size / 2
 
@@ -190,7 +198,7 @@ func _process(delta):
 	
 	if player_in_range and prompt_ui.visible:
 		update_prompt_position()
-		if not IS_MOBILE:
+		if not is_mobile:
 			handle_input(delta)
 	
 	if is_holding:

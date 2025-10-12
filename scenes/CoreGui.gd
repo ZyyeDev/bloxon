@@ -1,4 +1,4 @@
-#@icon("res://assets/EditorIcons/SurfaceGui.png")
+@icon("res://assets/EditorIcons/SurfaceGui.png")
 extends Control
 class_name core_gui
 
@@ -26,6 +26,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	updateInv()
 	chatLineEdit.max_length = MAX_MESSAGE_LENGTH
+	$Game/escape/SettingsMenu/AudioBar.value = Global.volume
+	$Game/escape/SettingsMenu/GraphicsBar.value = Global.graphics
 	if Global.isClient:
 		$WhiteOverlayAsset.modulate = Color8(0,0,0,0)
 		chatOpen = false
@@ -46,6 +48,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if !Global.isClient: return
+	if Global.localPlayer and Client.is_connected:
+		if Global.localPlayer.whoImStealing.Value == -1:
+			inventoryBox.visible = true
+		else:
+			inventoryBox.visible = false
 	$Game.visible = Client.is_connected
 	if Input.is_action_just_pressed("pause"):
 		toggleMenuEsc()
@@ -63,9 +70,13 @@ func _process(delta: float) -> void:
 
 func showConnect(text:String):
 	if not connectGui or not connectingLabel: return
+	$connectGui/ColorRect.visible = false
 	gameGui.visible = false
 	connectGui.visible = true
 	connectingLabel.text = text
+	await Global.wait(1.5)
+	if Client.is_connected:
+		coolColorRectEffect()
 
 func hideConnect():
 	if not connectGui: return
@@ -73,6 +84,7 @@ func hideConnect():
 	connectGui.visible = false
 
 func _on_back_pressed() -> void:
+	Client.disconnect_from_server()
 	get_tree().change_scene_to_file("res://scenes/INIT.tscn")
 
 func showEscape():
@@ -152,21 +164,89 @@ func _on_jump_pressed() -> void:
 func _on_jump_button_button_up() -> void:
 	JumpButton.icon = load("res://assets/images/UI/Mobile/jump.png")
 
-func _on_line_edit_focus_entered() -> void:
-	chatTexting = true
-
-func _on_line_edit_focus_exited() -> void:
-	chatTexting = false
-
 func updateInv():
 	var id = 0
 	
 	for v in inventoryBox.get_children():
 		v.queue_free()
-		
+	
+	await get_tree().process_frame
+	
+	for i in range(9):
 		var slot = load("res://scenes/inventorySlot.tscn").instantiate()
 		slot.invId = id
 		slot.name = "slot"+str(id)
+		slot.itemId = -1
 		inventoryBox.add_child(slot)
-		
 		id += 1
+	
+	await get_tree().process_frame
+	
+	if Global.currentInventory.size() > 0:
+		print("Populating inventory with: ", Global.currentInventory)
+		var slot_index = 0
+		for item_id_str in Global.currentInventory:
+			if slot_index >= 9:
+				break
+			
+			var item_id = int(item_id_str)
+			var quantity = Global.currentInventory[item_id_str]
+			
+			if quantity > 0:
+				var slot_node = inventoryBox.get_node("slot" + str(slot_index))
+				if slot_node:
+					slot_node.itemId = item_id
+					print("Set slot ", slot_index, " to item ID ", item_id)
+				slot_index += 1
+
+func _on_line_edit_editing_toggled(toggled_on: bool) -> void:
+	chatTexting = toggled_on
+
+func coolColorRectEffect():
+	var tw = get_tree().create_tween()
+	tw.tween_property($connectGui/ColorRect,"Color",Color(1,1,1,1),2)
+	tw.play()
+
+func _on_players_pressed() -> void:
+	$Game/escape/PlayerList.visible = true
+	$Game/escape/SettingsMenu.visible = false
+
+func _on_settings_pressed() -> void:
+	$Game/escape/PlayerList.visible = false
+	$Game/escape/SettingsMenu.visible = true
+
+func set_master_volume(percent: float):
+	percent = clamp(percent, 0.0, 100.0)
+	
+	if percent == 0:
+		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), -80)
+		return
+	 
+	var min_db = -10.0
+	var max_db = 10.0
+	var db = min_db + (max_db - min_db) * pow(percent / 100.0, 2)
+	
+	var bus = AudioServer.get_bus_index("Master")
+	print("Percent: ", percent, " | dB: ", db)
+	AudioServer.set_bus_volume_db(bus, db)
+
+func _on_audio_bar_changed(new_value) -> void: 
+	Global.volume = new_value
+	set_master_volume(float((new_value+1)*10))
+	var snd = AudioStreamPlayer.new()
+	snd.stream = load("res://assets/sounds/UI/volume_slider.ogg")
+	snd.volume_db = -10
+	add_child(snd)
+	snd.play()
+	Debris.addItem(snd,snd.stream.get_length())
+
+func _on_graphics_bar_changed(new_value: Variant) -> void:
+	Global.graphics = new_value
+	new_value += 1
+	var viewport = get_viewport()
+	if new_value >= 5:
+		viewport.msaa_3d = Viewport.MSAA_2X
+		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_FXAA)
+	else:
+		viewport.msaa_3d = Viewport.MSAA_DISABLED
+		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_DISABLED)

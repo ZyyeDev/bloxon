@@ -6,12 +6,62 @@ var user_id = 0
 var token = ""
 var username = ""
 
+var volume = 9
+var graphics = 9
+
+var currentInventory = {}
+
 var brainrotTypes = [
 	"noobini pizzanini",  
 	"lirilì larilà",
-	"chimpanzini bananini",
 	"Svinina Bombardino",
+	"chimpanzini bananini",
+	"Trippi Troppi",
+	"Gangster Footera",
+	"Boneca Ambalabu",
+	"Chef Crabracadabra",
 ]
+
+var rebirths = {
+	1: {
+		"need": [
+			{
+				"what": 1000000,
+				"type": "money"
+			},
+			{
+				"what": "Trippi Troppi",
+				"type": "brainrot"
+			},
+			{
+				"what": "Gangster Footera",
+				"type": "brainrot"
+			},
+		],
+		"get": [
+			{
+				"what": 5000,
+				"type": "money"
+			},
+			{
+				"what": 10,
+				"type": "lockBase"
+			},
+			{
+				"what": "Iron Slap",
+				"type": "tool"
+			},
+			{
+				"what": "Gravity Coil",
+				"type": "tool"
+			},
+			{
+				"what": "Bee Launcher",
+				"type": "tool"
+			},
+		]
+	}
+}
 
 var RARITIES = {
 	COMMON = 0,
@@ -22,7 +72,7 @@ var RARITIES = {
 }
 var RARITIES_PERCENT = {
 	0 : 80,
-	1 : 70,
+	1 : 60,
 	2 : 50,
 	3 : 30,
 	4 : 10
@@ -35,10 +85,15 @@ var currentServer = "test"
 var houses = {}
 var brainrots = {}
 
-var noportIp = "92.176.163.239"
-var masterIp = "http://"+noportIp+":8080"
+var noportIp = "92.176.163.239" #"bloxon-server.onrender.com"
+var port = ":8080"
+var masterIp = "http://"+noportIp+port
 var localPlayer:player = null
 var currentInvSelect = -1
+
+var myPlrData = {}
+
+signal myPlrDataUpdate
 
 var ERROR_CODES = {
 	SERVER_REACH = 50,
@@ -50,6 +105,18 @@ var ERROR_CODES = {
 var alrHasError = false
 
 func _ready() -> void:
+	if ".onrender.com" in masterIp:
+		masterIp = masterIp.replace("http://","https://")
+	var args = OS.get_cmdline_args()
+	if "--pfp-render" in args:
+		get_tree().change_scene_to_file("res://scenes/avatar_rendering.tscn")
+		return
+	if "--server" in args or OS.has_feature("dedicated_server"):
+		isClient = false
+		print("Running as SERVER")
+	else:
+		isClient = true
+		print("Running as CLIENT")
 	if isClient:
 		startClient()
 	else:
@@ -173,7 +240,7 @@ func spawnBrainrot(brUID="", brData={}):
 	
 	if !brData.is_empty():
 		if not brData.has("target_position"):
-			printerr("no target pos 🤪🤪")
+			printerr("no target pos ðŸ¤ªðŸ¤ª")
 			return
 		
 		if brData.has("position") and brData.has("target_position"):
@@ -181,8 +248,6 @@ func spawnBrainrot(brUID="", brData={}):
 				printerr("Cannot spawn on here!")
 				return
 	
-	# HACK: Invalid operands 'Dictionary' and 'String' in operator '=='.
-	# idc what the error is, this just fixes it, fuck you
 	if typeof(brUID) == TYPE_DICTIONARY:
 		return
 	
@@ -243,7 +308,6 @@ func server_try_grab(brUID, pUID):
 		
 		var plr = getPlayer(pUID)
 		
-		# if we dont have space, then don't grab it
 		if not whatHousePlr(pUID).ref.getAvailableSpace():
 			return
 		
@@ -377,6 +441,13 @@ func errorMessage(
 	if leavePressed != defaultLeavePressed:
 		box.binded = true
 		box.leavePressed.connect(leavePressed)
+		box.leavePressed.connect(func():
+			var snd = AudioStreamPlayer.new()
+			snd.stream = load("uid://vwx7j0muuk3a") ## ButtonPress.wav
+			snd.volume_db = -12.5
+			add_child(snd)
+			snd.play()
+			)
 		
 	get_tree().current_scene.add_child(box)
 	return box
@@ -386,13 +457,13 @@ func getAllServers():
 	var json_string = JSON.stringify(json_data)
 	var headers = ["Content-Type: application/json"]
 	
-	print("Updating servers...")
+	#print("Updating servers...")
 	
 	var sHttp = HTTPRequest.new()
 	add_child(sHttp)
 	sHttp.request_completed.connect(func(result, code, headers, body):
 		var response_text = body.get_string_from_utf8()
-		print("Response code: ", code, " Body: ", response_text)
+		#print("Response code: ", code, " Body: ", response_text)
 		
 		if code != 200:
 			print("Failed to get server info, code: ", code)
@@ -464,7 +535,7 @@ func collectMoney(pUID, index):
 				var plr = getPlayer(pUID)
 				if plr:
 					plr.moneyValue.Value += money_collected
-					print("Player ", pUID, " collected $", money_collected, " - New total: $", plr.moneyValue.Value)
+					#print("Player ", pUID, " collected $", money_collected, " - New total: $", plr.moneyValue.Value)
 					
 					phouse.brainrots = updated_brainrots
 					houses[phouse_data.id]["brainrots"] = updated_brainrots
@@ -577,30 +648,131 @@ func receiveChatMessage(message: String, senderUID: String):
 		print("[CHAT] ", username, ": ", message)
 
 @rpc("any_peer","call_remote","reliable")
-func changeHoldingItem(itemId,myId,mytoken):
+func changeHoldingItem(itemId, myId, mytoken):
 	var sender = multiplayer.get_remote_sender_id()
 	if !isClient:
-		for i in Server.playerData:
-			if Server.playerData[i].get("inventory", {}).has(str(itemId)) or itemId == -1:
-				if get_parent().has_node("Server"):
-					var server = get_parent().get_node("Server")
-					server.playerData[server.uidToUserId[str(sender)]]["holdingItem"] = itemId
-				rpc_id(sender,"changeHoldingItem",itemId,myId,"SERVER-"+Server.uid)
+		if get_parent().has_node("Server"):
+			var server = get_parent().get_node("Server")
+			var user_id = server.uidToUserId.get(str(sender))
+			if user_id and server.playerData.has(user_id):
+				var player_inventory = server.playerData[user_id].get("inventory", {})
+				if player_inventory.has(str(itemId)) or itemId == -1:
+					server.playerData[user_id]["holdingItem"] = itemId
+					rpc("syncHoldingItem", str(sender), itemId)
 	else:
 		if mytoken == token:
 			if localPlayer:
 				localPlayer.toolHolding = itemId
-		elif "SERVER" in mytoken:
-			var player = getPlayer(myId)
-			if player:
-				player.toolHolding = itemId
 
-@rpc("any_peer")
-func rebirth():
+@rpc("authority", "call_remote", "reliable")
+func syncHoldingItem(pUID: String, itemId: int):
+	var player = getPlayer(pUID)
+	if player:
+		player.toolHolding = itemId
+
+@rpc("any_peer", "call_remote", "reliable")
+func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
 	var sender = multiplayer.get_remote_sender_id()
-	var plr = getPlayer(sender)
+	if !isClient:
+		if get_parent().has_node("Server"):
+			var server = get_parent().get_node("Server")
+			var user_id = server.uidToUserId.get(str(sender))
+			if user_id and server.playerData.has(user_id):
+				if not server.playerData[user_id].has("inventory"):
+					server.playerData[user_id]["inventory"] = {}
+				
+				var inventory = server.playerData[user_id]["inventory"]
+				var item_key = str(itemId)
+				
+				if inventory.has(item_key):
+					inventory[item_key] += 1
+				else:
+					inventory[item_key] = 1
+				
+				server.updatePlayerActivity(user_id)
+				
+				var player = getPlayer(str(sender))
+				if player:
+					player.rpc("syncInventory", inventory)
+
+@rpc("any_peer") 
+func rebirth(token): 
+	var sender = multiplayer.get_remote_sender_id() 
+	var plr:player = getPlayer(sender) 
+	var phouse:house = whatHousePlr(sender).ref 
+	var brainrots = phouse.brainrots 
 	
-	plr.rebirthsVal.Value += 1
+	print("=== REBIRTH DEBUG START ===")
+	print("Sender ID: ", sender)
+	print("Player rebirth level: ", plr.rebirthsVal.Value+1)
+	print("Player money: ", plr.moneyValue.Value)
+	print("House brainrots count: ", phouse.brainrots.size())
+	print("Available rebirth keys: ", rebirths.keys())
+	
+	if plr.rebirthsVal.Value+1 not in rebirths:
+		print("ERROR: Rebirth level ", plr.rebirthsVal.Value+1, " does not exist in rebirths dict!")
+		print("=== REBIRTH DEBUG END ===")
+		return
+	
+	var rebirthData = rebirths[plr.rebirthsVal.Value+1]
+	print("Rebirth data: ", rebirthData)
+	
+	if rebirthData == null:
+		print("ERROR: rebirthData is null!")
+		print("=== REBIRTH DEBUG END ===")
+		return
+	
+	if not "need" in rebirthData:
+		print("ERROR: rebirthData has no 'need' key!")
+		print("=== REBIRTH DEBUG END ===")
+		return
+	
+	var brainrotsNeeded = {} 
+	var hasMoney = false 
+	
+	print("Requirements: ", rebirthData.need)
+	
+	for i in rebirthData.need:
+		print("Checking requirement: ", i)
+		if i.type == "money": 
+			if plr.moneyValue.Value >= i.what: 
+				hasMoney = true
+				print("Money requirement MET: ", i.what)
+			else:
+				print("Money requirement FAILED: need ", i.what, " have ", plr.moneyValue.Value)
+		elif i.type == "brainrot":
+			print("Brainrot requirement type, i.what = ", i.what)
+			brainrotsNeeded[i.what] = false
+			for v in phouse.brainrots: 
+				var brainrot = phouse.brainrots[v]["brainrot"]
+				print("Checking house brainrot id: ", brainrot.id, " against requirement: ", i.what)
+				if brainrot.id == i.what:
+					brainrotsNeeded[i.what] = true
+					print("Brainrot requirement MET: ", i.what)
+	
+	print("brainrotsNeeded dict: ", brainrotsNeeded)
+	
+	var brainrotHas = 0 
+	
+	for i in brainrotsNeeded: 
+		if brainrotsNeeded[i] == true: brainrotHas += 1 
+	
+	print("Has money: ", hasMoney)
+	print("Brainrots owned: ", brainrotHas, "/", brainrotsNeeded.size())
+	print("Can rebirth: ", hasMoney and brainrotHas == brainrotsNeeded.size())
+	
+	if hasMoney and brainrotHas == brainrotsNeeded.size(): 
+		var moneyGet = 0 
+		for i in rebirthData.get: 
+			if i.type == "money": 
+				moneyGet += i.what
+				break 
+		plr.moneyValue.Value = moneyGet
+		
+		for i in phouse.brainrots: 
+			phouse.removeBrainrot(i) 
+		
+		plr.rebirthsVal.Value += 1
 
 @rpc("any_peer")
 func trySteal(slot_name, plruid):
@@ -670,3 +842,34 @@ func trySteal(slot_name, plruid):
 				actionPlayer.stealingSlot.Value = slot_index
 				actionPlayer.whoImStealing.Value = int(plruid)
 				print("Steal initiated - Brainrot: ", brainrot_id, " | Slot name: ", slot_name, " | Slot index: ", slot_index)
+
+func server_give_item(pUID: String, itemId: int, quantity: int = 1):
+	if isClient:
+		return
+	
+	if get_parent().has_node("Server"):
+		var server = get_parent().get_node("Server")
+		var user_id = server.uidToUserId.get(pUID)
+		
+		if user_id and server.playerData.has(user_id):
+			if not server.playerData[user_id].has("inventory"):
+				server.playerData[user_id]["inventory"] = {}
+			
+			var inventory = server.playerData[user_id]["inventory"]
+			var item_key = str(itemId)
+			
+			if inventory.has(item_key):
+				inventory[item_key] += quantity
+			else:
+				inventory[item_key] = quantity
+			
+			var player = getPlayer(pUID)
+			if player:
+				player.rpc("syncInventory", inventory)
+			
+			print("Gave ", quantity, "x item ", itemId, " to player ", pUID)
+
+@rpc("authority","call_remote","reliable")
+func updateMyPlrData(npdata):
+	myPlrDataUpdate.emit()
+	myPlrData = npdata

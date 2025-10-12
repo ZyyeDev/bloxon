@@ -1,64 +1,104 @@
-newmtl Plane0031Mtl
+newmtl Plane0041Mtl
 Material Color
-Ka 0.0231036 0.00411618 5.07705e-06
-Kd 0.0231036 0.00411618 5.07705e-06
-Ks 0.00915082 0.00163033 2.01091e-06 
+Ka 0.737205 0.420508 0.22331
+Kd 0.737205 0.420508 0.22331
+Ks 0.066493 0.0379282 0.0201417 
 
 d 1
 
 Ns 0
 
-newmtl Plane0051Mtl
-Material Color
-Ka 0.373615 0.368591 0.383775
-Kd 0.373615 0.368591 0.383775
-Ks 0.147981 0.145991 0.152005 
+map_Ka Plane0061_diff.png
+map_Kd Plane0061_diff.png
+map_d Plane0061_diff.png
 
-d 1
+map_Bump Plane0061_nmap.png
 
-Ns 0
+map_Ns Plane0061_spec.png
 
 newmtl Plane0061Mtl
 Material Color
 Ka 0.022013 0.325037 0.0356144
 Kd 0.022013 0.325037 0.0356144
-Ks 0.00871887 0.12874 0.0141061 
+Ks 0.00198549 0.0293171 0.00321228 
 
 d 1
 
 Ns 0
 
-newmtl Plane0041Mtl
+map_Ka Plane0061_diff.png
+map_Kd Plane0061_diff.png
+map_d Plane0061_diff.png
+
+map_Bump Plane0061_nmap.png
+
+map_Ns Plane0061_spec.png
+
+newmtl Plane0021Mtl
 Material Color
-Ka 0.737205 0.420508 0.22331
-Kd 0.737205 0.420508 0.22331
-Ks 0.291991 0.166554 0.0884484 
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0322335 0.0318 0.03311 
+
+d 1
+
+Ns 255
+
+map_Ka Plane0021_diff.png
+map_Kd Plane0021_diff.png
+map_d Plane0021_diff.png
+
+newmtl Plane0051Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0336986 0.0332455 0.034615 
 
 d 1
 
 Ns 0
+
+map_Ka Plane0061_diff.png
+map_Kd Plane0061_diff.png
+map_d Plane0061_diff.png
+
+map_Bump Plane0061_nmap.png
+
+map_Ns Plane0061_spec.png
 
 newmtl Plane0011Mtl
 Material Color
 Ka 0.00715504 0.106156 0.0118813
 Kd 0.00715504 0.106156 0.0118813
-Ks 0.00283396 0.0420461 0.00470594 
+Ks 0.000645356 0.00957486 0.00107165 
 
 d 1
 
 Ns 0
 
-newmtl Plane0021Mtl
+map_Ka Plane0061_diff.png
+map_Kd Plane0061_diff.png
+map_d Plane0061_diff.png
+
+map_Bump Plane0061_nmap.png
+
+map_Ns Plane0061_spec.png
+
+newmtl Plane0031Mtl
 Material Color
-Ka 1 1 1
-Kd 1 1 1
-Ks 0.0627451 0.0627451 0.0627451 
+Ka 0.0231036 0.00411618 5.07705e-06
+Kd 0.0231036 0.00411618 5.07705e-06
+Ks 0.00208385 0.000371263 4.5793e-07 
 
 d 1
 
 Ns 0
 
-map_Ka Plane0021_diff.png
-map_Kd Plane0021_diff.png
-map_d Plane0021_diff.png
+map_Ka Plane0061_diff.png
+map_Kd Plane0061_diff.png
+map_d Plane0061_diff.png
+
+map_Bump Plane0061_nmap.png
+
+map_Ns Plane0061_spec.png
 

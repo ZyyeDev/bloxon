@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://cw0rn6rh13nxj"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_tobnd"]
+[ext_resource type="PackedScene" uid="uid://dh85808r84h4q" path="res://brainrots/models/Trippi Troppi.tscn" id="2_tobnd"]
+
+[node name="Trippi Troppi" instance=ExtResource("1_tobnd")]
+bName = "Trippi Troppi"
+cost = 2000
+generate = 15
+rarity = 1
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="Trippi Troppi" parent="." index="8" instance=ExtResource("2_tobnd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.55298, 0)

@@ -88,7 +88,13 @@ var oldBrainrotInst = null
 
 var current_anim_name = "idle"
 
+var inventory: Dictionary = {}
+
 func _ready():
+	if Global.isClient and !Client.is_connected:
+		$MainUi.visible = false
+		$cameraMiddle/SpringArm3D/Camera3D.visible = false
+		return
 	_collider_margin = playerCollider.shape.margin
 	
 	if localPlayer:
@@ -104,6 +110,7 @@ func _ready():
 		movement_sync_timer = 0.0
 		$bassSound.play()
 		while not await Global.whatHouseIm():
+			printerr("no house")
 			await Global.wait(.1)
 		if await Global.whatHouseIm():
 			var myhouse = await Global.whatHouseIm()
@@ -169,6 +176,7 @@ func init():
 		network_rotation = player_mesh.rotation.y
 
 func _physics_process(delta):
+	if Global.isClient and !Client.is_connected: return
 	was_grounded = grounded
 	grounded = is_on_floor()
 	desired_velocity = Vector3.ZERO
@@ -249,19 +257,23 @@ func stair_step_up() -> void:
 	global_position.y = motion_transform.origin.y
 
 func handle_local_physics(delta):
+	if Global.isClient and !Client.is_connected: return
 	if Global.alrHasError: return
 	var move_direction : Vector3 = Vector3.ZERO
 	
 	if !CoreGui.chatTexting:
 		move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 		move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forward")
-	
+		
 	var target_anim = "idle"
 	var target_anim_speed = 1.0
 	
 	if move_direction.x != 0 or move_direction.z != 0:
 		target_anim_speed = walkspeed/16.0
 		target_anim = "walk"
+		if !$footstepSounds.playing:
+			$footstepSounds.stream = load("res://assets/sounds/player/walk/plastic/snd_action_footsteps_plastic%s.wav" % randi_range(2,9))
+			$footstepSounds.play()
 	
 	if target_anim != current_anim_name:
 		$animations.play(target_anim)
@@ -273,15 +285,22 @@ func handle_local_physics(delta):
 	if move_direction.length() > 0:
 		move_direction = move_direction.normalized()
 	
-	velocity.y -= ((Global.fromStud(gravity)+(playerCollider.shape.size.y-1.4))*3) * delta
+	velocity.y -= ((Global.fromStud(gravity*1.2)+(playerCollider.shape.size.y-1.4))*3) * delta
 	
 	if is_on_floor():
 		velocity.x = move_direction.x * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.x+Global.fromStud(2))*8))
 		velocity.z = move_direction.z * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.z+Global.fromStud(2))*12))
 		
+		if !was_grounded:
+			$landSound.play()
+			$airSound.stop()
+		
 		if Input.is_action_just_pressed("jump") and !CoreGui.chatTexting:
+			$jumpSound.play()
 			velocity.y = (Global.fromStud(jump_strength)+(playerCollider.shape.size.y-1.4)*6)
 	else:
+		if !$airSound.playing:
+			$airSound.play()
 		velocity.x = move_direction.x * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.x+Global.fromStud(2))*8))
 		velocity.z = move_direction.z * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.z+Global.fromStud(2))*12))
 
@@ -294,13 +313,14 @@ func handle_local_physics(delta):
 		die()
 
 func handle_remote_physics(delta):
+	if Global.isClient and !Client.is_connected: return
 	global_position = global_position.lerp(network_position, NETWORK_LERP_SPEED * delta)
 	player_mesh.rotation.y = lerp_angle(player_mesh.rotation.y, network_rotation, NETWORK_LERP_SPEED * delta)
 	
 	if network_grounded:
 		velocity = network_velocity
 	else:
-		velocity.y -= (Global.fromStud(gravity) * delta) * 1
+		velocity.y -= (Global.fromStud(gravity*1.2) * delta) * 1
 	
 	if network_anim != current_anim_name and network_anim != "":
 		$animations.play(network_anim)
@@ -412,6 +432,7 @@ func performSlap():
 	setisSlappingFalse(1)
 
 func _process(_delta):
+	$CollisionShape3D.rotation = player_mesh.rotation
 	if oldBrainrotHolding != brainrotHolding:
 		oldBrainrotHolding = brainrotHolding
 		if oldBrainrotInst:
@@ -425,9 +446,8 @@ func _process(_delta):
 			oldBrainrotInst = inst
 			inst.position = $StealBrainrotPosition.position
 			inst.rotation = $StealBrainrotPosition.rotation
-			add_child(inst)
+			$Node3D.add_child(inst)
 	
-	if !localPlayer: return
 	if oldtoolHolding != toolHolding:
 		oldtoolHolding = toolHolding
 		if toolHoldingInst:
@@ -435,9 +455,19 @@ func _process(_delta):
 			toolHoldingInst = null
 		if toolHolding != -1:
 			if ToolController.getToolById(toolHolding):
-				var inst = load("res://assets/Tools/"+ToolController.getToolById(toolHolding).Name).instantiate()
+				var tool_data = ToolController.getToolById(toolHolding)
+				$animations/AnimationPlayer.play("ToolHold")
+				print("tool_data ",tool_data)
+				var inst = load("res://assets/Tools/"+tool_data+".tscn").instantiate()
 				$"Node3D/Right Arm/ToolPos".add_child(inst)
 				toolHoldingInst = inst
+				inst.holderUID = int(uid)
+			else:
+				printerr("tool holding does not exist: ",toolHolding)
+		else:
+			if $animations/AnimationPlayer.current_animation == "ToolHold":
+				$animations/AnimationPlayer.stop()
+	if !localPlayer: return
 	if Global.localPlayer and Global.localPlayer != self:
 		queue_free()
 	$MainUi.money = moneyValue.Value
@@ -478,3 +508,11 @@ func addBubbleBox(msg):
 @rpc("authority","call_local","reliable")
 func changeBrainrotHolding(newHolding):
 	brainrotHolding = newHolding
+
+@rpc("authority", "call_remote", "reliable")
+func syncInventory(inventory_data: Dictionary):
+	if str(uid) == Global.UID:
+		print("Received inventory: ", inventory_data)
+		Global.currentInventory = inventory_data
+		if CoreGui:
+			CoreGui.updateInv()

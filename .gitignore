@@ -32,3 +32,5 @@ android/
 @SERVER/server_data/friends.dat
 @SERVER/server_data/server.db-shm
 /@SERVER
+@SERVER/server_data/friends.dat
+@SERVER/server_data/server.db-shm

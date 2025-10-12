@@ -1,0 +1,50 @@
+newmtl Trippitroppi0031Mtl
+Material Color
+Ka 0.851252 0.297653 0.0915184
+Kd 0.851252 0.297653 0.0915184
+Ks 0.0767796 0.0268471 0.0082546 
+
+d 1
+
+Ns 0
+
+map_Ka Trippitroppi0031_diff.png
+map_Kd Trippitroppi0031_diff.png
+map_d Trippitroppi0031_diff.png
+
+map_Bump Trippitroppi0031_nmap.png
+
+map_Ns Trippitroppi0031_spec.png
+
+newmtl Trippitroppi0011Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0322335 0.0318 0.03311 
+
+d 1
+
+Ns 255
+
+map_Ka Trippitroppi0011_diff.png
+map_Kd Trippitroppi0011_diff.png
+map_d Trippitroppi0011_diff.png
+
+newmtl Trippitroppi1Mtl
+Material Color
+Ka 0.715465 0.0697271 0.00455975
+Kd 0.715465 0.0697271 0.00455975
+Ks 0.0645322 0.00628911 0.000411272 
+
+d 1
+
+Ns 0
+
+map_Ka Trippitroppi0031_diff.png
+map_Kd Trippitroppi0031_diff.png
+map_d Trippitroppi0031_diff.png
+
+map_Bump Trippitroppi0031_nmap.png
+
+map_Ns Trippitroppi0031_spec.png
+

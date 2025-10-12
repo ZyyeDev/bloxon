@@ -1,33 +1,29 @@
-[gd_scene load_steps=13 format=3 uid="uid://hiwa4m8nb6lr"]
+[gd_scene load_steps=17 format=3 uid="uid://hiwa4m8nb6lr"]
 
 [ext_resource type="Script" uid="uid://cs7rvdocctujd" path="res://player/UI/mainUi.gd" id="1_7l3lq"]
-
-[sub_resource type="GDScript" id="GDScript_1rl2n"]
-script/source = "extends Button
-
-func _ready() -> void:
-	focus_mode = Control.FOCUS_NONE
-"
+[ext_resource type="PackedScene" uid="uid://df4rs7xfrixan" path="res://scenes/rebirthThing.tscn" id="2_1rl2n"]
+[ext_resource type="Texture2D" uid="uid://d4e6opwjopoqd" path="res://assets/images/UI/rebirth.png" id="2_pt0hv"]
+[ext_resource type="Texture2D" uid="uid://hxwumpn3r2fr" path="res://assets/images/UI/paper.png" id="3_xj56v"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rsn2p"]
-bg_color = Color(8.59736e-06, 0.0446646, 0.212426, 0.580392)
+bg_color = Color(0.168502, 0.245559, 0.293662, 0.847059)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1rl2n"]
-bg_color = Color(5.89602e-07, 0.201113, 0.278083, 1)
+bg_color = Color(0.294931, 0.409483, 0.479596, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pt0hv"]
-bg_color = Color(1.78084e-06, 0.413818, 0.614238, 0.670588)
+bg_color = Color(0.260699, 0.364928, 0.450482, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xj56v"]
 bg_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eplsc"]
-bg_color = Color(0.545691, 0.457978, 0.350786, 1)
+bg_color = Color(8.18223e-07, 0.736479, 3.85046e-07, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rsn2p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cfhh0"]
-bg_color = Color(0, 0.479513, 0, 1)
+bg_color = Color(0.475946, 0.380523, 0.044208, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -35,7 +31,7 @@ border_width_bottom = 3
 border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6i7tu"]
-bg_color = Color(0, 0.331143, 0, 1)
+bg_color = Color(0.422123, 0.336432, 0.0349873, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -43,7 +39,7 @@ border_width_bottom = 3
 border_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_86lc2"]
-bg_color = Color(0, 0.4, 0, 1)
+bg_color = Color(0.447059, 0.356863, 0.0392157, 1)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -57,7 +53,16 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 "
 
-[node name="MainUi" type="Control" node_paths=PackedStringArray("moneyLabel", "bottomMsgsContainer", "rebirthPanel")]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pt0hv"]
+
+[sub_resource type="GDScript" id="GDScript_1rl2n"]
+script/source = "extends Button
+
+func _ready() -> void:
+	focus_mode = Control.FOCUS_NONE
+"
+
+[node name="MainUi" type="Control" node_paths=PackedStringArray("moneyLabel", "bottomMsgsContainer", "unlockHBox", "requirementsHBox", "progressBar", "progressBarText", "mainRebirthControl", "rebirthMaxLevel", "indexPanel", "rebirthPanel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -69,6 +74,13 @@ grow_vertical = 2
 script = ExtResource("1_7l3lq")
 moneyLabel = NodePath("MoneyLabel")
 bottomMsgsContainer = NodePath("bottomMsgsContainer")
+unlockHBox = NodePath("RebirthPanel/Main/Unlocks")
+requirementsHBox = NodePath("RebirthPanel/Main/RequirementsFrame/Requirements")
+progressBar = NodePath("RebirthPanel/Main/RequirementsFrame/ProgressBar")
+progressBarText = NodePath("RebirthPanel/Main/RequirementsFrame/ProgressBar/Label")
+mainRebirthControl = NodePath("RebirthPanel/Main")
+rebirthMaxLevel = NodePath("RebirthPanel/maxLevel")
+indexPanel = NodePath("IndexPanel")
 rebirthPanel = NodePath("RebirthPanel")
 
 [node name="MoneyLabel" type="Label" parent="."]
@@ -109,19 +121,6 @@ offset_bottom = 598.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="RebirthButton" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 16.0
-offset_top = 266.0
-offset_right = 58.0
-offset_bottom = 308.0
-grow_vertical = 2
-text = "R"
-script = SubResource("GDScript_1rl2n")
-
 [node name="RebirthPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 1
@@ -138,7 +137,15 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rsn2p")
 
-[node name="TopBar" type="Panel" parent="RebirthPanel"]
+[node name="Main" type="Control" parent="RebirthPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="Panel" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -148,7 +155,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1rl2n")
 
-[node name="Name" type="Label" parent="RebirthPanel/TopBar"]
+[node name="Name" type="Label" parent="RebirthPanel/Main/TopBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -162,7 +169,7 @@ text = "Rebirth"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Warning" type="Label" parent="RebirthPanel"]
+[node name="Warning" type="Label" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -179,14 +186,14 @@ theme_override_font_sizes/font_size = 18
 text = "[WARNING] You will lose all your cash and brainrots when you rebirth"
 horizontal_alignment = 1
 
-[node name="WillUnlock" type="Label" parent="RebirthPanel"]
+[node name="WillUnlock" type="Label" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_top = -101.0
-offset_bottom = -75.0
+offset_top = -108.0
+offset_bottom = -82.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.931237, 0.795113, 3.85046e-07, 1)
@@ -196,18 +203,22 @@ theme_override_font_sizes/font_size = 18
 text = "You will unlock:"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="RebirthPanel"]
+[node name="Unlocks" type="HBoxContainer" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 117.0
-offset_bottom = -217.0
+offset_top = 110.0
+offset_bottom = -210.0
 grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="Requirements" type="Label" parent="RebirthPanel"]
+[node name="rebirthThing" parent="RebirthPanel/Main/Unlocks" instance=ExtResource("2_1rl2n")]
+layout_mode = 2
+script = null
+
+[node name="Requirements" type="Label" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
@@ -224,7 +235,7 @@ theme_override_font_sizes/font_size = 18
 text = "Requirements:"
 horizontal_alignment = 1
 
-[node name="RequirementsFrame" type="Panel" parent="RebirthPanel"]
+[node name="RequirementsFrame" type="Panel" parent="RebirthPanel/Main"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -237,7 +248,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pt0hv")
 
-[node name="ProgressBar" type="ProgressBar" parent="RebirthPanel/RequirementsFrame"]
+[node name="ProgressBar" type="ProgressBar" parent="RebirthPanel/Main/RequirementsFrame"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -253,7 +264,19 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_eplsc")
 value = 10.0
 show_percentage = false
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="RebirthPanel/RequirementsFrame"]
+[node name="Label" type="Label" parent="RebirthPanel/Main/RequirementsFrame/ProgressBar"]
+layout_mode = 0
+offset_left = 267.0
+offset_top = -1.0
+offset_right = 348.0
+offset_bottom = 22.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 16
+text = "$1M / $1M"
+
+[node name="Requirements" type="HBoxContainer" parent="RebirthPanel/Main/RequirementsFrame"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -264,7 +287,7 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="RebirthConfirm" type="Button" parent="RebirthPanel"]
+[node name="RebirthConfirm" type="Button" parent="RebirthPanel/Main"]
 layout_mode = 0
 offset_left = 196.0
 offset_top = 330.0
@@ -277,5 +300,95 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_86lc2")
 text = "REBIRTH"
 script = SubResource("GDScript_rsn2p")
 
-[connection signal="pressed" from="RebirthButton" to="." method="_on_rebirth_button_pressed"]
-[connection signal="pressed" from="RebirthPanel/RebirthConfirm" to="." method="_on_rebirth_confirm_pressed"]
+[node name="maxLevel" type="Label" parent="RebirthPanel"]
+visible = false
+layout_mode = 0
+offset_left = 32.0
+offset_top = 168.0
+offset_right = 653.0
+offset_bottom = 251.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 60
+text = "MAX LEVEL REACHED!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="IndexPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 169.0
+offset_top = 73.0
+offset_right = 981.0
+offset_bottom = 526.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rsn2p")
+
+[node name="GridContainer" type="GridContainer" parent="IndexPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 51.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 10
+
+[node name="TopBar" type="Panel" parent="IndexPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -402.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1rl2n")
+
+[node name="Name" type="Label" parent="IndexPanel/TopBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_outline_size = 4
+theme_override_font_sizes/font_size = 18
+text = "Index"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 0
+offset_left = 8.0
+offset_top = 172.0
+offset_right = 48.0
+offset_bottom = 477.0
+alignment = 1
+
+[node name="IndexButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pt0hv")
+icon = ExtResource("3_xj56v")
+expand_icon = true
+script = SubResource("GDScript_1rl2n")
+
+[node name="RebirthButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pt0hv")
+icon = ExtResource("2_pt0hv")
+expand_icon = true
+script = SubResource("GDScript_1rl2n")
+
+[connection signal="pressed" from="RebirthPanel/Main/RebirthConfirm" to="." method="_on_rebirth_confirm_pressed"]
+[connection signal="pressed" from="VBoxContainer/IndexButton" to="." method="_on_index_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/RebirthButton" to="." method="_on_rebirth_button_pressed"]

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://blletyl7m7p6v"
+path="res://.godot/imported/FriendPanel.obj-738b2d2c8173752930f3a46e8e05f9a5.mesh"
+
+[deps]
+
+files=["res://.godot/imported/FriendPanel.obj-738b2d2c8173752930f3a46e8e05f9a5.mesh"]
+
+source_file="res://assets/models/3d/FriendPanel/FriendPanel.obj"
+dest_files=["res://.godot/imported/FriendPanel.obj-738b2d2c8173752930f3a46e8e05f9a5.mesh", "res://.godot/imported/FriendPanel.obj-738b2d2c8173752930f3a46e8e05f9a5.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

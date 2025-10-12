@@ -2,9 +2,9 @@ import os
 import json
 import time
 from typing import Dict, Any, Optional
+from config import SERVER_PUBLIC_IP
 
 PLAYER_DATA_FILE = os.path.join("server_data", "player_data.dat")
-SERVER_PUBLIC_IP = "92.176.163.239"
 
 playerDataDict = {}
 
@@ -24,7 +24,7 @@ DEFAULT_PLAYER_SCHEMA = {
         },
         "accessories": []
     },
-    "pfp": f"http://{SERVER_PUBLIC_IP}:8080/pfps/default.png",
+    "pfp": f"http://{SERVER_PUBLIC_IP}:{os.environ.get('PORT', 8080)}/pfps/default.png",
     "serverId": None
 }
 
@@ -93,21 +93,12 @@ def createPlayerData(userId: int, username: str) -> Dict[str, Any]:
     return playerData
 
 def updatePlayerAvatar(userId: int, avatarData: Dict[str, Any]) -> Dict[str, Any]:
-    from pfp_service import updateUserPfp
-
     playerData = getPlayerData(userId)
     if not playerData:
         return {"success": False, "error": {"code": "USER_NOT_FOUND", "message": "User not found"}}
 
     playerData["avatar"] = avatarData
     savePlayerData(userId, playerData)
-
-    try:
-        newPfpPath = updateUserPfp(userId)
-        playerData["pfp"] = f"http://{SERVER_PUBLIC_IP}:8080/{newPfpPath}"
-        savePlayerData(userId, playerData)
-    except Exception as e:
-        print(f"Error updating pfp for user {userId}: {e}")
 
     return {"success": True, "data": playerData}
 
@@ -143,7 +134,7 @@ def getPlayerFullProfile(userId: int) -> Dict[str, Any]:
 
     return {"success": True, "data": profile}
 
-def resetAllPlayerServers(): 
+def resetAllPlayerServers():
     global playerDataDict
     modified = False
 

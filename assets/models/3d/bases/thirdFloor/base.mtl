@@ -1,0 +1,270 @@
+newmtl StructureBaseHome3Mtl
+Material Color
+Ka 0.124741 0.113921 0.121986
+Kd 0.124741 0.113921 0.121986
+Ks 0.0112511 0.0102752 0.0110026 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl Plotsign1Mtl
+Material Color
+Ka 0.25084 0.0846415 0.0302565
+Kd 0.25084 0.0846415 0.0302565
+Ks 0.015739 0.00531084 0.00189845 
+
+d 1
+
+Ns 0
+
+newmtl StructureBaseHome1Mtl
+Material Color
+Ka 0.420508 0.420508 0.420508
+Kd 0.420508 0.420508 0.420508
+Ks 0.0379282 0.0379282 0.0379282 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl StructureBaseHome2Mtl
+Material Color
+Ka 0 0.554227 0
+Kd 0 0.554227 0
+Ks 0 0.0499891 0 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl StructureBaseHome35Mtl
+Material Color
+Ka 0.598942 0.605484 0.645555
+Kd 0.598942 0.605484 0.645555
+Ks 0.0540222 0.0546123 0.0582266 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl StructureBaseHome27Mtl
+Material Color
+Ka 0.103634 0.108711 0.14198
+Kd 0.103634 0.108711 0.14198
+Ks 0.00934739 0.00980532 0.0128061 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl Part23Mtl
+Material Color
+Ka 0.163641 0.0545923 0.0199178
+Kd 0.163641 0.0545923 0.0199178
+Ks 0.0147597 0.00492401 0.00179651 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl StructureBaseHome28Mtl
+Material Color
+Ka 0.560499 0.0169881 0.00775103
+Kd 0.560499 0.0169881 0.00775103
+Ks 0.0505548 0.00153226 0.000699112 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl Part1Mtl
+Material Color
+Ka 0.124741 0.113921 0.121986
+Kd 0.124741 0.113921 0.121986
+Ks 0.00782688 0.00714798 0.00765401 
+
+d 1
+
+Ns 0
+
+newmtl Part27Mtl
+Material Color
+Ka 0.139022 0.151058 0.193972
+Kd 0.139022 0.151058 0.193972
+Ks 0.00872298 0.00947815 0.0121708 
+
+d 1
+
+Ns 0
+
+newmtl StructureBaseHome36Mtl
+Material Color
+Ka 0.00715504 0.018913 0.0315514
+Kd 0.00715504 0.018913 0.0315514
+Ks 0.000448943 0.0011867 0.0019797 
+
+d 1
+
+Ns 0
+
+newmtl StructureBaseHome39Mtl
+Material Color
+Ka 0.00715504 0.018913 0.0315514
+Kd 0.00715504 0.018913 0.0315514
+Ks 0.000448943 0.0011867 0.0019797 
+
+d 0.4
+
+Ns 0
+
+newmtl StructureBaseHome81Mtl
+Material Color
+Ka 0.0563741 0.0600316 0.0780566
+Kd 0.0563741 0.0600316 0.0780566
+Ks 0.00508472 0.00541462 0.0070404 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl Part3Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0336986 0.0332455 0.034615 
+
+d 1
+
+Ns 0
+
+newmtl Part4Mtl
+Material Color
+Ka 0.0494335 0.0528416 0.0677246
+Kd 0.0494335 0.0528416 0.0677246
+Ks 0.0044587 0.00476611 0.00610849 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl Decoration1Mtl
+Material Color
+Ka 0.0563741 0.0600316 0.0780566
+Kd 0.0563741 0.0600316 0.0780566
+Ks 0.0035372 0.00376669 0.00489767 
+
+d 1
+
+Ns 0
+
+newmtl Main1Mtl
+Material Color
+Ka 0.0302565 0.275833 0.0477758
+Kd 0.0302565 0.275833 0.0477758
+Ks 0.00272902 0.024879 0.00430919 
+
+d 1
+
+Ns 0
+
+newmtl Main22Mtl
+Material Color
+Ka 1 1 0
+Kd 1 1 0
+Ks 0.0901961 0.0901961 0 
+
+d 1
+
+Ns 0
+
+newmtl StructureBaseHome150Mtl
+Material Color
+Ka 0.151058 0.0962661 0.0677246
+Kd 0.151058 0.0962661 0.0677246
+Ks 0.0136248 0.00868283 0.00610849 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+

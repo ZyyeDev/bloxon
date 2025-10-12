@@ -6,18 +6,23 @@ extends Button
 @export_subgroup("ref")
 @export var imgRef:Sprite2D
 
-var oldItemId 
+var oldItemId = -1
 
 func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 
 func _process(delta: float) -> void:
 	if itemId != oldItemId:
-		oldItemId = invId
+		oldItemId = itemId
 		if itemId == -1:
 			imgRef.texture = null
 		else:
-			imgRef.texture = await ToolController.createTextureFrom3D(await ToolController.getToolById(itemId))
+			if not Global.isClient:
+				return
+			
+			var tool_data = ToolController.getToolById(itemId)
+			if tool_data:
+				imgRef.texture = await ToolController.createTextureFrom3D(tool_data)
 
 func _on_pressed() -> void:
-	Global.rpc_id(1,"changeHoldingItem",itemId,Global.user_id,Global.token)
+	Global.rpc_id(1, "changeHoldingItem", itemId, Global.UID, Global.token)

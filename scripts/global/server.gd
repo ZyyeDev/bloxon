@@ -13,6 +13,7 @@ var DATASTORE_password = "@MEOW"
 var playerData = {}
 var uidToUserId = {}
 var connectedPlayers = {}
+var pending_registrations = {}
 
 func _ready():
 	if !Global.isClient:
@@ -57,6 +58,7 @@ func _ready():
 			await saveAllPlayerData()
 		)
 		saveTimer.start()
+		startPlayerDataMonitor()
 
 func parseArgs():
 	var args = OS.get_cmdline_args()
@@ -163,8 +165,18 @@ func _on_request_completed(result, code, headers, body):
 
 @rpc("any_peer","call_remote","reliable")
 func register_client_account(user_id, token):
-	print("Registering client - user_id: ", user_id, " peer_id: ", get_tree().get_multiplayer().get_remote_sender_id())
 	var sender_id = get_tree().get_multiplayer().get_remote_sender_id()
+	
+	if str(sender_id) in uidToUserId:
+		print("Player ", sender_id, " already registered, ignoring duplicate")
+		return
+	
+	if sender_id in pending_registrations:
+		print("Player ", sender_id, " registration already in progress")
+		return
+	
+	pending_registrations[sender_id] = true
+	print("Registering client - user_id: ", user_id, " peer_id: ", sender_id)
 	
 	uidToUserId[str(sender_id)] = user_id
 	connectedPlayers[user_id] = {
@@ -173,12 +185,41 @@ func register_client_account(user_id, token):
 		"last_activity": Time.get_unix_time_from_system()
 	}
 	
+	var avatar_data = Global.avatarData.get(str(sender_id), {})
+	
+	var house_id = Global.assignHouse(str(sender_id))
+	var spawn_pos = Vector3.ZERO
+	
+	if house_id:
+		var house_node = Global.getHouse(house_id)
+		if house_node and house_node.plrSpawn:
+			spawn_pos = house_node.plrSpawn.global_position
+		print("Assigned house ", house_id, " with spawn at ", spawn_pos)
+	
+	if PlayerManager:
+		var new_player = await PlayerManager.create_player_for_peer(sender_id, spawn_pos, avatar_data)
+		if not new_player:
+			print("ERROR: Failed to create player for peer ", sender_id)
+			pending_registrations.erase(sender_id)
+			return
+	else:
+		print("ERROR: PlayerManager not found!")
+		pending_registrations.erase(sender_id)
+		return
+	
+	print("now loading player data")
 	await loadPlayerData(user_id, sender_id)
+	pending_registrations.erase(sender_id)
 
 func _on_peer_connected(id):
 	print("Peer connected: ", id)
-	await get_tree().process_frame
-	await get_tree().process_frame
+	
+	var plr = Global.getPlayer(str(id))
+	if not plr:
+		print("WARNING: Player ", id, " not found yet, will wait for registration")
+		while not plr:
+			plr = Global.getPlayer(str(id))
+			await Global.wait(.5)
 	
 	var game_state = Global.get_full_game_state()
 	print("Sending game state to peer ", id)
@@ -186,6 +227,8 @@ func _on_peer_connected(id):
 
 func _on_peer_disconnected(id):
 	print("Peer disconnected: ", id)
+	
+	pending_registrations.erase(id)
 	
 	var user_id = uidToUserId.get(str(id))
 	if user_id:
@@ -250,25 +293,26 @@ func savePlayerData(user_id: int):
 	var peer_id = getUserPeerId(user_id)
 	var current_data = playerData[user_id].duplicate(true)
 	
-	print("Saving player ", user_id, " (peer_id: ", peer_id, ")")
+	print("=== SAVING PLAYER ", user_id, " ===")
 	
 	var money_to_save = current_data.get("money", 100)
+	var rebirth_to_save = current_data.get("rebirths", 0)
 	
 	if peer_id != -1:
 		var plr = Global.getPlayer(str(peer_id))
-		if plr and plr.moneyValue:
-			money_to_save = plr.moneyValue.Value
-			print("  Money from player object: $", money_to_save)
-		else:
-			print("  Money from stored data: $", money_to_save)
-	else:
-		print("  Money from stored data (player disconnected): $", money_to_save)
+		if plr:
+			if plr.moneyValue:
+				money_to_save = plr.moneyValue.Value
+			if plr.rebirthsVal:
+				rebirth_to_save = plr.rebirthsVal.Value
 	
 	if money_to_save < 0:
 		money_to_save = 0
-		print("  WARNING: Negative money detected, clamping to 0")
+	if rebirth_to_save < 0: # this cant happen, but just to make sure
+		rebirth_to_save = 0
 	
 	current_data["money"] = money_to_save
+	current_data["rebirths"] = rebirth_to_save
 	
 	var house_id = current_data.get("house_id")
 	if house_id and house_id in Global.houses:
@@ -306,7 +350,10 @@ func savePlayerData(user_id: int):
 	})
 	
 	var key = "player_" + str(user_id)
+	print("  Calling SetAsync with key: ", key)
 	var success = await SetAsync(key, current_data)
+	print("  SetAsync result: ", success)
+	
 	if success:
 		print("Successfully saved data for user_id: ", user_id, " with money: $", current_data["money"])
 		playerData[user_id] = current_data
@@ -315,73 +362,113 @@ func savePlayerData(user_id: int):
 		print("Failed to save player data for user_id: ", user_id)
 		return false
 
+func createBrainrotsIndex():
+	var dic = {}
+	for i in Global.brainrotTypes:
+		dic[i] = false
+	return dic
+
 func loadPlayerData(user_id: int, peer_id: int):
+	print("Loading player data for user_id: ", user_id, " peer_id: ", peer_id)
+	var load_start = Time.get_ticks_msec()
+	
 	var key = "player_" + str(user_id)
 	var data = await GetAsync(key)
+	
+	var load_time = Time.get_ticks_msec() - load_start
+	print("  Data fetch took ", load_time, "ms")
+	
+	var plr = Global.getPlayer(str(peer_id))
+	var wait_count = 0
+	while (not plr or not is_instance_valid(plr) or not plr.is_inside_tree()) and wait_count < 100:
+		await get_tree().create_timer(0.1).timeout
+		plr = Global.getPlayer(str(peer_id))
+		wait_count += 1
+		if wait_count % 10 == 0:
+			print("  Still waiting for player... (", wait_count, "/100)")
+	
+	if not plr or not is_instance_valid(plr):
+		print("  ERROR: Player ", peer_id, " not found after waiting ", wait_count * 0.1, " seconds")
+		return
+	
+	if not plr.is_inside_tree():
+		print("  ERROR: Player ", peer_id, " exists but not in tree!")
+		return
 	
 	if data != null:
 		var loaded_money = data.get("money", 100)
 		var loaded_rebirths = data.get("rebirths", 0)
 		
-		if loaded_money < 0:
+		if data.get("indexBrainrots",null) == null:
+			data["indexBrainrots"] = createBrainrotsIndex()
+		
+		if int(loaded_money) <= 0:
 			loaded_money = 100
 		
 		data["money"] = loaded_money
+		
+		if not data.has("inventory"):
+			data["inventory"] = {}
+		if not data["inventory"].has("1"):
+			data["inventory"]["1"] = 1
+		
 		playerData[user_id] = data.duplicate(true)
 		
-		print("Loaded data for user_id: ", user_id)
+		print("  Loaded data for user_id: ", user_id)
 		print("  Money: $", loaded_money)
 		
-		var plr = Global.getPlayer(str(peer_id))
-		if plr and plr.moneyValue:
+		if plr.moneyValue:
 			plr.moneyValue.Value = loaded_money
 			print("  Set player money to: $", loaded_money)
 		
-		if plr and plr.rebirthsVal:
+		if plr.rebirthsVal:
 			plr.rebirthsVal.Value = loaded_rebirths
 			print("  Set player rebirths to: ", loaded_rebirths)
 		
-		await get_tree().process_frame
+		if plr.has_method("rpc"):
+			plr.rpc("syncInventory", data["inventory"])
+			print("  Synced inventory to player")
 		
-		var house_id = Global.assignHouse(str(peer_id))
-		if house_id:
+		var house_id = data.get("house_id")
+		
+		var current_house = Global.whatHousePlr(str(peer_id))
+		if current_house:
+			house_id = current_house.id
 			playerData[user_id]["house_id"] = house_id
-			print("  Assigned house ", house_id)
+			print("  Player has house ", house_id)
+		
+		await get_tree().create_timer(0.5).timeout
+		
+		if data.has("house_data") and data["house_data"].has("brainrots"):
+			var saved_brainrots = data["house_data"]["brainrots"].duplicate(true)
+			var house_node = Global.getHouse(house_id)
 			
-			for i in range(10):
-				await get_tree().process_frame
-			
-			if data.has("house_data") and data["house_data"].has("brainrots"):
-				var saved_brainrots = data["house_data"]["brainrots"].duplicate(true)
-				var house_node = Global.getHouse(house_id)
+			if house_node:
+				print("  Loading brainrots into house ", house_id)
 				
-				if house_node:
-					print("  Loading brainrots into house ", house_id)
-					
-					for slot_name in saved_brainrots:
-						if house_node.brainrots.has(slot_name):
-							var slot_data = saved_brainrots[slot_name]
-							house_node.brainrots[slot_name]["brainrot"] = slot_data.get("brainrot", {"id": "", "UID": "", "generate": 0, "modifiers": {}}).duplicate(true)
-							house_node.brainrots[slot_name]["money"] = slot_data.get("money", 0)
-							
-							var brainrot_id = slot_data["brainrot"]["id"]
-							if brainrot_id != "":
-								print("    Slot ", slot_name, ": ", brainrot_id, " ($", slot_data["money"], ", gen: ", slot_data["brainrot"]["generate"], ")")
-						else:
-							printerr("house node has no brainrots key ",slot_name)
-					
-					Global.houses[house_id]["brainrots"] = house_node.brainrots.duplicate(true)
-					
-					await get_tree().process_frame
-					
+				for slot_name in saved_brainrots:
+					if house_node.brainrots.has(slot_name):
+						var slot_data = saved_brainrots[slot_name]
+						house_node.brainrots[slot_name]["brainrot"] = slot_data.get("brainrot", {"id": "", "UID": "", "generate": 0, "modifiers": {}}).duplicate(true)
+						house_node.brainrots[slot_name]["money"] = slot_data.get("money", 0)
+						
+						var brainrot_id = slot_data["brainrot"]["id"]
+						if brainrot_id != "":
+							print("    Slot ", slot_name, ": ", brainrot_id, " ($", slot_data["money"], ")")
+					else:
+						printerr("  house node has no brainrots key ",slot_name)
+				
+				Global.houses[house_id]["brainrots"] = house_node.brainrots.duplicate(true)
+				
+				if house_node.has_method("updateBrainrots"):
 					house_node.updateBrainrots(house_node.brainrots)
 					house_node.rpc("updateBrainrots", house_node.brainrots)
-					
-					print("  Brainrots loaded and synced to client")
-				else:
-					print("  ERROR: House node not found for house_id: ", house_id)
+				
+				print("  Brainrots loaded and synced")
+			else:
+				print("  ERROR: House node not found for house_id: ", house_id)
 	else:
-		print("No saved data for user_id: ", user_id, ", creating new")
+		print("  No saved data for user_id: ", user_id, ", creating new")
 		playerData[user_id] = {
 			"money": 100,
 			"rebirths": 0,
@@ -390,7 +477,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 			"house_id": null,
 			"house_data": {"brainrots": {}},
 			"brainrots_collected": {},
-			"inventory": {},
+			"inventory": {"1": 1},
+			"indexBrainrots": createBrainrotsIndex(),
 			"statistics": {
 				"sessions_played": 0,
 				"total_money_earned": 0,
@@ -399,13 +487,22 @@ func loadPlayerData(user_id: int, peer_id: int):
 			"last_save": Time.get_unix_time_from_system()
 		}
 		
-		var plr = Global.getPlayer(str(peer_id))
-		if plr and plr.moneyValue:
+		if plr.moneyValue:
 			plr.moneyValue.Value = 100
 		
-		var house_id = Global.assignHouse(str(peer_id))
-		if house_id:
-			playerData[user_id]["house_id"] = house_id
+		var current_house = Global.whatHousePlr(str(peer_id))
+		if current_house:
+			playerData[user_id]["house_id"] = current_house.id
+			print("  New player assigned to house ", current_house.id)
+		
+		if plr.has_method("rpc"):
+			plr.rpc("syncInventory", {"1": 1})
+			print("  New player, gave bat and synced inventory")
+	
+	Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
+	
+	var total_time = Time.get_ticks_msec() - load_start
+	print("  Total load time: ", total_time, "ms")
 
 func saveAllPlayerData():
 	print("Saving all player data - ", playerData.size(), " players")
@@ -420,7 +517,7 @@ func saveAllPlayerData():
 		await savePlayerData(user_id)
 	print("All player data saved")
 
-func updatePlayerMoney(peer_uid: String, amount: int):
+func updatePlayerMoney(peer_uid: String, amount: int, modify = true):
 	var user_id = uidToUserId.get(peer_uid)
 	
 	if user_id and user_id in playerData:
@@ -435,7 +532,7 @@ func updatePlayerMoney(peer_uid: String, amount: int):
 		
 		var actual_peer_id = getUserPeerId(user_id)
 		
-		if actual_peer_id != -1:
+		if actual_peer_id != -1 and modify:
 			var plr = Global.getPlayer(str(actual_peer_id))
 			if plr and plr.moneyValue:
 				plr.moneyValue.Value = amount
@@ -578,6 +675,7 @@ func ListKeysAsync() -> Array:
 	return []
 
 func _make_request(http_request: HTTPRequest, url: String, data: Dictionary) -> Dictionary:
+	url = url.replace(":5000",":8080")
 	var promise = {}
 	promise.completed = false
 	promise.code = 0
@@ -587,15 +685,12 @@ func _make_request(http_request: HTTPRequest, url: String, data: Dictionary) -> 
 		promise.completed = true
 		promise.code = code
 		promise.body = body.get_string_from_utf8()
+		print("HTTP Response received - Code: ", code, " URL: ", url)
 		http_request.queue_free()
 	)
 	
-	var err = http_request.request(
-		url,
-		["Content-Type: application/json"],
-		HTTPClient.METHOD_POST,
-		JSON.stringify(data)
-	)
+	var headers = ["Content-Type: application/json"]
+	var err = http_request.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(data))
 	
 	if err != OK:
 		http_request.queue_free()
@@ -603,7 +698,89 @@ func _make_request(http_request: HTTPRequest, url: String, data: Dictionary) -> 
 		promise.completed = true
 		return promise
 	
-	while not promise.completed:
+	var timeout_counter = 0
+	var max_timeout = 100
+	
+	while not promise.completed and timeout_counter < max_timeout:
 		await get_tree().process_frame
+		timeout_counter += 1
+	
+	if not promise.completed:
+		print("HTTP REQUEST TIMEOUT after ", timeout_counter * 0.016, " seconds for URL: ", url)
+		http_request.queue_free()
+		promise.code = 0
+		promise.completed = true
 	
 	return promise
+
+## This is REALLY bad, ik!!!! I'm just trying to finish this fucking already im done with this
+## fucking shit
+
+var playerDataSnapshots = {}
+
+func startPlayerDataMonitor():
+	var monitor_timer = Timer.new()
+	add_child(monitor_timer)
+	monitor_timer.wait_time = 0.5
+	monitor_timer.autostart = true
+	monitor_timer.timeout.connect(_check_player_data_changes)
+	monitor_timer.start()
+
+func _check_player_data_changes():
+	for user_id in playerData:
+		var current_data = playerData[user_id]
+		var previous_data = playerDataSnapshots.get(user_id)
+		
+		if previous_data == null or not _are_dicts_equal(previous_data, current_data):
+			playerDataSnapshots[user_id] = current_data.duplicate(true)
+			
+			var peer_id = getUserPeerId(user_id)
+			if peer_id != -1:
+				Global.rpc_id(peer_id, "updateMyPlrData", current_data)
+
+func _are_dicts_equal(dict1: Dictionary, dict2: Dictionary) -> bool:
+	if dict1.size() != dict2.size():
+		return false
+	
+	for key in dict1:
+		if not dict2.has(key):
+			return false
+		
+		var val1 = dict1[key]
+		var val2 = dict2[key]
+		
+		if typeof(val1) != typeof(val2):
+			return false
+		
+		if val1 is Dictionary and val2 is Dictionary:
+			if not _are_dicts_equal(val1, val2):
+				return false
+		elif val1 is Array and val2 is Array:
+			if not _are_arrays_equal(val1, val2):
+				return false
+		elif val1 != val2:
+			return false
+	
+	return true
+
+func _are_arrays_equal(arr1: Array, arr2: Array) -> bool:
+	if arr1.size() != arr2.size():
+		return false
+	
+	for i in range(arr1.size()):
+		var val1 = arr1[i]
+		var val2 = arr2[i]
+		
+		if typeof(val1) != typeof(val2):
+			return false
+		
+		if val1 is Dictionary and val2 is Dictionary:
+			if not _are_dicts_equal(val1, val2):
+				return false
+		elif val1 is Array and val2 is Array:
+			if not _are_arrays_equal(val1, val2):
+				return false
+		elif val1 != val2:
+			return false
+	
+	return true

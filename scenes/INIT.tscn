@@ -1,7 +1,90 @@
-[gd_scene load_steps=4 format=3 uid="uid://cvrksydjwh6d5"]
+[gd_scene load_steps=12 format=3 uid="uid://cvrksydjwh6d5"]
 
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="1_cw3mg"]
 [ext_resource type="Script" uid="uid://b68l3qd2uv0ev" path="res://scenes/init.gd" id="1_y3eay"]
+[ext_resource type="AudioStream" uid="uid://cp4m7nsrapepa" path="res://assets/sounds/UI/menu theme.wav" id="3_7s0ea"]
+[ext_resource type="AudioStream" uid="uid://vwx7j0muuk3a" path="res://assets/sounds/UI/ButtonPress.wav" id="5_47vhm"]
+[ext_resource type="PackedScene" uid="uid://ce5bdp5lcqap1" path="res://scenes/menuBg.tscn" id="5_dbdea"]
+[ext_resource type="AudioStream" uid="uid://bao48otjieog7" path="res://assets/sounds/UI/PopUp2.wav" id="6_nqtka"]
+
+[sub_resource type="Shader" id="Shader_dbdea"]
+code = "shader_type canvas_item;
+
+uniform highp float spin_rotation_speed = 2.0;
+uniform highp float move_speed = 7.0;
+uniform highp vec2 offset = vec2(0., 0.);
+uniform highp vec4 colour_1 : source_color = vec4(0.871, 0.267, 0.231, 1.0);
+uniform highp vec4 colour_2 : source_color = vec4(0.0, 0.42, 0.706, 1.0);
+uniform highp vec4 colour_3 : source_color = vec4(0.086, 0.137, 0.145, 1.0);
+uniform highp float contrast = 3.5;
+uniform highp float lighting = 0.4;
+uniform highp float spin_amount = 0.25;
+uniform highp float pixel_filter = 740.;
+uniform bool is_rotating = false;
+#define SPIN_EASE 1.0
+
+
+vec4 effect(vec2 screenSize, vec2 screen_coords){
+
+	highp float pixel_size = length(screenSize.xy) / pixel_filter;
+    highp vec2 uv = (floor(screen_coords.xy*(1./pixel_size))*pixel_size - 0.5*screenSize.xy)/length(screenSize.xy) - offset;
+    highp float uv_len = length(uv);
+
+
+    highp float speed = (spin_rotation_speed*SPIN_EASE*0.2);
+	if(is_rotating){
+		speed = TIME * speed;
+	}
+	speed += 302.2;
+    highp float new_pixel_angle = (atan(uv.y, uv.x)) + speed - SPIN_EASE*20.*(1.*spin_amount*uv_len + (1. - 1.*spin_amount));
+    highp vec2 mid = (screenSize.xy/length(screenSize.xy))/2.;
+    uv = (vec2((uv_len * cos(new_pixel_angle) + mid.x), (uv_len * sin(new_pixel_angle) + mid.y)) - mid);
+
+    uv *= 30.;
+    speed = TIME*(move_speed);
+	highp vec2 uv2 = vec2(uv.x+uv.y);
+
+	for(int i=0; i < 5; i++) {
+		uv2 += sin(max(uv.x, uv.y)) + uv;
+		uv  += 0.5*vec2(cos(5.1123314 + 0.353*uv2.y + speed*0.131121),sin(uv2.x - 0.113*speed));
+		uv  -= 1.0*cos(uv.x + uv.y) - 1.0*sin(uv.x*0.711 - uv.y);
+	}
+
+
+    highp float contrast_mod = (0.25*contrast + 0.5*spin_amount + 1.2);
+	highp float paint_res = min(2., max(0.,length(uv)*(0.035)*contrast_mod));
+    highp float c1p = max(0.,1. - contrast_mod*abs(1.-paint_res));
+    highp float c2p = max(0.,1. - contrast_mod*abs(paint_res));
+    highp float c3p = 1. - min(1., c1p + c2p);
+	
+	highp float ligth = (lighting - 0.2) * max(c1p*5. - 4., 0.) + lighting * max(c2p*5. - 4., 0.); 
+	highp vec4 ret_col = (0.3/contrast)*colour_1 + (1. - 0.3/contrast)*(colour_1*c1p + colour_2*c2p + vec4(c3p*colour_3.rgb, c3p*colour_1.a)) + ligth;
+	return ret_col;
+}
+
+
+void fragment() {
+    vec2 uv = UV;
+	COLOR *= effect(TEXTURE_PIXEL_SIZE, uv);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nqtka"]
+shader = SubResource("Shader_dbdea")
+shader_parameter/spin_rotation_speed = 2.0
+shader_parameter/move_speed = 4.0
+shader_parameter/offset = Vector2(0, 0)
+shader_parameter/colour_1 = Color(0, 0.0392157, 0.0784314, 1)
+shader_parameter/colour_2 = Color(1.09046e-08, 0.0140443, 0.032368, 1)
+shader_parameter/colour_3 = Color(0.107603, 0.116802, 0.190747, 1)
+shader_parameter/contrast = 1.22
+shader_parameter/lighting = -0.13
+shader_parameter/spin_amount = 0.25
+shader_parameter/pixel_filter = 740.0
+shader_parameter/is_rotating = false
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_47vhm"]
+viewport_path = NodePath("SubViewport")
 
 [sub_resource type="GDScript" id="GDScript_7s0ea"]
 script/source = "extends TextureRect 
@@ -10,7 +93,9 @@ func _process(delta: float) -> void:
 	rotation += delta * 5
 "
 
-[node name="Init" type="Control"]
+[sub_resource type="World3D" id="World3D_nqtka"]
+
+[node name="Init" type="Control" node_paths=PackedStringArray("infoLabel")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,28 +103,63 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_y3eay")
+infoLabel = NodePath("scene/Label")
 
 [node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_nqtka")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.133196, 0.133196, 0.133196, 1)
-metadata/_edit_use_anchors_ = true
 
-[node name="LoadingSpinner" type="TextureRect" parent="."]
+[node name="ColorRect2" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.147672, 0.147672, 0.147672, 1)
+
+[node name="3dBg" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(576, 324)
+texture = SubResource("ViewportTexture_47vhm")
+
+[node name="scene" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="scene"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 1112.0
+offset_bottom = 608.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.168627, 0.282353, 1, 0.321569)
+
+[node name="LoadingSpinner" type="TextureRect" parent="scene"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -42.0
-offset_top = -41.0
-offset_right = -10.0
-offset_bottom = -9.0
+offset_left = -47.0
+offset_top = -42.0
+offset_right = -15.0
+offset_bottom = -10.0
 grow_horizontal = 0
 grow_vertical = 0
 pivot_offset = Vector2(16, 16)
@@ -47,29 +167,50 @@ texture = ExtResource("1_cw3mg")
 expand_mode = 1
 script = SubResource("GDScript_7s0ea")
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="scene"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -226.0
-offset_top = -38.0
-offset_right = -52.0
-offset_bottom = -15.0
+offset_left = -231.0
+offset_top = -37.0
+offset_right = -57.0
+offset_bottom = -14.0
 grow_horizontal = 0
 grow_vertical = 0
 text = "Connecting to server..."
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="scene"]
 wait_time = 5.0
 one_shot = true
 autostart = true
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="scene"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
+[node name="Music" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_7s0ea")
+volume_db = -23.637
+
+[node name="Done" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("5_47vhm")
+volume_db = -9.455
+
+[node name="Error" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_nqtka")
+volume_db = -4.727
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+world_3d = SubResource("World3D_nqtka")
+size = Vector2i(1152, 648)
+
+[node name="menuBg" parent="SubViewport" instance=ExtResource("5_dbdea")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.158931, 0, 1.73056)
+
+[connection signal="timeout" from="scene/Timer" to="." method="_on_timer_timeout"]
+[connection signal="finished" from="Music" to="." method="_on_music_finished"]

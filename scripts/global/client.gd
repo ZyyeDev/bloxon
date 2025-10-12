@@ -91,8 +91,8 @@ func _on_connected_to_server():
 	PlayerManager.createLocalPlayer()
 	print("Connected to server successfully! UID: ", Global.UID)
 	is_connected = true
-	Global.on_player_connected()
 	Server.rpc_id(1, "register_client_account",Global.user_id,Global.token)
+	Global.on_player_connected()
 
 func _on_connection_failed():
 	print("Failed to connect to server")
@@ -100,6 +100,7 @@ func _on_connection_failed():
 	is_connected = false
 
 func _on_server_disconnected():
+	Global.localPlayer = null
 	Global.errorMessage("Disconnected from the server",Global.ERROR_CODES.DISCONNECT)
 	serverUID = ""
 	print("Disconnected from server")
@@ -270,14 +271,14 @@ func getPlayerPfpById(userId: int, token: String) -> String:
 	
 	return ""
 
-func getCurrency(userId: int, token: String) -> String:
+func getCurrency(userId: int, token: String) -> int:
 	var playerData = await getPlayerDataById(userId, token)
-	
+	print("playerData ",playerData)
 	if playerData.has("success") and playerData.success:
 		var data = playerData.get("data", {})
-		return data.get("currency", "")
+		return data.get("currency", 0)
 	
-	return ""
+	return 0
 
 func getAvatar(userId: int, token: String) -> Dictionary:
 	var playerData = await getPlayerDataById(userId, token)
@@ -525,6 +526,14 @@ func listMarketAccessories(token: String, filterData: Dictionary = {}, paginatio
 	
 	if response[1] == 200:
 		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		var marketData:Array = requestData.get("data",{}).get("items",[])
+		
+		if !marketData.is_empty():
+			for myData in marketData:
+				var id = int(myData["id"])
+				var downloadUrl = myData["downloadUrl"]
+				downloadAccessoryModel(downloadUrl,id)
+				
 		return jsonResponse if jsonResponse != null else {}
 	
 	return {}
@@ -725,3 +734,139 @@ func isAccessoryModelCached(accessoryId: int, downloadUrl: String) -> bool:
 	var fileName = str(accessoryId) + "_" + downloadUrl.get_file()
 	var cachePath = cacheDir + fileName
 	return FileAccess.file_exists(cachePath)
+
+func equipAccessory(userId: int, accessoryId: int, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"userId": userId,
+		"accessoryId": accessoryId
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/avatar/equip", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func unequipAccessory(userId: int, accessoryId: int, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"userId": userId,
+		"accessoryId": accessoryId
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/avatar/unequip", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func updateAvatar(userId: int, avatarData: Dictionary, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"userId": userId,
+		"avatar": avatarData
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/player/update_avatar", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func getFullAvatar(userId: int, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"userId": userId
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/avatar/get_full", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+func format_number(num: float) -> String:
+	var suffixes = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"]
+	
+	if num < 1000:
+		return str(int(num))
+	
+	var exp = 0
+	while num >= 1000.0 and exp < suffixes.size() - 1:
+		num /= 1000.0
+		exp += 1
+	
+	var formatted = "%.2f" % num
+	
+	while formatted.ends_with("0") and not formatted.ends_with(".0"):
+		formatted = formatted.substr(0, formatted.length() - 1)
+	
+	if formatted.ends_with(".0"):
+		formatted = formatted.substr(0, formatted.length() - 2)
+	elif formatted.ends_with("."):
+		formatted = formatted.substr(0, formatted.length() - 1)
+	
+	return formatted + suffixes[exp]

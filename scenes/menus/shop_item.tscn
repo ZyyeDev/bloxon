@@ -1,0 +1,185 @@
+[gd_scene load_steps=17 format=3 uid="uid://di8uhww6hxht0"]
+
+[ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="1_6pj7h"]
+[ext_resource type="Script" uid="uid://cwey6s7uflpa" path="res://scripts/shop_item.gd" id="1_gaggj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuba"]
+bg_color = Color(0.185981, 0.185981, 0.185981, 1)
+
+[sub_resource type="GDScript" id="GDScript_l2vun"]
+script/source = "@tool
+extends Sprite2D
+
+@export var targetSize: Vector2 = Vector2(128, 128) 
+
+func _process(delta: float) -> void:
+	updateScale()
+
+func updateScale():
+	if texture == null:
+		return
+	var texSize = texture.get_size()
+	if texSize == Vector2.ZERO:
+		return
+	
+	var scaleX = targetSize.x / texSize.x
+	var scaleY = targetSize.y / texSize.y
+	scale = Vector2(scaleX, scaleY)
+"
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7vwwl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_u8qvy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_38x55"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lqecb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xau2e"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2uljy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hiueo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h7pc7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ix6wq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_17okl"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_403wm"]
+
+[sub_resource type="GDScript" id="GDScript_lh4jg"]
+script/source = "@tool
+extends Label
+
+@export var max_font_size = 56
+@export var min_font_size = 8
+
+var _cached_text: String = \"\"
+var _cached_size: Vector2 = Vector2.ZERO
+var _is_updating: bool = false
+
+func _ready() -> void:
+	clip_text = true
+	item_rect_changed.connect(_on_item_rect_changed)
+	_cached_text = text
+	_cached_size = size
+	call_deferred(\"update_font_size\")
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property == \"text\":
+		if value != _cached_text:
+			_cached_text = value
+			call_deferred(\"update_font_size\")
+	return false
+
+func update_font_size() -> void:
+	if _is_updating or size.x <= 0:
+		return
+	
+	_is_updating = true
+	
+	var font = get_theme_font(\"font\")
+	if not font:
+		_is_updating = false
+		return
+	
+	var target_size = min_font_size  # Start with minimum as fallback
+	var line = TextLine.new()
+	line.direction = text_direction
+	line.flags = justification_flags
+	line.alignment = horizontal_alignment
+	
+	# Test each font size from max to min to find the largest that fits
+	for test_size in range(max_font_size, min_font_size - 1, -1):
+		line.clear()
+		
+		if line.add_string(text, font, test_size):
+			var text_width = line.get_line_width()
+			
+			if text_width <= size.x:
+				target_size = test_size
+				break
+	
+	add_theme_font_size_override(\"font_size\", target_size)
+	_is_updating = false
+
+func _on_item_rect_changed() -> void:
+	if size != _cached_size:
+		_cached_size = size
+		call_deferred(\"update_font_size\")
+"
+
+[node name="ShopItem" type="Panel" node_paths=PackedStringArray("itemNameLabel", "CostLabel")]
+custom_minimum_size = Vector2(128, 164)
+theme_override_styles/panel = SubResource("StyleBoxFlat_lfuba")
+script = ExtResource("1_gaggj")
+itemNameLabel = NodePath("ItemName")
+CostLabel = NodePath("Cost")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(65, 48)
+scale = Vector2(0.71875, 0.71875)
+texture = ExtResource("1_6pj7h")
+script = SubResource("GDScript_l2vun")
+targetSize = Vector2(92, 92)
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 164.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7vwwl")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_u8qvy")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_38x55")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_lqecb")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_xau2e")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_2uljy")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_hiueo")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_h7pc7")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_ix6wq")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_17okl")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_403wm")
+
+[node name="ItemName" type="Label" parent="."]
+layout_mode = 0
+offset_top = 103.0
+offset_right = 128.0
+offset_bottom = 126.0
+theme_override_font_sizes/font_size = 12
+text = "{MARKETPLACE_ITEM}"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+script = SubResource("GDScript_lh4jg")
+max_font_size = 30
+
+[node name="Cost" type="Label" parent="."]
+layout_mode = 0
+offset_top = 139.0
+offset_right = 128.0
+offset_bottom = 162.0
+theme_override_colors/font_color = Color(0.293015, 0.758026, 0, 1)
+theme_override_font_sizes/font_size = 15
+text = "𝔹 20000 "
+horizontal_alignment = 2
+vertical_alignment = 1
+clip_text = true
+script = SubResource("GDScript_lh4jg")
+max_font_size = 15
+
+[node name="Creator" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_top = 126.0
+offset_right = 128.0
+offset_bottom = 149.0
+theme_override_font_sizes/font_size = 10
+text = "creator"
+horizontal_alignment = 1
+vertical_alignment = 1
+clip_text = true
+script = SubResource("GDScript_lh4jg")
+max_font_size = 10
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

@@ -1,0 +1,129 @@
+[gd_scene load_steps=7 format=3 uid="uid://df4rs7xfrixan"]
+
+[ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="1_leg83"]
+[ext_resource type="Script" uid="uid://8mh2immnpuv0" path="res://scripts/rebirth_thing.gd" id="1_wraja"]
+[ext_resource type="FontFile" uid="uid://c7eu4ftsr4c8u" path="res://assets/fonts/ComicNeue-Angular-Bold.ttf" id="2_wraja"]
+
+[sub_resource type="GDScript" id="GDScript_hgkl1"]
+script/source = "@tool
+extends Sprite2D
+class_name handSprSize
+
+@export var DESIRED_SIZE := Vector2(20, 20)
+
+func _process(delta) -> void:
+	if texture:
+		var tex_size = texture.get_size()
+		scale = DESIRED_SIZE / tex_size
+"
+
+[sub_resource type="Theme" id="Theme_fxfs2"]
+default_font = ExtResource("2_wraja")
+
+[sub_resource type="GDScript" id="GDScript_4xuo1"]
+script/source = "@tool
+extends Label
+
+@export var max_font_size = 56
+@export var min_font_size = 8
+
+var _cached_text: String = \"\"
+var _cached_size: Vector2 = Vector2.ZERO
+var _is_updating: bool = false
+
+func _ready() -> void:
+	clip_text = true
+	item_rect_changed.connect(_on_item_rect_changed)
+	_cached_text = text
+	_cached_size = size
+	call_deferred(\"update_font_size\")
+
+func _set(property: StringName, value: Variant) -> bool:
+	if property == \"text\":
+		if value != _cached_text:
+			_cached_text = value
+			call_deferred(\"update_font_size\")
+	return false
+
+func update_font_size() -> void:
+	if _is_updating or size.x <= 0:
+		return
+	
+	_is_updating = true
+	
+	var font = get_theme_font(\"font\")
+	if not font:
+		_is_updating = false
+		return
+	
+	var target_size = min_font_size  # Start with minimum as fallback
+	var line = TextLine.new()
+	line.direction = text_direction
+	line.flags = justification_flags
+	line.alignment = horizontal_alignment
+	
+	# Test each font size from max to min to find the largest that fits
+	for test_size in range(max_font_size, min_font_size - 1, -1):
+		line.clear()
+		
+		if line.add_string(text, font, test_size):
+			var text_width = line.get_line_width()
+			
+			if text_width <= size.x:
+				target_size = test_size
+				break
+	
+	add_theme_font_size_override(\"font_size\", target_size)
+	_is_updating = false
+
+func _on_item_rect_changed() -> void:
+	if size != _cached_size:
+		_cached_size = size
+		call_deferred(\"update_font_size\")
+"
+
+[node name="rebirthThing" type="Panel" node_paths=PackedStringArray("iconSprite", "NameLabel", "amountLabel")]
+custom_minimum_size = Vector2(64, 64)
+offset_right = 64.0
+offset_bottom = 64.0
+script = ExtResource("1_wraja")
+iconSprite = NodePath("Icon")
+NameLabel = NodePath("Name")
+amountLabel = NodePath("Amount")
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(32, 32)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_leg83")
+script = SubResource("GDScript_hgkl1")
+DESIRED_SIZE = Vector2(64, 64)
+
+[node name="Name" type="Label" parent="."]
+layout_mode = 0
+offset_right = 63.0
+offset_bottom = 11.0
+theme = SubResource("Theme_fxfs2")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "123456789012345"
+horizontal_alignment = 1
+clip_text = true
+script = SubResource("GDScript_4xuo1")
+max_font_size = 20
+
+[node name="Amount" type="Label" parent="."]
+layout_mode = 0
+offset_top = 29.0
+offset_right = 63.0
+offset_bottom = 58.0
+theme = SubResource("Theme_fxfs2")
+theme_override_colors/font_color = Color(0, 1, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "123456789012345"
+horizontal_alignment = 1
+clip_text = true
+script = SubResource("GDScript_4xuo1")
+max_font_size = 20

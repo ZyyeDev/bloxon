@@ -1,12 +1,12 @@
 extends Node3D
 
-@export var speed: float = 16
+@export var speed: float = 20
 @export var bName = ""
 @export var UID = ""
 @export var pGet = ""
 @export var cost = 0
 @export var generate = 0
-@export var rarity = 1
+@export var rarity = 0
 
 var target_position: Vector3 = Vector3.ZERO
 var has_target: bool = false
@@ -18,7 +18,7 @@ func _ready() -> void:
 		proximity_prompt = ProximityPrompt.new()
 		proximity_prompt.prompt_text = "Collect"
 		proximity_prompt.hold_duration = .25
-		proximity_prompt.detection_radius = 10
+		proximity_prompt.detection_radius = 8
 		proximity_prompt.prompt_activated.connect(tryGrab)
 		proximity_prompt.name = "ProximityPrompt"
 		add_child(proximity_prompt)
@@ -74,6 +74,9 @@ func _process(delta: float) -> void:
 		oldcost = cost
 		rpc("updateCost", cost)
 	
+	#if pGet != "":
+	#	speed = fastSpeed
+	
 	if !has_target:
 		if !Global.isClient:
 			set_initial_target()
@@ -92,24 +95,22 @@ func _process(delta: float) -> void:
 		# im just fucking lazy to debug this shit, this fixes it god fucking damn
 	#	if ((global_position.y <= target_position.y-1) and (global_position.y == 6 or target_position.y == 6 or target_position == Game.workspace.get_node("bbye").position)) or global_position.y == 0:
 	#		queue_free()
-	
+		
 	if Global.isClient: 
 		return
 	
-	if global_position.distance_to(target_position) <= 6:
+	if global_position.distance_to(target_position) <= 7:
 		if pGet == "":
 			if UID in Global.brainrots:
 				Global.brainrots.erase(UID)
 			queue_free()
 			Global.rpc("remove_brainrot", UID)
 		else:
-			print("Brainrot ", UID, " collected by player ", pGet)
 			Global.brainrotCollected(UID, self, pGet)
 
 func set_target_position(new_target_pos: Vector3):
 	target_position = new_target_pos
 	has_target = true
-	print("Target position updated for brainrot: ", UID, " to: ", new_target_pos)
 
 func _on_send_data_timeout() -> void:
 	if !Global.isClient:
@@ -117,8 +118,6 @@ func _on_send_data_timeout() -> void:
 
 @rpc("authority","call_remote","reliable")
 func updatePlayerTarget(player_uid: String):
-	print("=== UPDATE PLAYER TARGET ===")
-	print("Brainrot UID: ", UID, " assigned to player: ", player_uid)
 	pGet = player_uid
 	
 	$Cost.text = "$" + str(cost)
@@ -127,12 +126,10 @@ func updatePlayerTarget(player_uid: String):
 		if proximity_prompt:
 			proximity_prompt.queue_free()
 			proximity_prompt = null
-			print("Removed proximity prompt - you grabbed this brainrot")
 	
 	var player_house = Global.whatHousePlr(player_uid)
 	if player_house and player_house.ref and player_house.ref.plrSpawn:
 		set_target_position(player_house.ref.plrSpawn.global_position)
-		print("Target updated to player house for: ", UID)
 	else:
 		print("Could not find player house for: ", player_uid)
 
@@ -140,7 +137,6 @@ func updatePlayerTarget(player_uid: String):
 func updateCost(ncost):
 	cost = ncost
 	$Cost.text = "$"+str(ncost)
-	print("Cost updated to: ", ncost, " for brainrot: ", UID)
 
 @rpc("authority", "call_remote", "unreliable")
 func syncPosition(pos: Vector3, target_pos: Vector3, has_target_flag: bool):

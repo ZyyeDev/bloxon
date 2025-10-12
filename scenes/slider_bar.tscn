@@ -1,0 +1,55 @@
+[gd_scene load_steps=3 format=3 uid="uid://c68wutjgvpa1s"]
+
+[ext_resource type="PackedScene" uid="uid://c0brtebcj82c8" path="res://scripts/global/utils/slider_part.tscn" id="1_bqkdu"]
+[ext_resource type="Script" uid="uid://c6se4g35g5xn4" path="res://scripts/slider_bar.gd" id="1_edqov"]
+
+[node name="SliderBar" type="HBoxContainer"]
+clip_contents = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 356.0
+offset_right = -440.0
+offset_bottom = -616.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_edqov")
+
+[node name="SliderPart" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+
+[node name="SliderPart2" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 1
+
+[node name="SliderPart3" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 2
+
+[node name="SliderPart4" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 3
+
+[node name="SliderPart5" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 4
+
+[node name="SliderPart6" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 5
+
+[node name="SliderPart7" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 6
+
+[node name="SliderPart8" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 7
+
+[node name="SliderPart9" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 8
+
+[node name="SliderPart10" parent="." instance=ExtResource("1_bqkdu")]
+layout_mode = 2
+id = 9

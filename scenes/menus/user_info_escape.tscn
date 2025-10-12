@@ -1,0 +1,57 @@
+[gd_scene load_steps=4 format=3 uid="uid://dysls7cl4imeq"]
+
+[ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="1_28sfd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3f3tf"]
+
+[sub_resource type="GDScript" id="GDScript_cntf6"]
+script/source = "@tool
+extends Sprite2D
+
+@export var targetSize: Vector2 = Vector2(32, 32) 
+
+func _process(delta: float) -> void:
+	updateScale()
+
+func updateScale():
+	if texture == null:
+		return
+	var texSize = texture.get_size()
+	if texSize == Vector2.ZERO:
+		return
+	
+	var scaleX = targetSize.x / texSize.x
+	var scaleY = targetSize.y / texSize.y
+	scale = Vector2(scaleX, scaleY)
+"
+
+[node name="UserInfoEscape" type="Panel"]
+custom_minimum_size = Vector2(0, 50)
+offset_right = 1012.0
+offset_bottom = 50.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_3f3tf")
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(27, 25)
+scale = Vector2(0.390625, 0.390625)
+texture = ExtResource("1_28sfd")
+script = SubResource("GDScript_cntf6")
+targetSize = Vector2(50, 50)
+
+[node name="Username" type="Label" parent="."]
+layout_mode = 0
+offset_left = 77.0
+offset_top = 15.0
+offset_right = 416.0
+offset_bottom = 38.0
+text = "@someoneverycoolusername123123123123"
+
+[node name="AddFriend" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 771.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Add friend"

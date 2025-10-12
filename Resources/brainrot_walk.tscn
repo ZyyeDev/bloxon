@@ -29,22 +29,24 @@ wait_time = 5.0
 replication_config = SubResource("SceneReplicationConfig_tu0nk")
 
 [node name="Cost" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.06644, 0)
 billboard = 1
 text = "$10
 "
-font_size = 64
+font_size = 90
+outline_size = 20
 
 [node name="Generate" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.48933, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.77921, 0)
 billboard = 1
 text = "20 $/s"
-font_size = 64
+font_size = 90
+outline_size = 20
 
 [node name="Name" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.18663, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.59265, 0)
 billboard = 1
-text = "meowmeowmeowmeowmeow"
+text = "NAME"
 font_size = 120
 outline_size = 30
 

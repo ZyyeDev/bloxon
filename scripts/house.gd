@@ -53,16 +53,15 @@ func _ready() -> void:
 				var current_index = index
 				n.body_entered.connect(func (body: Node3D):
 					if Global.isClient and body == Global.localPlayer:
-						if not str(Global.UID) == str(plrAssigned): return 
-						print("Collecting money from slot index: ", current_index)
+						if not str(Global.UID) == str(plrAssigned): return
 						Global.rpc_id(1, "collectMoney", Global.UID, current_index)
 						if brainrots[i.name]["money"] > 0:
-							var snd = AudioStreamPlayer.new()
-							snd.volume_db = -20
+							var snd = AudioStreamPlayer.new() 
+							snd.volume_db = -15
 							snd.stream = load("res://assets/sounds/cash register.ogg")
-							Global.localPlayer.add_child(snd)
+							CoreGui.add_child(snd)
 							snd.play()
-							#Debris.addItem(snd,snd.stream.get_length())
+							Debris.addItem(snd,snd.stream.get_length())
 				)
 			elif n.name != "Label3D":
 				n.queue_free()
@@ -172,10 +171,7 @@ func unblockBase(senderUID):
 			locked = false
 
 @rpc("any_peer", "call_remote", "reliable")  
-func updateBrainrots(brainrotsList):
-	print("House ", id, " updating brainrots")
-	
-	# Clean up old visuals and proximity prompts
+func updateBrainrots(brainrotsList): 
 	for slot_name in brainrots:
 		if brainrots[slot_name].has("proximity_prompt") and brainrots[slot_name]["proximity_prompt"]:
 			if is_instance_valid(brainrots[slot_name]["proximity_prompt"]):
@@ -239,7 +235,7 @@ func updateBrainrots(brainrotsList):
 					else:
 						proximity_prompt.prompt_text = "Steal"
 					proximity_prompt.hold_duration = .5
-					proximity_prompt.detection_radius = 10
+					proximity_prompt.detection_radius = 6
 					proximity_prompt.prompt_activated.connect(tryGrab)
 					proximity_prompt.name = "ProximityPrompt"
 					brainrotN.add_child(proximity_prompt)
@@ -291,13 +287,11 @@ func removeBrainrot(remove_at_slot):
 		for slot_name in brainrots:
 			newList[slot_name] = brainrots[slot_name].duplicate(true)
 		
-		# FIXED: Create a new dictionary instance
 		var dictionary = brainrotTemplate.duplicate(true)
 		dictionary.ref = newList[remove_at_slot]["ref"]
 		dictionary.moneyLabel = newList[remove_at_slot]["moneyLabel"]
 		dictionary.index = newList[remove_at_slot]["index"]
 		
-		# Clean up proximity prompt
 		if brainrots[remove_at_slot].has("proximity_prompt") and brainrots[remove_at_slot]["proximity_prompt"]:
 			if is_instance_valid(brainrots[remove_at_slot]["proximity_prompt"]):
 				brainrots[remove_at_slot]["proximity_prompt"].queue_free()

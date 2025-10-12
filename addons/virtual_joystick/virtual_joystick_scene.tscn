@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://blkaq2ptke55i" path="res://addons/virtual_joystick/virtual_joystick.gd" id="1_8x4dy"]
 [ext_resource type="Texture2D" uid="uid://sy5etntul64t" path="res://assets/images/UI/Mobile/stick.png" id="2_ettsy"]
-[ext_resource type="Texture2D" uid="uid://ggi78bcskcyb" path="res://assets/images/UI/Mobile/stickbg.png" id="3_0bity"]
+[ext_resource type="Texture2D" uid="uid://c18x25m4tgv7y" path="res://assets/images/UI/Mobile/stickbg.png" id="3_0bity"]
 
 [node name="Virtual Joystick" type="Control"]
 layout_mode = 3

@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cp4m7nsrapepa"
+path="res://.godot/imported/menu theme.wav-98a8ab664baff3888cc41bbd00c3045d.sample"
+
+[deps]
+
+source_file="res://assets/sounds/UI/menu theme.wav"
+dest_files=["res://.godot/imported/menu theme.wav-98a8ab664baff3888cc41bbd00c3045d.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

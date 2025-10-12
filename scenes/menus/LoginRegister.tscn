@@ -166,6 +166,7 @@ func _on_load_data_pressed():
 
 func make_request(method: String, endpoint: String, data: Dictionary, request_type: String):
 	var url = Global.masterIp + endpoint
+	print(url)
 	var headers = [\"Content-Type: application/json\"]
 	var json_data = JSON.stringify(data)
 	
@@ -209,7 +210,7 @@ func handle_response(request_type: String, data: Dictionary):
 				Global.user_id = data.user_id
 				Global.saveLocal()
 				update_status(\"Registration successful! Welcome, \" + username + \"!\", \"green\")
-				get_tree().change_scene_to_file(\"res://scenes/menus/mainMenu.tscn\")
+				get_parent().changeTo(\"res://scenes/menus/mainMenu.tscn\")
 			else:
 				update_status(\"Registration failed\", \"red\")
 		
@@ -220,7 +221,7 @@ func handle_response(request_type: String, data: Dictionary):
 				Global.user_id = data.user_id
 				Global.saveLocal()
 				update_status(\"Login successful! Welcome back, \" + username + \"!\", \"green\")
-				get_tree().change_scene_to_file(\"res://scenes/menus/mainMenu.tscn\")
+				get_parent().changeTo(\"res://scenes/menus/mainMenu.tscn\")
 			else:
 				update_status(\"Login failed\", \"red\")
 
@@ -383,7 +384,7 @@ switch_mode_button = NodePath("_Control_5/VBoxContainer/_Panel_6/_VBoxContainer_
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.1, 0.15, 0.25, 1)
+color = Color(0.126676, 0.210828, 0.371409, 0.431373)
 
 [node name="_Control_5" type="Control" parent="."]
 layout_mode = 1

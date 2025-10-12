@@ -3,6 +3,7 @@ extends Control
 @export var serverListContainter : VBoxContainer
 
 @export var nameLabel:Label
+@export var currencyLabel:Label
 @export var selfPfp:Sprite2D
 
 @export var homePage :Panel
@@ -11,13 +12,35 @@ extends Control
 @export var profilePage :Panel
 @export var friendsPage :Panel
 @export var FriendInfo :Panel
+@export var ItemPage :Panel
 
 @export var friendContainterSmall:GridContainer
 @export var friendsContainer:GridContainer
 
+@export var marketplaceContainer:GridContainer
+@export var inventoryContainer:GridContainer
+
 @export var homePageButton :Button
 @export var profilePageButton :Button
 @export var configPageButton :Button
+
+@export var avatarLoadingSpinner:Sprite2D
+@export var itemNameLabel:Label
+@export var itemCostLabel:Label
+@export var itemIcon:Sprite2D
+
+@export var avatarPages:Control
+@export var avatarEditorTab:Control
+@export var avatarTabs:HBoxContainer
+@export var avatarColorsPage:Control
+@export var avatarColorPicker:ColorPicker
+
+var currentPage = "home"
+
+var currentAccessoryId = 0
+
+var currentLimbEditing = ""
+var newAvatarColor = {}
 
 var friends = []
 var currentProfileID = 0
@@ -32,14 +55,34 @@ func _ready() -> void:
 	Global.getAllServers()
 	selfPfp.texture = await Client.getPlayerPfpTexture(Global.user_id,Global.token)
 	updateSmallFriends()
+	updateCurrency()
+	for i:Button in avatarColorsPage.get_node("Control").get_children():
+		i.pressed.connect(func():
+			currentLimbEditing = i.name
+			avatarColorPicker.color = Global.avatarData["bodyColors"][currentLimbEditing.to_lower().replace(" ","_")]
+			)
+
+func _process(delta: float) -> void:
+	if currentLimbEditing != "":
+		avatarColorPicker.visible = true
+	else:
+		avatarColorPicker.visible = false
+
+func updateCurrency():
+	var currency = await Client.getCurrency(Global.user_id,Global.token)
+	currencyLabel.text = "𝔹 " + str(Client.format_number(currency))
 
 func updateSmallFriends():
 	for i in friendContainterSmall.get_children():
+		if i.is_in_group("addFriends"):
+			continue
 		i.queue_free()
 	
 	await getFriends()
 	
 	for i in friendsContainer.get_children():
+		if i.is_in_group("addFriends"):
+			continue
 		i.queue_free()
 	
 	var fi = 1
@@ -67,6 +110,8 @@ func updateSmallFriends():
 		friendContainterSmall.add_child(button)
 
 func _on_join_game_pressed() -> void:
+	playSound(load("res://assets/sounds/UI/ButtonPress.wav"))
+	await CoreGui.showConnect("Loading game...")
 	get_tree().change_scene_to_file("res://scenes/mainGame.tscn")
 	Client.requestServer()
 
@@ -92,23 +137,44 @@ func hideAllPages():
 	avatarPage.visible = false
 	profilePage.visible = false
 	friendsPage.visible = false
+	ItemPage.visible = false
 	
 	homePageButton.modulate = Color8(179,179,179,255)
 	configPageButton.modulate = Color8(179,179,179,255)
 
+func playSound(loaded):
+	var snd = AudioStreamPlayer.new()
+	Global.add_child(snd)
+	snd.stream = loaded
+	snd.play()
+	Debris.addItem(snd,snd.stream.get_length())
+
+func playScreenChange():
+	playSound(load("res://assets/sounds/UI/ScreenChange.wav"))
+
 func _on_home_page_button_pressed() -> void:
+	if currentPage != "home":
+		playScreenChange()
+	currentPage = "home"
 	hideAllPages()
 	homePage.visible = true
 	homePageButton.modulate = Color8(0,188,250,255)
 
 func _on_config_page_button_pressed() -> void:
+	if currentPage != "config":
+		playScreenChange()
+	currentPage = "config"
 	hideAllPages()
 	configPage.visible = true
 	configPageButton.modulate = Color8(0,188,250,255)
 
 func _on_avatar_page_button_pressed() -> void:
+	if currentPage != "avatar":
+		playScreenChange()
+	currentPage = "avatar"
 	hideAllPages()
 	avatarPage.visible = true
+	updateMarketplace()
 
 func _on_profile_page_button_pressed() -> void:
 	hideAllPages()
@@ -140,6 +206,8 @@ func _on_see_all_friends_pressed() -> void:
 	$Control/FriendsPage/FriendList.visible = true
 	$Control/FriendsPage/FriendRequests.visible = true
 	for i in friendsContainer.get_children():
+		if i.is_in_group("addFriends"):
+			continue
 		i.queue_free()
 	var fData = {}
 	for i in friends:
@@ -257,7 +325,7 @@ func showFriendInfo():
 
 func hideFriendInfo():
 	$Control/FriendInfo/AnimationPlayer.play("hide")
-	await Global.wait(.5)
+	await Global.wait(.2)
 	FriendInfo.visible = false
 
 func _on_join_friend_pressed() -> void:
@@ -268,3 +336,114 @@ func _on_join_friend_pressed() -> void:
 func _on_view_friend_profile_pressed() -> void:
 	FriendInfo.visible = false
 	_on_profile_page_button_pressed()
+
+func requestMarket():
+	return await Client.listMarketAccessories(Global.token,{},{
+		"page": 1,
+		"limit": 20
+	})
+
+func _on_addFriends_pressed() -> void:
+	_on_see_all_friends_pressed()
+
+func updateMarketplace():
+	avatarLoadingSpinner.visible = true
+	for i in marketplaceContainer.get_children():
+		i.queue_free()
+	Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
+	var requestData = await requestMarket()
+	avatarLoadingSpinner.visible = false
+	print("requestData ",requestData)
+	var marketData:Array = requestData.get("data",{}).get("items",[])
+	print(marketData)
+	if !marketData.is_empty():
+		for myData in marketData:
+			#print(" i is ",i)
+			#var myData = marketData[i]
+			var id = int(myData["id"])
+			var Name = myData["name"]
+			var type = myData["type"]
+			var price = myData["price"]
+			var downloadUrl = myData["downloadUrl"]
+			var createdAt = myData["createdAt"]
+			var equipSlot = myData["equipSlot"]
+			
+			Client.downloadAccessoryModel(downloadUrl,id)
+			
+			var shopInst = load("res://scenes/menus/shop_item.tscn").instantiate()
+			shopInst.itemName = Name
+			shopInst.Cost = price
+			shopInst.pressed.connect(func():showItemPage(myData))
+			marketplaceContainer.add_child(shopInst)
+
+func showItemPage(myData:Dictionary):
+	hideAllPages()
+	ItemPage.visible = true
+	var id = int(myData["id"])
+	var Name = myData["name"]
+	var type = myData["type"]
+	var price = myData["price"]
+	var downloadUrl = myData["downloadUrl"]
+	var createdAt = myData["createdAt"]
+	var equipSlot = myData["equipSlot"]
+	
+	currentAccessoryId = id
+	
+	itemNameLabel.text = Name
+	itemCostLabel.text = "𝔹 " + str(int(price))
+
+func _on_buy_item_button_pressed() -> void:
+	avatarLoadingSpinner.visible = true
+	ItemPage.visible = false
+	var success = await Client.buyAccessory(Global.user_id,currentAccessoryId,Global.token)
+	print(success)
+	avatarLoadingSpinner.visible = false
+	ItemPage.visible = true
+	if success.get("success",false):
+		playSound(load("res://assets/sounds/UI/PurchaseSuccess.wav"))
+	else:
+		playSound(load("res://assets/sounds/UI/PopUp2.wav"))
+
+func showChangeAvatarColor():
+	newAvatarColor = Global.avatarData.duplicate(true)
+	avatarPages.visible = false
+	avatarTabs.visible = false
+	inventoryContainer.visible = false
+	avatarColorsPage.visible = true
+
+func _on_color_picker_color_changed(color: Color) -> void:
+	newAvatarColor["bodyColors"][currentLimbEditing.to_lower().replace(" ","_")] = "#"+color.to_html(false)
+	$Control/AvatarPage/SubViewport.changeColors(newAvatarColor)
+
+func _on_apply_avatar_pressed() -> void:
+	avatarColorsPage.visible = false
+	avatarLoadingSpinner.visible = true
+	Global.avatarData = newAvatarColor.duplicate(true)
+	await Client.updateAvatar(Global.user_id,newAvatarColor,Global.token)
+	avatarLoadingSpinner.visible = false
+	avatarColorsPage.visible = false
+	inventoryContainer.visible = true
+	avatarPages.visible = true
+	avatarTabs.visible = true
+	await get_tree().process_frame
+	await get_tree().process_frame
+	selfPfp.texture = await Client.getPlayerPfpTexture(Global.user_id,Global.token)
+
+func _on_cancel_avatar_pressed() -> void:
+	avatarColorsPage.visible = false
+	avatarLoadingSpinner.visible = false
+	avatarColorsPage.visible = false
+	inventoryContainer.visible = true
+	avatarPages.visible = true
+	avatarTabs.visible = true
+
+func _on_avatar_colors_pressed() -> void:
+	showChangeAvatarColor()
+
+func _on_inventory_button_pressed() -> void:
+	marketplaceContainer.visible = false
+	avatarEditorTab.visible = true
+
+func _on_marketplace_pressed() -> void:
+	marketplaceContainer.visible = true
+	avatarEditorTab.visible = false

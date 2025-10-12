@@ -1,0 +1,28 @@
+newmtl StructureBaseHome1Mtl
+Material Color
+Ka 0.0477758 0.0511221 0.0657539
+Kd 0.0477758 0.0511221 0.0657539
+Ks 0.00430919 0.00461101 0.00593074 
+
+d 1
+
+Ns 0
+
+map_Ka StructureBaseHome1_diff.png
+map_Kd StructureBaseHome1_diff.png
+map_d StructureBaseHome1_diff.png
+
+map_Bump StructureBaseHome1_nmap.png
+
+map_Ns StructureBaseHome1_spec.png
+
+newmtl StructureBaseHome3Mtl
+Material Color
+Ka 1 0 0
+Kd 1 0 0
+Ks 0.0901961 0 0 
+
+d 0.701961
+
+Ns 0
+

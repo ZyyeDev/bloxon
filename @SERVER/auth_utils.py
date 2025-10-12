@@ -1,4 +1,5 @@
 import time
+from config import SERVER_PUBLIC_IP
 
 rateLimitDict = {}
 blockedIps = {}
@@ -6,20 +7,20 @@ userTokens = {}
 maxRequestsPer15Sec = 100
 
 def isServerIp(clientIp):
-    server_ips = ["127.0.0.1", "::1", "92.176.163.239", "localhost"]
-    
+    server_ips = ["127.0.0.1", "::1", SERVER_PUBLIC_IP, "localhost"]
+
     if clientIp in server_ips:
         return True
-    
+
     if clientIp.startswith("127.") or clientIp.startswith("192.168.") or clientIp.startswith("10.") or clientIp.startswith("172."):
         return True
-    
+
     return False
 
 def checkRateLimit(clientIp):
     if isServerIp(clientIp):
         return True
-    
+
     currentTime = time.time()
 
     if clientIp in blockedIps:

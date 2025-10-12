@@ -1,0 +1,70 @@
+[gd_scene load_steps=15 format=3 uid="uid://c0brtebcj82c8"]
+
+[ext_resource type="Script" uid="uid://buqowdkbbfrtw" path="res://scripts/slider_part.gd" id="1_n5lxi"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s3epj"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n5lxi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_klx1m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nn5lu"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_sv10p"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g1yt5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3infr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h7ihb"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w48u7"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rujsg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_52h7o"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1minv"]
+
+[sub_resource type="GDScript" id="GDScript_yd4r5"]
+script/source = "extends Button
+
+func _ready() -> void:
+	focus_mode = Control.FOCUS_NONE
+"
+
+[node name="SliderPart" type="Panel"]
+custom_minimum_size = Vector2(32, 32)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_s3epj")
+script = ExtResource("1_n5lxi")
+
+[node name="Button" type="Button" parent="."]
+clip_contents = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_n5lxi")
+theme_override_styles/disabled_mirrored = SubResource("StyleBoxEmpty_klx1m")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_nn5lu")
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxEmpty_sv10p")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_g1yt5")
+theme_override_styles/hover_mirrored = SubResource("StyleBoxEmpty_3infr")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_h7ihb")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_w48u7")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_rujsg")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_52h7o")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_1minv")
+script = SubResource("GDScript_yd4r5")
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://cicw7qfu6xnip"
+path="res://.godot/imported/Trippi Troppi.obj-36b686fe202a42cd26fcaca63bd62ded.mesh"
+
+[deps]
+
+files=["res://.godot/imported/Trippi Troppi.obj-36b686fe202a42cd26fcaca63bd62ded.mesh"]
+
+source_file="res://assets/models/3d/brairots/Trippi Troppi/Trippi Troppi.obj"
+dest_files=["res://.godot/imported/Trippi Troppi.obj-36b686fe202a42cd26fcaca63bd62ded.mesh", "res://.godot/imported/Trippi Troppi.obj-36b686fe202a42cd26fcaca63bd62ded.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
