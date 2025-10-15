@@ -151,7 +151,8 @@ func blockBase(senderUID):
 	if plrAssigned == senderUID:
 		if not locked:
 			if Global.isClient:
-				Global.localPlayer.get_node("MainUi").addBottomMsg("[outline_size=8][outline_color=#000000][color=#99FF66]You locked your base for 60 Seconds![/color][/outline_color][/outline_size]", 5.0)
+				if str(Global.UID) == str(plrAssigned):
+					Global.localPlayer.get_node("MainUi").addBottomMsg("[outline_size=8][outline_color=#000000][color=#99FF66]You locked your base for 60 Seconds![/color][/outline_color][/outline_size]", 5.0)
 				var snd = AudioStreamPlayer.new()
 				snd.volume_db = -20
 				snd.stream = load("res://assets/sounds/correctSound.wav")
