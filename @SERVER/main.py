@@ -7,31 +7,24 @@ import os
 import json
 import hashlib
 import secrets
-import hmac
-import sqlite3
 import threading
 from collections import defaultdict, deque
-from player_data import setPlayerServer
 from datetime import datetime, timedelta
 from aiohttp import web
 import aiohttp
-from cryptography.fernet import Fernet
-import base64
 
 import auth_utils
 from api_extensions import addNewRoutes
-from player_data import createPlayerData, getPlayerFullProfile
-from friends import (
-    sendFriendRequest, getFriendRequests, acceptFriendRequest,
-    rejectFriendRequest, cancelFriendRequest, removeFriend, getFriends, loadFriendsData, saveFriendsData
-)
-from avatar_service import loadAccessoriesData, saveAccessoriesData
-from pfp_service import ensurePfpDirectory
-from config import SERVER_PUBLIC_IP, BASE_PORT, GODOT_SERVER_BIN, DATASTORE_PASSWORD
+from player_data import createPlayerData, getPlayerFullProfile, resetAllPlayerServers
+from config import SERVER_PUBLIC_IP, BASE_PORT, GODOT_SERVER_BIN, DATASTORE_PASSWORD, DASHBOARD_PASSWORD
+from database_manager import init_database, execute_query
+from global_messages import (add_global_message, get_global_messages, set_maintenance_mode,
+                             get_maintenance_status, is_maintenance_mode, clear_old_messages)
+from payment_verification import verify_google_play_purchase, verify_ad_reward, get_currency_packages
+from server_monitoring import get_system_stats, get_process_stats
 import atexit
 
 shutdown_lock = threading.Lock()
-db_lock = threading.RLock()
 
 serverList = {}
 playerList = {}
@@ -39,216 +32,41 @@ processList = {}
 rateLimitDict = defaultdict(deque)
 blockedIps = {}
 datastoreDict = {}
-userAccounts = {}
-userTokens = {}
-authRateLimitDict = defaultdict(deque)
 
 MAX_SERVERS = 200
 maxRequestsPer15Sec = 100
 authMaxRequests = 100
 
-DATA_DIR = "server_data"
-DB_FILE = os.path.join(DATA_DIR, "server.db")
-KEY_FILE = os.path.join(DATA_DIR, "master.key")
-
-nextUserId = 1
 last_cleanup = 0
-
-def init_database():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
-    conn.execute("PRAGMA cache_size=10000")
-
-    conn.executescript("""
-        CREATE TABLE IF NOT EXISTS accounts (
-            username TEXT PRIMARY KEY,
-            password TEXT NOT NULL,
-            gender TEXT NOT NULL,
-            created REAL NOT NULL,
-            user_id INTEGER UNIQUE NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS tokens (
-            token TEXT PRIMARY KEY,
-            username TEXT NOT NULL,
-            created REAL NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS datastores (
-            key TEXT PRIMARY KEY,
-            value TEXT,
-            timestamp REAL NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS servers (
-            uid TEXT PRIMARY KEY,
-            ip TEXT NOT NULL,
-            port INTEGER NOT NULL,
-            max_players INTEGER NOT NULL,
-            last_seen REAL NOT NULL
-        );
-
-        CREATE INDEX IF NOT EXISTS idx_tokens_created ON tokens(created);
-        CREATE INDEX IF NOT EXISTS idx_datastores_timestamp ON datastores(timestamp);
-    """)
-    conn.commit()
-    return conn
-
-db_conn = init_database()
+dashboard_sessions = {}
 
 def emergencyShutdown():
     with shutdown_lock:
         try:
-            from player_data import resetAllPlayerServers
             resetAllPlayerServers()
-            saveAllData()
         except:
             pass
 
 atexit.register(emergencyShutdown)
 
-def generateMasterKey():
-    if not os.path.exists(KEY_FILE):
-        key = Fernet.generate_key()
-        with open(KEY_FILE, "wb") as f:
-            f.write(key)
-        os.chmod(KEY_FILE, 0o600)
-        return key
-    else:
-        with open(KEY_FILE, "rb") as f:
-            return f.read()
+def checkRateLimit(clientIp):
+    return auth_utils.checkRateLimit(clientIp)
 
-def getEncryptionKey():
-    return generateMasterKey()
+def blockIp(clientIp, duration_minutes):
+    blockedIps[clientIp] = time.time() + (duration_minutes * 60)
 
-def encryptData(data):
-    fernet = Fernet(getEncryptionKey())
-    json_data = json.dumps(data).encode()
-    return fernet.encrypt(json_data)
-
-def decryptData(encrypted_data):
-    try:
-        fernet = Fernet(getEncryptionKey())
-        decrypted_data = fernet.decrypt(encrypted_data)
-        return json.loads(decrypted_data.decode())
-    except:
-        return {}
-
-def saveAllData():
-    with db_lock:
-        try:
-            db_conn.execute("BEGIN IMMEDIATE")
-
-            db_conn.execute("DELETE FROM accounts")
-            for username, data in userAccounts.items():
-                db_conn.execute(
-                    "INSERT INTO accounts (username, password, gender, created, user_id) VALUES (?, ?, ?, ?, ?)",
-                    (username, data["password"], data["gender"], data["created"], data["user_id"])
-                )
-
-            db_conn.execute("DELETE FROM tokens")
-            for token, data in auth_utils.userTokens.items():
-                db_conn.execute(
-                    "INSERT INTO tokens (token, username, created) VALUES (?, ?, ?)",
-                    (token, data["username"], data["created"])
-                )
-
-            db_conn.execute("DELETE FROM datastores")
-            for key, data in datastoreDict.items():
-                value = data["value"]
-                if isinstance(value, (dict, list)):
-                    value = json.dumps(value)
-                elif not isinstance(value, str):
-                    value = str(value)
-
-                db_conn.execute(
-                    "INSERT INTO datastores (key, value, timestamp) VALUES (?, ?, ?)",
-                    (key, value, data["timestamp"])
-                )
-
-            db_conn.execute("DELETE FROM servers")
-            for uid, info in serverList.items():
-                db_conn.execute(
-                    "INSERT INTO servers (uid, ip, port, max_players, last_seen) VALUES (?, ?, ?, ?, ?)",
-                    (uid, info["ip"], info["port"], info["max"], info["last"])
-                )
-
-            db_conn.commit()
-
-        except Exception as e:
-            db_conn.rollback()
-            print(f"Error saving data: {e}")
-
-def loadAllData():
-    global userAccounts, datastoreDict, serverList, nextUserId
-
-    with db_lock:
-        cursor = db_conn.cursor()
-
-        cursor.execute("SELECT username, password, gender, created, user_id FROM accounts")
-        userAccounts = {}
-        for row in cursor.fetchall():
-            userAccounts[row[0]] = {
-                "password": row[1],
-                "gender": row[2],
-                "created": row[3],
-                "user_id": row[4]
-            }
-
-        cursor.execute("SELECT token, username, created FROM tokens")
-        auth_utils.userTokens = {}
-        for row in cursor.fetchall():
-            auth_utils.userTokens[row[0]] = {
-                "username": row[1],
-                "created": row[2]
-            }
-
-        cursor.execute("SELECT key, value, timestamp FROM datastores")
-        datastoreDict = {}
-        for row in cursor.fetchall():
-            value = row[1]
-            try:
-                value = json.loads(value)
-            except (json.JSONDecodeError, TypeError):
-                pass
-
-            datastoreDict[row[0]] = {
-                "value": value,
-                "timestamp": row[2]
-            }
-
-        cursor.execute("SELECT uid, ip, port, max_players, last_seen FROM servers")
-        serverList = {}
-        for row in cursor.fetchall():
-            serverList[row[0]] = {
-                "ip": row[1],
-                "port": row[2],
-                "players": set(),
-                "max": row[3],
-                "last": row[4]
-            }
-
-    nextUserId = max([acc.get("user_id", 0) for acc in userAccounts.values()], default=0) + 1
-
-    loadFriendsData()
-    loadAccessoriesData()
-    ensurePfpDirectory()
-
-    from player_data import playerDataDict, savePlayerDataDict
-    for userId in playerDataDict:
-        if "serverId" in playerDataDict[userId]:
-            playerDataDict[userId]["serverId"] = None
-    savePlayerDataDict()
+def validateToken(token):
+    return auth_utils.validateToken(token)
 
 def hashPassword(password):
     salt = secrets.token_hex(16)
     password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    import base64
     return salt + ":" + base64.b64encode(password_hash).decode()
 
 def verifyPassword(password, stored_hash):
     try:
+        import base64
         salt, hash_part = stored_hash.split(":")
         password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
         return base64.b64encode(password_hash).decode() == hash_part
@@ -258,48 +76,9 @@ def verifyPassword(password, stored_hash):
 def generateToken():
     return secrets.token_urlsafe(32)
 
-def checkAuthRateLimit(clientIp):
-    currentTime = time.time()
-    window = authRateLimitDict[clientIp]
-
-    while window and currentTime - window[0] > 60:
-        window.popleft()
-
-    if len(window) >= authMaxRequests:
-        return False
-
-    window.append(currentTime)
-    return True
-
-def validateToken(token):
-    return auth_utils.validateToken(token)
-
-def checkRateLimit(clientIp):
-    currentTime = time.time()
-
-    if clientIp in blockedIps:
-        if currentTime < blockedIps[clientIp]:
-            return False
-        else:
-            del blockedIps[clientIp]
-
-    window = rateLimitDict[clientIp]
-
-    while window and currentTime - window[0] > 15:
-        window.popleft()
-
-    if len(window) >= maxRequestsPer15Sec:
-        return False
-
-    window.append(currentTime)
-    return True
-
-def blockIp(clientIp, duration_minutes):
-    blockedIps[clientIp] = time.time() + (duration_minutes * 60)
-
 async def registerUser(httpRequest):
     clientIp = httpRequest.remote
-    if not checkAuthRateLimit(clientIp):
+    if not checkRateLimit(clientIp):
         return web.json_response({"error": "auth_rate_limit_exceeded"}, status=429)
 
     try:
@@ -320,27 +99,23 @@ async def registerUser(httpRequest):
     if len(password) < 6:
         return web.json_response({"error": "password_too_short"}, status=400)
 
-    if username in userAccounts:
+    existing = execute_query("SELECT user_id FROM accounts WHERE username = ?",
+                            (username,), fetch_one=True)
+    if existing:
         return web.json_response({"error": "username_taken"}, status=409)
 
     hashedPassword = hashPassword(password)
     token = generateToken()
 
-    global nextUserId
-    userAccounts[username] = {
-        "password": hashedPassword,
-        "gender": gender,
-        "created": time.time(),
-        "user_id": nextUserId
-    }
+    user_id = execute_query(
+        "INSERT INTO accounts (username, password, gender, created) VALUES (?, ?, ?, ?)",
+        (username, hashedPassword, gender, time.time())
+    )
 
-    user_id = nextUserId
-    nextUserId += 1
-
-    auth_utils.userTokens[token] = {
-        "username": username,
-        "created": time.time()
-    }
+    execute_query(
+        "INSERT INTO tokens (token, username, created) VALUES (?, ?, ?)",
+        (token, username, time.time())
+    )
 
     createPlayerData(user_id, username)
 
@@ -353,7 +128,7 @@ async def registerUser(httpRequest):
 
 async def loginUser(httpRequest):
     clientIp = httpRequest.remote
-    if not checkAuthRateLimit(clientIp):
+    if not checkRateLimit(clientIp):
         return web.json_response({"error": "auth_rate_limit_exceeded"}, status=429)
 
     try:
@@ -367,23 +142,23 @@ async def loginUser(httpRequest):
     if not username or not password:
         return web.json_response({"error": "missing_credentials"}, status=400)
 
-    if username not in userAccounts:
+    user_data = execute_query("SELECT user_id, password FROM accounts WHERE username = ?",
+                             (username,), fetch_one=True)
+    if not user_data:
         return web.json_response({"error": "user_not_found"}, status=404)
 
-    if not verifyPassword(password, userAccounts[username]["password"]):
+    if not verifyPassword(password, user_data[1]):
         return web.json_response({"error": "invalid_password"}, status=401)
 
     token = generateToken()
-    auth_utils.userTokens[token] = {
-        "username": username,
-        "created": time.time()
-    }
+    execute_query("INSERT INTO tokens (token, username, created) VALUES (?, ?, ?)",
+                 (token, username, time.time()))
 
     return web.json_response({
         "status": "logged_in",
         "token": token,
         "username": username,
-        "user_id": userAccounts[username]["user_id"]
+        "user_id": user_data[0]
     })
 
 async def pingServer(ip, port):
@@ -434,6 +209,9 @@ async def registerServer(httpRequest):
     return web.json_response({"uid": serverUid, "ip": SERVER_PUBLIC_IP, "port": serverPort})
 
 async def requestServer(httpRequest):
+    if is_maintenance_mode():
+        return web.json_response({"error": "maintenance_mode"}, status=503)
+
     clientIp = httpRequest.remote
     if not checkRateLimit(clientIp):
         return web.json_response({"error": "rate_limit_exceeded"}, status=429)
@@ -447,20 +225,18 @@ async def requestServer(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    playerId = auth_utils.userTokens[token]["username"]
-    username = auth_utils.userTokens[token]["username"]
-    userId = None
-    for uname, userData in userAccounts.items():
-        if uname == username:
-            userId = userData["user_id"]
-            break
+    username = auth_utils.getUsernameFromToken(token)
+    user_data = execute_query("SELECT user_id FROM accounts WHERE username = ?",
+                              (username,), fetch_one=True)
+    userId = user_data[0] if user_data else None
 
     for serverUid, serverInfo in serverList.items():
         if len(serverInfo["players"]) < serverInfo["max"] and not serverInfo.get("starting", False):
-            serverInfo["players"].add(playerId)
-            playerList[playerId] = {"server": serverUid, "last": time.time()}
+            serverInfo["players"].add(username)
+            playerList[username] = {"server": serverUid, "last": time.time()}
 
             if userId:
+                from player_data import setPlayerServer
                 setPlayerServer(userId, serverUid)
 
             return web.json_response({"uid": serverUid, "ip": serverInfo["ip"], "port": serverInfo["port"]})
@@ -470,14 +246,15 @@ async def requestServer(httpRequest):
     serverList[serverUid] = {
         "ip": SERVER_PUBLIC_IP,
         "port": serverPort,
-        "players": {playerId},
+        "players": {username},
         "max": 6,
         "last": time.time(),
         "starting": True
     }
-    playerList[playerId] = {"server": serverUid, "last": time.time()}
+    playerList[username] = {"server": serverUid, "last": time.time()}
 
     if userId:
+        from player_data import setPlayerServer
         setPlayerServer(userId, serverUid)
 
     await spawnServer(serverUid, serverPort)
@@ -522,9 +299,9 @@ async def heartbeatClient(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    playerId = auth_utils.userTokens[token]["username"]
-    if playerId in playerList:
-        playerList[playerId]["last"] = time.time()
+    username = auth_utils.getUsernameFromToken(token)
+    if username in playerList:
+        playerList[username]["last"] = time.time()
         return web.json_response({"status": "alive"})
     return web.json_response({"status": "not_found", "error": "player_not_found"})
 
@@ -611,10 +388,16 @@ async def setDatastore(httpRequest):
         return web.json_response({"error": "invalid_access_key"}, status=403)
 
     datastoreKey = f"server:{key}"
-    datastoreDict[datastoreKey] = {
-        "value": value,
-        "timestamp": time.time()
-    }
+
+    if isinstance(value, (dict, list)):
+        value_str = json.dumps(value)
+    else:
+        value_str = str(value) if value is not None else ""
+
+    execute_query(
+        "INSERT OR REPLACE INTO datastores (key, value, timestamp) VALUES (?, ?, ?)",
+        (datastoreKey, value_str, time.time())
+    )
 
     return web.json_response({"status": "success", "key": key})
 
@@ -639,11 +422,22 @@ async def getDatastore(httpRequest):
 
     datastoreKey = f"server:{key}"
 
-    if datastoreKey in datastoreDict:
+    result = execute_query(
+        "SELECT value, timestamp FROM datastores WHERE key = ?",
+        (datastoreKey,), fetch_one=True
+    )
+
+    if result:
+        value = result[0]
+        try:
+            value = json.loads(value)
+        except:
+            pass
+
         return web.json_response({
             "key": key,
-            "value": datastoreDict[datastoreKey]["value"],
-            "timestamp": datastoreDict[datastoreKey]["timestamp"]
+            "value": value,
+            "timestamp": result[1]
         })
 
     return web.json_response({"error": "key_not_found"}, status=404)
@@ -673,11 +467,9 @@ async def removeDatastore(httpRequest):
 
     datastoreKey = f"server:{key}"
 
-    if datastoreKey in datastoreDict:
-        del datastoreDict[datastoreKey]
-        return web.json_response({"status": "removed", "key": key})
+    execute_query("DELETE FROM datastores WHERE key = ?", (datastoreKey,))
 
-    return web.json_response({"error": "key_not_found"}, status=404)
+    return web.json_response({"status": "removed", "key": key})
 
 async def listDatastoreKeys(httpRequest):
     clientIp = httpRequest.remote
@@ -697,16 +489,18 @@ async def listDatastoreKeys(httpRequest):
     if accessKey != DATASTORE_PASSWORD:
         return web.json_response({"error": "invalid_access_key"}, status=403)
 
-    serverKeys = []
-    prefix = "server:"
+    results = execute_query(
+        "SELECT key, timestamp FROM datastores WHERE key LIKE 'server:%'",
+        fetch_all=True
+    )
 
-    for datastoreKey in datastoreDict.keys():
-        if datastoreKey.startswith(prefix):
-            key = datastoreKey[len(prefix):]
-            serverKeys.append({
-                "key": key,
-                "timestamp": datastoreDict[datastoreKey]["timestamp"]
-            })
+    serverKeys = []
+    for row in results:
+        key = row[0][7:]
+        serverKeys.append({
+            "key": key,
+            "timestamp": row[1]
+        })
 
     return web.json_response({"keys": serverKeys})
 
@@ -725,14 +519,18 @@ async def getUserById(httpRequest):
     if not user_id:
         return web.json_response({"error": "missing_user_id"}, status=400)
 
-    for username, userData in userAccounts.items():
-        if userData.get("user_id") == user_id:
-            return web.json_response({
-                "username": username,
-                "user_id": userData["user_id"],
-                "gender": userData["gender"],
-                "created": userData["created"]
-            })
+    user_data = execute_query(
+        "SELECT username, user_id, gender, created FROM accounts WHERE user_id = ?",
+        (user_id,), fetch_one=True
+    )
+
+    if user_data:
+        return web.json_response({
+            "username": user_data[0],
+            "user_id": user_data[1],
+            "gender": user_data[2],
+            "created": user_data[3]
+        })
 
     return web.json_response({"error": "user_not_found"}, status=404)
 
@@ -755,20 +553,251 @@ async def searchUsers(httpRequest):
     if limit > 50:
         limit = 50
 
-    matching_users = []
-    for username, userData in userAccounts.items():
-        if search_query in username.lower():
-            matching_users.append({
-                "username": username,
-                "user_id": userData["user_id"],
-                "gender": userData["gender"],
-                "created": userData["created"]
-            })
+    results = execute_query(
+        "SELECT username, user_id, gender, created FROM accounts WHERE LOWER(username) LIKE ? LIMIT ?",
+        (f"%{search_query}%", limit), fetch_all=True
+    )
 
-    matching_users.sort(key=lambda x: x["username"].lower().find(search_query.lower()))
-    return web.json_response({"users": matching_users[:limit]})
+    matching_users = []
+    for row in results:
+        matching_users.append({
+            "username": row[0],
+            "user_id": row[1],
+            "gender": row[2],
+            "created": row[3]
+        })
+
+    return web.json_response({"users": matching_users})
+
+async def getMaintenanceStatus(httpRequest):
+    status = get_maintenance_status()
+    return web.json_response(status)
+
+async def getGlobalMessages(httpRequest):
+    clientIp = httpRequest.remote
+    if not checkRateLimit(clientIp):
+        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
+
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    since_id = requestData.get("since_id", 0)
+    from global_messages import get_global_messages, get_latest_message_id
+    messages = get_global_messages(since_id)
+
+    return web.json_response({
+        "success": True,
+        "data": {
+            "messages": messages,
+            "latest_id": get_latest_message_id()
+        }
+    })
+
+    return web.json_response({
+        "success": True,
+        "data": {"messages": messages}
+    })
+
+async def processPurchase(httpRequest):
+    clientIp = httpRequest.remote
+    if not checkRateLimit(clientIp):
+        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
+
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    token = requestData.get("token")
+    if not token or not validateToken(token):
+        return web.json_response({"error": "invalid_token"}, status=401)
+
+    username = auth_utils.getUsernameFromToken(token)
+    user_data = execute_query("SELECT user_id FROM accounts WHERE username = ?",
+                              (username,), fetch_one=True)
+    if not user_data:
+        return web.json_response({"error": "user_not_found"}, status=404)
+
+    user_id = user_data[0]
+    product_id = requestData.get("product_id")
+    purchase_token = requestData.get("purchase_token")
+
+    if not product_id or not purchase_token:
+        return web.json_response({"error": "missing_required_fields"}, status=400)
+
+    result = verify_google_play_purchase(user_id, product_id, purchase_token)
+    return web.json_response(result)
+
+async def processAdReward(httpRequest):
+    clientIp = httpRequest.remote
+    if not checkRateLimit(clientIp):
+        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
+
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    token = requestData.get("token")
+    if not token or not validateToken(token):
+        return web.json_response({"error": "invalid_token"}, status=401)
+
+    username = auth_utils.getUsernameFromToken(token)
+    user_data = execute_query("SELECT user_id FROM accounts WHERE username = ?",
+                              (username,), fetch_one=True)
+    if not user_data:
+        return web.json_response({"error": "user_not_found"}, status=404)
+
+    user_id = user_data[0]
+    ad_network = requestData.get("ad_network", "admob")
+    ad_unit_id = requestData.get("ad_unit_id")
+    reward_amount = requestData.get("reward_amount", 10)
+    verification_data = requestData.get("verification_data")
+
+    if not ad_unit_id:
+        return web.json_response({"error": "missing_ad_unit_id"}, status=400)
+
+    result = verify_ad_reward(user_id, ad_network, ad_unit_id, reward_amount, verification_data)
+    return web.json_response(result)
+
+async def getCurrencyPackagesEndpoint(httpRequest):
+    result = get_currency_packages()
+    return web.json_response(result)
+
+def verify_dashboard_session(session_token):
+    if not session_token or session_token not in dashboard_sessions:
+        return False
+
+    session_data = dashboard_sessions[session_token]
+    if time.time() - session_data["created"] > 3600:
+        del dashboard_sessions[session_token]
+        return False
+
+    return True
+
+async def dashboardLogin(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    password = requestData.get("password")
+
+    if password == DASHBOARD_PASSWORD:
+        session_token = secrets.token_urlsafe(32)
+        dashboard_sessions[session_token] = {
+            "created": time.time(),
+            "ip": httpRequest.remote
+        }
+        return web.json_response({"success": True, "session_token": session_token})
+
+    return web.json_response({"error": "invalid_password"}, status=401)
+
+async def sendGlobalMessage(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    message_type = requestData.get("type")
+    properties = requestData.get("properties", {})
+
+    if not message_type:
+        return web.json_response({"error": "missing_type"}, status=400)
+
+    result = add_global_message(message_type, properties)
+    return web.json_response(result)
+
+async def setMaintenanceMode(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    enabled = requestData.get("enabled", False)
+    message = requestData.get("message", "")
+
+    result = set_maintenance_mode(enabled, message)
+    return web.json_response(result)
+
+async def getWeatherTypes(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    from database_manager import get_weather_types
+    weathers = get_weather_types()
+    return web.json_response({"success": True, "data": weathers})
+
+async def addWeatherType(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    weather_name = requestData.get("weather_name")
+    if not weather_name:
+        return web.json_response({"error": "missing_weather_name"}, status=400)
+
+    from database_manager import add_weather_type
+    success = add_weather_type(weather_name)
+
+    if success:
+        return web.json_response({"success": True})
+    else:
+        return web.json_response({"error": "weather_exists"}, status=400)
+
+async def removeWeatherType(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    weather_name = requestData.get("weather_name")
+    if not weather_name:
+        return web.json_response({"error": "missing_weather_name"}, status=400)
+
+    from database_manager import remove_weather_type
+    success = remove_weather_type(weather_name)
+
+    return web.json_response({"success": success})
 
 async def getDashboardData(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        data = await httpRequest.text()
+        if data:
+            return web.json_response({"error": "invalid_json"}, status=400)
+        requestData = {}
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
     currentTime = time.time()
     totalServers = len(serverList)
     totalPlayers = len(playerList)
@@ -782,7 +811,7 @@ async def getDashboardData(httpRequest):
         maxPlayers = serverInfo["max"]
 
         status = "starting" if serverInfo.get("starting", False) else "healthy" if lastSeen <= 5 else "stale"
-        utilization = (playerCount / maxPlayers) * 100
+        utilization = (playerCount / maxPlayers) * 100 if maxPlayers > 0 else 0
 
         servers_data.append({
             "uid": serverUid,
@@ -809,20 +838,32 @@ async def getDashboardData(httpRequest):
 
     rate_limit_data.sort(key=lambda x: x["requests"], reverse=True)
 
+    system_stats = get_system_stats()
+    process_stats = get_process_stats(processList)
+
+    from database_manager import get_weather_types
+    weather_types = get_weather_types()
+
+    user_count = execute_query("SELECT COUNT(*) FROM accounts", fetch_one=True)[0]
+
     return web.json_response({
         "stats": {
             "total_servers": totalServers,
             "total_players": totalPlayers,
             "active_servers": activeServers,
             "total_capacity": totalCapacity,
-            "total_users": len(userAccounts)
+            "total_users": user_count
         },
         "servers": servers_data,
-        "rate_limits": rate_limit_data
+        "rate_limits": rate_limit_data,
+        "system": system_stats,
+        "processes": process_stats,
+        "maintenance": is_maintenance_mode(),
+        "weather_types": weather_types
     })
 
 async def dashboardView(httpRequest):
-    with open("dashboard.html", "r") as f:
+    with open("dashboard.html", "r", encoding="utf-8") as f:
         html = f.read()
     return web.Response(text=html, content_type="text/html")
 
@@ -860,22 +901,11 @@ async def cleanupTask():
                     del processList[serverUid]
                 del serverList[serverUid]
 
-            oldDatastoreKeys = []
-            for key, data in datastoreDict.items():
-                if currentTime - data["timestamp"] > 86400:
-                    oldDatastoreKeys.append(key)
+            execute_query("DELETE FROM datastores WHERE timestamp < ?", (currentTime - 86400,))
+            execute_query("DELETE FROM tokens WHERE created < ?", (currentTime - 2592000,))
 
-            for key in oldDatastoreKeys:
-                del datastoreDict[key]
+            clear_old_messages(300)
 
-            expiredTokens = []
-            for token, tokenData in auth_utils.userTokens.items():
-                if currentTime - tokenData["created"] > 2592000:
-                    expiredTokens.append(token)
-            for token in expiredTokens:
-                del auth_utils.userTokens[token]
-
-            saveAllData()
             last_cleanup = currentTime
 
         await asyncio.sleep(5)
@@ -897,18 +927,28 @@ async def validateTokenEndpoint(httpRequest):
     if not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    token_data = auth_utils.userTokens[token]
-    username = token_data["username"]
-    user_data = userAccounts[username]
+    username = auth_utils.getUsernameFromToken(token)
+    user_data = execute_query(
+        "SELECT user_id, created FROM accounts WHERE username = ?",
+        (username,), fetch_one=True
+    )
+
+    token_data = execute_query(
+        "SELECT created FROM tokens WHERE token = ?",
+        (token,), fetch_one=True
+    )
 
     return web.json_response({
         "status": "valid",
         "username": username,
-        "user_id": user_data["user_id"],
-        "expires_in": int(2592000 - (time.time() - token_data["created"]))
+        "user_id": user_data[0],
+        "expires_in": int(2592000 - (time.time() - token_data[0]))
     })
 
 async def connectToServerID(httpRequest):
+    if is_maintenance_mode():
+        return web.json_response({"error": "maintenance_mode"}, status=503)
+
     clientIp = httpRequest.remote
     if not checkRateLimit(clientIp):
         return web.json_response({"error": "rate_limit_exceeded"}, status=429)
@@ -930,14 +970,14 @@ async def connectToServerID(httpRequest):
     if serverId not in serverList:
         return web.json_response({"error": "server_not_found"}, status=404)
 
-    playerId = auth_utils.userTokens[token]["username"]
+    username = auth_utils.getUsernameFromToken(token)
     serverInfo = serverList[serverId]
 
     if len(serverInfo["players"]) >= serverInfo["max"]:
         return web.json_response({"error": "server_full"}, status=400)
 
-    serverInfo["players"].add(playerId)
-    playerList[playerId] = {"server": serverId, "last": time.time()}
+    serverInfo["players"].add(username)
+    playerList[username] = {"server": serverId, "last": time.time()}
 
     return web.json_response({
         "uid": serverId,
@@ -945,8 +985,96 @@ async def connectToServerID(httpRequest):
         "port": serverInfo["port"]
     })
 
+async def listAllAccessories(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    from avatar_service import listMarketItems
+    result = listMarketItems(pagination={"page": 1, "limit": 1000})
+    return web.json_response(result)
+
+async def deleteAccessoryEndpoint(httpRequest):
+    try:
+        requestData = await httpRequest.json()
+    except:
+        return web.json_response({"error": "invalid_json"}, status=400)
+
+    session_token = requestData.get("session_token")
+    if not verify_dashboard_session(session_token):
+        return web.json_response({"error": "unauthorized"}, status=401)
+
+    accessory_id = requestData.get("accessory_id")
+    if not accessory_id:
+        return web.json_response({"error": "missing_accessory_id"}, status=400)
+
+    from avatar_service import deleteAccessory
+    result = deleteAccessory(accessory_id)
+    return web.json_response(result)
+
+async def addAccessoryEndpoint(httpRequest):
+    try:
+        session_token = None
+        fields = {}
+        files = {}
+        filenames = {}
+
+        reader = await httpRequest.multipart()
+        async for field in reader:
+            if field.name == "session_token":
+                session_token = await field.text()
+            elif field.name in ["name", "type", "price", "equip_slot"]:
+                fields[field.name] = await field.text()
+            elif field.name in ["model", "texture", "mtl", "icon"]:
+                files[field.name] = await field.read()
+                filenames[field.name] = field.filename
+
+        if not session_token or not verify_dashboard_session(session_token):
+            return web.json_response({"error": "unauthorized"}, status=401)
+
+        if not all(k in fields for k in ["name", "type", "price", "equip_slot"]):
+            return web.json_response({"error": "missing_required_fields"}, status=400)
+
+        if "model" not in files:
+            return web.json_response({"error": "model_file_required"}, status=400)
+
+        try:
+            price = int(fields["price"])
+        except:
+            return web.json_response({"error": "invalid_price"}, status=400)
+
+        from avatar_service import addAccessoryFromDashboard
+
+        result = addAccessoryFromDashboard(
+            name=fields["name"],
+            accessory_type=fields["type"],
+            price=price,
+            equip_slot=fields["equip_slot"],
+            model_data=files["model"],
+            texture_data=files.get("texture"),
+            mtl_data=files.get("mtl"),
+            icon_data=files.get("icon"),
+            model_filename=filenames.get("model")
+        )
+
+        return web.json_response(result)
+
+    except Exception as e:
+        import traceback
+        print(f"Error in addAccessoryEndpoint: {e}")
+        print(traceback.format_exc())
+        return web.json_response({"error": str(e)}, status=400)
+
 async def startApp():
-    loadAllData()
+    init_database()
+
+    from player_data import loadPlayerData
+    loadPlayerData()
 
     webApp = web.Application()
     webApp.add_routes([
@@ -966,8 +1094,22 @@ async def startApp():
         web.post("/datastore/list_keys", listDatastoreKeys),
         web.post("/users/get_by_id", getUserById),
         web.post("/users/search", searchUsers),
-        web.get("/api/dashboard", getDashboardData),
+        web.get("/maintenance_status", getMaintenanceStatus),
+        web.post("/global_messages", getGlobalMessages),
+        web.post("/payments/purchase", processPurchase),
+        web.post("/payments/ad_reward", processAdReward),
+        web.get("/payments/packages", getCurrencyPackagesEndpoint),
+        web.post("/dashboard/login", dashboardLogin),
+        web.post("/dashboard/send_message", sendGlobalMessage),
+        web.post("/dashboard/set_maintenance", setMaintenanceMode),
+        web.post("/dashboard/weather/list", getWeatherTypes),
+        web.post("/dashboard/weather/add", addWeatherType),
+        web.post("/dashboard/weather/remove", removeWeatherType),
+        web.post("/api/dashboard", getDashboardData),
         web.get("/dashboard", dashboardView),
+        web.post("/dashboard/accessories/list", listAllAccessories),
+        web.post("/dashboard/accessories/add", addAccessoryEndpoint),
+        web.post("/dashboard/accessories/delete", deleteAccessoryEndpoint),
     ])
 
     addNewRoutes(webApp)
@@ -976,9 +1118,7 @@ async def startApp():
 
 def shutdownHandler(signalNum, frameObj):
     with shutdown_lock:
-        from player_data import resetAllPlayerServers
         resetAllPlayerServers()
-        saveAllData()
         for serverUid, serverProc in processList.items():
             try:
                 serverProc.kill()
@@ -993,4 +1133,5 @@ if __name__ == "__main__":
     os.makedirs("pfps", exist_ok=True)
     os.makedirs("models", exist_ok=True)
     os.makedirs("accessories", exist_ok=True)
+    os.makedirs("icons", exist_ok=True)
     web.run_app(startApp(), host='0.0.0.0', port=8080)

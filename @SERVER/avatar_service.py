@@ -2,42 +2,19 @@ import os
 import json
 import time
 import shutil
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from config import SERVER_PUBLIC_IP
+from database_manager import execute_query, save_accessory_purchase
 
-ACCESSORIES_FILE = os.path.join("server_data", "accessories.dat")
 ACCESSORIES_DIR = "accessories"
 MODELS_DIR = "models"
-
-accessoriesDict = {}
-nextAccessoryId = 1
+ICONS_DIR = "icons"
 
 def loadAccessoriesData():
-    global accessoriesDict, nextAccessoryId
-    try:
-        if os.path.exists(ACCESSORIES_FILE):
-            with open(ACCESSORIES_FILE, "r") as f:
-                data = json.load(f)
-                accessoriesDict = data.get("accessories", {})
-                nextAccessoryId = data.get("nextId", 1)
-        else:
-            accessoriesDict = {}
-            nextAccessoryId = 1
-    except:
-        accessoriesDict = {}
-        nextAccessoryId = 1
+    pass
 
 def saveAccessoriesData():
-    try:
-        os.makedirs("server_data", exist_ok=True)
-        data = {
-            "accessories": accessoriesDict,
-            "nextId": nextAccessoryId
-        }
-        with open(ACCESSORIES_FILE, "w") as f:
-            json.dump(data, f)
-    except Exception as e:
-        print(f"Error saving accessories data: {e}")
+    pass
 
 def getFullAvatar(userId: int) -> Dict[str, Any]:
     from player_data import getPlayerData
@@ -70,33 +47,70 @@ def getFullAvatar(userId: int) -> Dict[str, Any]:
     }
 
 def getAccessory(accessoryId: int) -> Optional[Dict[str, Any]]:
-    accessoryKey = str(accessoryId)
-    if accessoryKey not in accessoriesDict:
+    result = execute_query(
+        "SELECT accessory_id, name, type, price, model_file, texture_file, mtl_file, equip_slot, icon_file, created_at FROM accessories WHERE accessory_id = ?",
+        (accessoryId,), fetch_one=True
+    )
+
+    if not result:
         return None
 
-    accessory = accessoriesDict[accessoryKey].copy()
-    modelFile = accessory.get("modelFile", "")
-    if modelFile:
-        modelFileUrl = modelFile.replace("\\", "/")
-        accessory["downloadUrl"] = f"http://{SERVER_PUBLIC_IP}:{os.environ.get('PORT', 8080)}/{modelFileUrl}"
+    port = os.environ.get('PORT', 8080)
+    accessory = {
+        "id": result[0],
+        "name": result[1],
+        "type": result[2],
+        "price": result[3],
+        "modelFile": result[4],
+        "textureFile": result[5],
+        "mtlFile": result[6],
+        "equipSlot": result[7],
+        "iconFile": result[8],
+        "createdAt": result[9]
+    }
+
+    if accessory["modelFile"]:
+        modelFileUrl = accessory["modelFile"].replace("\\", "/")
+        accessory["downloadUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{modelFileUrl}"
+
+    if accessory["textureFile"]:
+        textureFileUrl = accessory["textureFile"].replace("\\", "/")
+        accessory["textureUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{textureFileUrl}"
+
+    if accessory["mtlFile"]:
+        mtlFileUrl = accessory["mtlFile"].replace("\\", "/")
+        accessory["mtlUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{mtlFileUrl}"
+
+    if accessory["iconFile"]:
+        iconFileUrl = accessory["iconFile"].replace("\\", "/")
+        accessory["iconUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{iconFileUrl}"
 
     return accessory
 
 def checkItemOwnership(userId: int, itemId: int) -> bool:
-    from player_data import getPlayerData
+    result = execute_query(
+        "SELECT owned_accessories FROM player_data WHERE user_id = ?",
+        (userId,), fetch_one=True
+    )
 
-    playerData = getPlayerData(userId)
-    if not playerData:
+    if not result or not result[0]:
         return False
 
-    ownedAccessories = playerData.get("ownedAccessories", [])
-    return itemId in ownedAccessories
+    owned_accessories = json.loads(result[0])
+    return itemId in owned_accessories
 
 def buyItem(userId: int, itemId: int) -> Dict[str, Any]:
     from currency_system import debitCurrency
     from player_data import getPlayerData, savePlayerData
 
-    if checkItemOwnership(userId, itemId):
+    playerData = getPlayerData(userId)
+    if not playerData:
+        return {"success": False, "error": {"code": "USER_NOT_FOUND", "message": "User not found"}}
+
+    if "ownedAccessories" not in playerData:
+        playerData["ownedAccessories"] = []
+
+    if itemId in playerData["ownedAccessories"]:
         return {"success": False, "error": {"code": "ALREADY_OWNED", "message": "Item already owned"}}
 
     accessory = getAccessory(itemId)
@@ -108,21 +122,20 @@ def buyItem(userId: int, itemId: int) -> Dict[str, Any]:
     if not debitResult["success"]:
         return debitResult
 
-    playerData = getPlayerData(userId)
-    if not playerData:
-        return {"success": False, "error": {"code": "USER_NOT_FOUND", "message": "User not found"}}
-
-    if "ownedAccessories" not in playerData:
-        playerData["ownedAccessories"] = []
-
     playerData["ownedAccessories"].append(itemId)
     savePlayerData(userId, playerData)
 
-    return {"success": True, "data": {"itemId": itemId, "price": price}}
+    result = execute_query(
+        "UPDATE player_data SET owned_accessories = ? WHERE user_id = ?",
+        (json.dumps(playerData["ownedAccessories"]), userId)
+    )
+
+    save_accessory_purchase(userId, itemId, price)
+
+    return {"success": True, "data": {"itemId": itemId, "price": price, "newBalance": debitResult["data"]["newBalance"]}}
 
 def equipAccessory(userId: int, accessoryId: int) -> Dict[str, Any]:
     from player_data import getPlayerData, savePlayerData
-    from pfp_service import updateUserPfp
 
     if not checkItemOwnership(userId, accessoryId):
         return {"success": False, "error": {"code": "NOT_OWNED", "message": "Accessory not owned"}}
@@ -149,22 +162,20 @@ def equipAccessory(userId: int, accessoryId: int) -> Dict[str, Any]:
         "type": accessory.get("type"),
         "equipSlot": equipSlot,
         "modelFile": accessory.get("modelFile"),
-        "downloadUrl": accessory.get("downloadUrl")
+        "textureFile": accessory.get("textureFile"),
+        "mtlFile": accessory.get("mtlFile"),
+        "downloadUrl": accessory.get("downloadUrl"),
+        "textureUrl": accessory.get("textureUrl"),
+        "mtlUrl": accessory.get("mtlUrl")
     })
 
     playerData["avatar"]["accessories"] = newAccessories
     savePlayerData(userId, playerData)
 
-    try:
-        updateUserPfp(userId)
-    except:
-        pass
-
     return {"success": True, "data": {"equippedAccessory": accessoryId, "slot": equipSlot}}
 
 def unequipAccessory(userId: int, accessoryId: int) -> Dict[str, Any]:
     from player_data import getPlayerData, savePlayerData
-    from pfp_service import updateUserPfp
 
     playerData = getPlayerData(userId)
     if not playerData:
@@ -180,31 +191,62 @@ def unequipAccessory(userId: int, accessoryId: int) -> Dict[str, Any]:
     playerData["avatar"]["accessories"] = newAccessories
     savePlayerData(userId, playerData)
 
-    try:
-        updateUserPfp(userId)
-    except:
-        pass
-
     return {"success": True, "data": {"unequippedAccessory": accessoryId}}
 
 def listMarketItems(filter: Optional[Dict] = None, pagination: Optional[Dict] = None) -> Dict[str, Any]:
+    query = "SELECT accessory_id, name, type, price, model_file, texture_file, mtl_file, equip_slot, icon_file, created_at FROM accessories"
+    params = []
+
+    if filter:
+        conditions = []
+        if filter.get("type"):
+            conditions.append("type = ?")
+            params.append(filter["type"])
+        if filter.get("maxPrice"):
+            conditions.append("price <= ?")
+            params.append(filter["maxPrice"])
+
+        if conditions:
+            query += " WHERE " + " AND ".join(conditions)
+
+    query += " ORDER BY name, accessory_id"
+
+    results = execute_query(query, tuple(params), fetch_all=True)
+
     items = []
-    for accessoryId, accessory in accessoriesDict.items():
-        item = accessory.copy()
-        item["id"] = int(accessoryId)
+    port = os.environ.get('PORT', 8080)
 
-        if filter:
-            itemType = filter.get("type")
-            if itemType and item.get("type") != itemType:
-                continue
+    for row in results:
+        item = {
+            "id": row[0],
+            "name": row[1],
+            "type": row[2],
+            "price": row[3],
+            "modelFile": row[4],
+            "textureFile": row[5],
+            "mtlFile": row[6],
+            "equipSlot": row[7],
+            "iconFile": row[8],
+            "createdAt": row[9]
+        }
 
-            maxPrice = filter.get("maxPrice")
-            if maxPrice and item.get("price", 0) > maxPrice:
-                continue
+        if item["modelFile"]:
+            modelFileUrl = item["modelFile"].replace("\\", "/")
+            item["downloadUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{modelFileUrl}"
+
+        if item["textureFile"]:
+            textureFileUrl = item["textureFile"].replace("\\", "/")
+            item["textureUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{textureFileUrl}"
+
+        if item["mtlFile"]:
+            mtlFileUrl = item["mtlFile"].replace("\\", "/")
+            item["mtlUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{mtlFileUrl}"
+
+        if item["iconFile"]:
+            iconFileUrl = item["iconFile"].replace("\\", "/")
+            item["iconUrl"] = f"http://{SERVER_PUBLIC_IP}:{port}/{iconFileUrl}"
 
         items.append(item)
-
-    items.sort(key=lambda x: (x.get("name", ""), x.get("id", 0)))
 
     totalItems = len(items)
 
@@ -226,101 +268,246 @@ def listMarketItems(filter: Optional[Dict] = None, pagination: Optional[Dict] = 
     }
 
 def getUserAccessories(userId: int) -> List[int]:
-    from player_data import getPlayerData
+    result = execute_query(
+        "SELECT owned_accessories FROM player_data WHERE user_id = ?",
+        (userId,), fetch_one=True
+    )
 
-    playerData = getPlayerData(userId)
-    if not playerData:
+    if not result or not result[0]:
         return []
 
-    return playerData.get("ownedAccessories", [])
+    return json.loads(result[0])
 
-def addAccessoryFromFolder(path: str) -> Dict[str, Any]:
-    global nextAccessoryId
+def deleteAccessory(accessoryId: int) -> Dict[str, Any]:
+    result = execute_query(
+        "SELECT model_file, texture_file, mtl_file, icon_file FROM accessories WHERE accessory_id = ?",
+        (accessoryId,), fetch_one=True
+    )
 
-    if not os.path.exists(path):
-        return {"success": False, "error": {"code": "PATH_NOT_FOUND", "message": "Folder path not found"}}
+    if not result:
+        return {"success": False, "error": "Accessory not found"}
 
-    successfulIds = []
-    errors = []
+    files_to_delete = [result[0], result[1], result[2], result[3]]
 
-    for folderName in os.listdir(path):
-        folderPath = os.path.join(path, folderName)
-        if not os.path.isdir(folderPath):
-            continue
+    for file_path in files_to_delete:
+        if file_path:
+            full_path = file_path
+            if os.path.exists(full_path):
+                try:
+                    os.remove(full_path)
+                except:
+                    pass
 
-        metadataPath = os.path.join(folderPath, "metadata.json")
-        if not os.path.exists(metadataPath):
-            errors.append({"folder": folderName, "error": "metadata.json not found"})
-            continue
+    execute_query("DELETE FROM accessories WHERE accessory_id = ?", (accessoryId,))
+    execute_query("DELETE FROM accessory_purchases WHERE accessory_id = ?", (accessoryId,))
 
-        try:
-            with open(metadataPath, "r") as f:
-                metadata = json.load(f)
+    return {"success": True, "data": {"deletedId": accessoryId}}
 
-            requiredFields = ["name", "type", "price"]
-            if not all(field in metadata for field in requiredFields):
-                errors.append({"folder": folderName, "error": "Missing required metadata fields"})
-                continue
+def addAccessoryFromDashboard(name: str, accessory_type: str, price: int, equip_slot: str,
+                              model_data: bytes, texture_data: Optional[bytes] = None,
+                              mtl_data: Optional[bytes] = None, icon_data: Optional[bytes] = None,
+                              model_filename: str = None) -> Dict[str, Any]:
+    os.makedirs(MODELS_DIR, exist_ok=True)
+    os.makedirs(ICONS_DIR, exist_ok=True)
 
-            modelFiles = [f for f in os.listdir(folderPath) if f.endswith((".glb", ".gltf", ".obj", ".fbx"))]
-            if not modelFiles:
-                errors.append({"folder": folderName, "error": "No model files found"})
-                continue
+    try:
+        accessory_id = execute_query(
+            """INSERT INTO accessories (name, type, price, model_file, texture_file, mtl_file, equip_slot, icon_file, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (name, accessory_type, price, "", "", "", equip_slot, "", time.time())
+        )
 
-            modelFile = modelFiles[0]
-            accessoryId = nextAccessoryId
-            nextAccessoryId += 1
+        if not model_filename:
+            model_filename = f"{accessory_id}_model.glb"
+        else:
+            name_part, ext = os.path.splitext(model_filename)
+            model_filename = f"{accessory_id}_model{ext}"
 
-            os.makedirs(MODELS_DIR, exist_ok=True)
-            destModelPath = os.path.join(MODELS_DIR, f"{accessoryId}_{modelFile}")
-            shutil.copy2(os.path.join(folderPath, modelFile), destModelPath)
+        model_path = os.path.join(MODELS_DIR, model_filename)
 
-            destModelPathUrl = destModelPath.replace("\\", "/")
+        with open(model_path, 'wb') as f:
+            f.write(model_data)
 
-            accessory = {
-                "id": accessoryId,
-                "name": metadata["name"],
-                "type": metadata["type"],
-                "price": metadata["price"],
-                "modelFile": destModelPathUrl,
-                "downloadUrl": f"http://{SERVER_PUBLIC_IP}:{os.environ.get('PORT', 8080)}/{destModelPathUrl}",
-                "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            }
+        model_path_url = model_path.replace("\\", "/")
 
-            if "equipSlot" in metadata:
-                accessory["equipSlot"] = metadata["equipSlot"]
+        texture_path_url = None
+        if texture_data:
+            texture_filename = f"{accessory_id}_texture.png"
+            texture_path = os.path.join(MODELS_DIR, texture_filename)
+            with open(texture_path, 'wb') as f:
+                f.write(texture_data)
+            texture_path_url = texture_path.replace("\\", "/")
 
-            accessoriesDict[str(accessoryId)] = accessory
-            successfulIds.append(accessoryId)
+        mtl_path_url = None
+        if mtl_data:
+            mtl_filename = f"{accessory_id}_material.mtl"
+            mtl_path = os.path.join(MODELS_DIR, mtl_filename)
+            with open(mtl_path, 'wb') as f:
+                f.write(mtl_data)
+            mtl_path_url = mtl_path.replace("\\", "/")
 
-        except Exception as e:
-            errors.append({"folder": folderName, "error": str(e)})
+        icon_path_url = None
+        if icon_data:
+            icon_filename = f"{accessory_id}_icon.png"
+            icon_path = os.path.join(ICONS_DIR, icon_filename)
+            with open(icon_path, 'wb') as f:
+                f.write(icon_data)
+            icon_path_url = icon_path.replace("\\", "/")
 
-    saveAccessoriesData()
-    return {"success": True, "data": {"addedIds": successfulIds, "errors": errors}}
+        execute_query(
+            "UPDATE accessories SET model_file = ?, texture_file = ?, mtl_file = ?, icon_file = ? WHERE accessory_id = ?",
+            (model_path_url, texture_path_url, mtl_path_url, icon_path_url, accessory_id)
+        )
 
-def autoLoadAccessories(): 
+        return {"success": True, "data": {"accessoryId": accessory_id, "name": name}}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def autoLoadAccessories():
     if not os.path.exists(ACCESSORIES_DIR):
         print(f"Accessories directory '{ACCESSORIES_DIR}' not found. Skipping auto-load.")
         return
 
-    if len(accessoriesDict) == 0:
+    existing_count = execute_query("SELECT COUNT(*) FROM accessories", fetch_one=True)[0]
+
+    if existing_count == 0:
         print(f"Auto-loading accessories from '{ACCESSORIES_DIR}'...")
-        result = addAccessoryFromFolder(ACCESSORIES_DIR)
+        successfulIds = []
+        errors = []
 
-        if result["success"]:
-            addedCount = len(result["data"]["addedIds"])
-            errorCount = len(result["data"]["errors"])
-            print(f"✓ Loaded {addedCount} accessories")
+        for folderName in os.listdir(ACCESSORIES_DIR):
+            folderPath = os.path.join(ACCESSORIES_DIR, folderName)
+            if not os.path.isdir(folderPath):
+                continue
 
-            if errorCount > 0:
-                print(f"⚠ {errorCount} folders had errors:")
-                for error in result["data"]["errors"]:
-                    print(f"  - {error['folder']}: {error['error']}")
-        else:
-            print(f"✗ Failed to load accessories: {result.get('error', {}).get('message', 'Unknown error')}")
+            metadataPath = os.path.join(folderPath, "metadata.json")
+            if not os.path.exists(metadataPath):
+                errors.append({"folder": folderName, "error": "metadata.json not found"})
+                continue
+
+            try:
+                with open(metadataPath, "r") as f:
+                    metadata = json.load(f)
+
+                requiredFields = ["name", "type", "price"]
+                if not all(field in metadata for field in requiredFields):
+                    errors.append({"folder": folderName, "error": "Missing required metadata fields"})
+                    continue
+
+                modelFiles = [f for f in os.listdir(folderPath) if f.endswith((".glb", ".gltf", ".obj", ".fbx"))]
+                if not modelFiles:
+                    errors.append({"folder": folderName, "error": "No model files found"})
+                    continue
+
+                modelFile = modelFiles[0]
+
+                mtlFile = None
+                if modelFile.endswith(".obj"):
+                    mtlFiles = [f for f in os.listdir(folderPath) if f.endswith(".mtl")]
+                    mtlFile = mtlFiles[0] if mtlFiles else None
+
+                textureFiles = [f for f in os.listdir(folderPath) if f.endswith((".png", ".jpg", ".jpeg"))]
+                textureFile = textureFiles[0] if textureFiles else None
+
+                os.makedirs(MODELS_DIR, exist_ok=True)
+
+                folder_created_time = os.path.getctime(folderPath)
+
+                accessory_id = execute_query(
+                    """INSERT INTO accessories (name, type, price, model_file, texture_file, equip_slot, icon_file, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (metadata["name"], metadata["type"], metadata["price"], "", "",
+                     metadata.get("equipSlot", metadata["type"]), "", folder_created_time)
+                )
+
+                print(f"Created accessory {accessory_id} for {folderName}")
+
+                srcModelPath = os.path.join(folderPath, modelFile)
+                destModelFile = f"{accessory_id}_{modelFile}"
+                destModelPath = os.path.join(MODELS_DIR, destModelFile)
+
+                shutil.copy2(srcModelPath, destModelPath)
+                print(f"  Copied model: {srcModelPath} -> {destModelPath}")
+
+                if not os.path.exists(destModelPath):
+                    raise Exception(f"Model file was not copied successfully: {destModelPath}")
+
+                destModelPathUrl = destModelPath.replace("\\", "/")
+
+                if mtlFile:
+                    srcMtlPath = os.path.join(folderPath, mtlFile)
+                    destMtlFile = f"{accessory_id}_{mtlFile}"
+                    destMtlPath = os.path.join(MODELS_DIR, destMtlFile)
+
+                    try:
+                        with open(srcMtlPath, 'r', encoding='utf-8', errors='ignore') as f:
+                            mtlContent = f.read()
+
+                        if textureFile:
+                            newTextureName = f"{accessory_id}_{textureFile}"
+                            for mapType in ['map_Kd', 'map_Ka', 'map_Ks', 'map_Bump', 'map_d', 'bump']:
+                                mtlContent = mtlContent.replace(f"{mapType} {textureFile}", f"{mapType} {newTextureName}")
+                            mtlContent = mtlContent.replace(textureFile, newTextureName)
+
+                        with open(destMtlPath, 'w', encoding='utf-8') as f:
+                            f.write(mtlContent)
+
+                        print(f"  Copied MTL: {srcMtlPath} -> {destMtlPath}")
+
+                        try:
+                            with open(destModelPath, 'r', encoding='utf-8', errors='ignore') as f:
+                                objContent = f.read()
+
+                            objContent = objContent.replace(f"mtllib {mtlFile}", f"mtllib {destMtlFile}")
+
+                            with open(destModelPath, 'w', encoding='utf-8') as f:
+                                f.write(objContent)
+
+                            print(f"  Updated OBJ mtllib reference")
+                        except Exception as e:
+                            print(f"  Warning: Could not update OBJ mtllib reference: {e}")
+
+                    except Exception as e:
+                        print(f"  Warning: Error processing MTL file: {e}")
+
+                destTexturePath = None
+                if textureFile:
+                    srcTexturePath = os.path.join(folderPath, textureFile)
+                    destTextureFile = f"{accessory_id}_{textureFile}"
+                    destTexturePath = os.path.join(MODELS_DIR, destTextureFile)
+
+                    shutil.copy2(srcTexturePath, destTexturePath)
+                    print(f"  Copied texture: {srcTexturePath} -> {destTexturePath}")
+
+                    if not os.path.exists(destTexturePath):
+                        print(f"  Warning: Texture file was not copied successfully")
+
+                    destTexturePath = destTexturePath.replace("\\", "/")
+
+                execute_query(
+                    "UPDATE accessories SET model_file = ?, texture_file = ? WHERE accessory_id = ?",
+                    (destModelPathUrl, destTexturePath, accessory_id)
+                )
+
+                print(f"  Successfully added accessory {accessory_id}: {metadata['name']}")
+                successfulIds.append(accessory_id)
+
+            except Exception as e:
+                import traceback
+                error_msg = f"{str(e)}\n{traceback.format_exc()}"
+                print(f"  Error processing {folderName}: {error_msg}")
+                errors.append({"folder": folderName, "error": str(e)})
+
+        addedCount = len(successfulIds)
+        errorCount = len(errors)
+        print(f"Loaded {addedCount} accessories")
+
+        if errorCount > 0:
+            print(f"Warning: {errorCount} folders had errors:")
+            for error in errors:
+                print(f"  - {error['folder']}: {error['error']}")
     else:
-        print(f"Found {len(accessoriesDict)} existing accessories in database")
+        print(f"Found {existing_count} existing accessories in database")
 
-loadAccessoriesData()
 autoLoadAccessories()

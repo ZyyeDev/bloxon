@@ -1,9 +1,9 @@
 import time
 from config import SERVER_PUBLIC_IP
+from database_manager import execute_query
 
 rateLimitDict = {}
 blockedIps = {}
-userTokens = {}
 maxRequestsPer15Sec = 100
 
 def isServerIp(clientIp):
@@ -41,12 +41,23 @@ def checkRateLimit(clientIp):
     return True
 
 def validateToken(token):
-    if token not in userTokens:
+    result = execute_query(
+        "SELECT username, created FROM tokens WHERE token = ?",
+        (token,), fetch_one=True
+    )
+
+    if not result:
         return False
 
-    token_data = userTokens[token]
-    if time.time() - token_data["created"] > 2592000:
-        del userTokens[token]
+    if time.time() - result[1] > 2592000:
+        execute_query("DELETE FROM tokens WHERE token = ?", (token,))
         return False
 
     return True
+
+def getUsernameFromToken(token):
+    result = execute_query(
+        "SELECT username FROM tokens WHERE token = ?",
+        (token,), fetch_one=True
+    )
+    return result[0] if result else None

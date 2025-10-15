@@ -3,8 +3,9 @@ import time
 import os
 import asyncio
 import auth_utils
+from database_manager import execute_query
 from friends import addFriendDirect, removeFriend, getFriends, sendFriendRequest, getFriendRequests, acceptFriendRequest, rejectFriendRequest, cancelFriendRequest
-from avatar_service import getFullAvatar, getAccessory, buyItem, listMarketItems, getUserAccessories, addAccessoryFromFolder, equipAccessory, unequipAccessory
+from avatar_service import getFullAvatar, getAccessory, buyItem, listMarketItems, getUserAccessories, equipAccessory, unequipAccessory
 from currency_system import creditCurrency, debitCurrency, getCurrency, transferCurrency
 from player_data import getPlayerData, savePlayerData, createPlayerData, updatePlayerAvatar, setPlayerServer, getPlayerFullProfile
 from pfp_service import getPfp, updateUserPfp
@@ -14,6 +15,15 @@ def checkRateLimit(clientIp):
 
 def validateToken(token):
     return auth_utils.validateToken(token)
+
+def getUserIdFromToken(token):
+    username = auth_utils.getUsernameFromToken(token)
+    if not username:
+        return None
+
+    result = execute_query("SELECT user_id FROM accounts WHERE username = ?",
+                          (username,), fetch_one=True)
+    return result[0] if result else None
 
 async def addFriendEndpoint(httpRequest):
     clientIp = httpRequest.remote
@@ -29,7 +39,7 @@ async def addFriendEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     friendId = requestData.get("friendId")
 
     if not userId or not friendId:
@@ -55,7 +65,7 @@ async def removeFriendEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     friendId = requestData.get("friendId")
 
     if not userId or not friendId:
@@ -78,9 +88,9 @@ async def getFriendsEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     friends = getFriends(userId)
     return web.json_response({"success": True, "data": friends})
@@ -101,7 +111,10 @@ async def getFullAvatarEndpoint(httpRequest):
 
     userId = requestData.get("userId")
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        userId = getUserIdFromToken(token)
+
+    if not userId:
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     avatar = getFullAvatar(userId)
     return web.json_response({"success": True, "data": avatar})
@@ -144,13 +157,14 @@ async def buyItemEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     itemId = requestData.get("itemId")
 
     if not userId or not itemId:
         return web.json_response({"error": "missing_required_fields"}, status=400)
 
     result = buyItem(userId, itemId)
+    print(result)
     if result["success"]:
         return web.json_response(result)
     else:
@@ -170,7 +184,7 @@ async def equipAccessoryEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     accessoryId = requestData.get("accessoryId")
 
     if not userId or not accessoryId:
@@ -197,7 +211,7 @@ async def unequipAccessoryEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     accessoryId = requestData.get("accessoryId")
 
     if not userId or not accessoryId:
@@ -231,6 +245,8 @@ async def listMarketItemsEndpoint(httpRequest):
     return web.json_response(result)
 
 async def getUserAccessoriesEndpoint(httpRequest):
+    from player_data import getPlayerData, savePlayerData
+
     clientIp = httpRequest.remote
     if not checkRateLimit(clientIp):
         return web.json_response({"error": "rate_limit_exceeded"}, status=429)
@@ -246,31 +262,14 @@ async def getUserAccessoriesEndpoint(httpRequest):
 
     userId = requestData.get("userId")
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        userId = getUserIdFromToken(token)
 
-    accessories = getUserAccessories(userId)
+    if not userId:
+        return web.json_response({"error": "user_not_found"}, status=404)
+
+    playerData = getPlayerData(userId)
+    accessories = playerData["ownedAccessories"]
     return web.json_response({"success": True, "data": accessories})
-
-async def addAccessoryFromFolderEndpoint(httpRequest):
-    clientIp = httpRequest.remote
-    if not checkRateLimit(clientIp):
-        return web.json_response({"error": "rate_limit_exceeded"}, status=429)
-
-    try:
-        requestData = await httpRequest.json()
-    except:
-        return web.json_response({"error": "invalid_json"}, status=400)
-
-    token = requestData.get("token")
-    if not token or not validateToken(token):
-        return web.json_response({"error": "invalid_token"}, status=401)
-
-    path = requestData.get("path")
-    if not path:
-        return web.json_response({"error": "missing_path"}, status=400)
-
-    result = addAccessoryFromFolder(path)
-    return web.json_response(result)
 
 async def creditCurrencyEndpoint(httpRequest):
     clientIp = httpRequest.remote
@@ -286,7 +285,7 @@ async def creditCurrencyEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     amount = requestData.get("amount")
 
     if not userId or not amount:
@@ -312,7 +311,7 @@ async def debitCurrencyEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     amount = requestData.get("amount")
 
     if not userId or not amount:
@@ -338,9 +337,9 @@ async def getCurrencyEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     result = getCurrency(userId)
     return web.json_response(result)
@@ -361,7 +360,10 @@ async def getPfpEndpoint(httpRequest):
 
     userId = requestData.get("userId")
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        userId = getUserIdFromToken(token)
+
+    if not userId:
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     pfpUrl = getPfp(userId)
     return web.json_response({"success": True, "data": {"pfp": pfpUrl}})
@@ -380,7 +382,7 @@ async def updateAvatarEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     avatarData = requestData.get("avatar")
 
     if not userId or not avatarData:
@@ -390,7 +392,6 @@ async def updateAvatarEndpoint(httpRequest):
 
     if result["success"]:
         await updateUserPfp(userId)
-        #asyncio.create_task(updateUserPfp(userId))
 
     return web.json_response(result)
 
@@ -410,7 +411,10 @@ async def getPlayerProfileEndpoint(httpRequest):
 
     userId = requestData.get("userId")
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        userId = getUserIdFromToken(token)
+
+    if not userId:
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     result = getPlayerFullProfile(userId)
     return web.json_response(result)
@@ -429,11 +433,11 @@ async def setPlayerServerEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     serverId = requestData.get("serverId")
 
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     result = setPlayerServer(userId, serverId)
     return web.json_response(result)
@@ -452,7 +456,7 @@ async def sendFriendRequestEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    fromUserId = requestData.get("fromUserId")
+    fromUserId = getUserIdFromToken(token)
     toUserId = requestData.get("toUserId")
 
     if not fromUserId or not toUserId:
@@ -478,9 +482,9 @@ async def getFriendRequestsEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     if not userId:
-        return web.json_response({"error": "missing_user_id"}, status=400)
+        return web.json_response({"error": "user_not_found"}, status=404)
 
     result = getFriendRequests(userId)
     return web.json_response(result)
@@ -499,7 +503,7 @@ async def acceptFriendRequestEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     requesterId = requestData.get("requesterId")
 
     if not userId or not requesterId:
@@ -525,7 +529,7 @@ async def rejectFriendRequestEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     requesterId = requestData.get("requesterId")
 
     if not userId or not requesterId:
@@ -551,7 +555,7 @@ async def cancelFriendRequestEndpoint(httpRequest):
     if not token or not validateToken(token):
         return web.json_response({"error": "invalid_token"}, status=401)
 
-    userId = requestData.get("userId")
+    userId = getUserIdFromToken(token)
     targetUserId = requestData.get("targetUserId")
 
     if not userId or not targetUserId:
@@ -582,7 +586,6 @@ def addNewRoutes(webApp):
         web.post("/avatar/unequip", unequipAccessoryEndpoint),
         web.post("/avatar/list_market", listMarketItemsEndpoint),
         web.post("/avatar/get_user_accessories", getUserAccessoriesEndpoint),
-        web.post("/avatar/add_from_folder", addAccessoryFromFolderEndpoint),
 
         web.post("/currency/credit", creditCurrencyEndpoint),
         web.post("/currency/debit", debitCurrencyEndpoint),
@@ -597,3 +600,4 @@ def addNewRoutes(webApp):
     webApp.router.add_static("/pfps/", "pfps")
     webApp.router.add_static("/models/", "models")
     webApp.router.add_static("/accessories/", "accessories")
+    webApp.router.add_static("/icons/", "icons")

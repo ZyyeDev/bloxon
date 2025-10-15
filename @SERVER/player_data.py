@@ -3,6 +3,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 from config import SERVER_PUBLIC_IP
+from database_manager import execute_query
 
 PLAYER_DATA_FILE = os.path.join("server_data", "player_data.dat")
 
@@ -72,13 +73,72 @@ def ensurePlayerDataDefaults(playerData: Dict[str, Any]) -> Dict[str, Any]:
 def getPlayerData(userId: int) -> Optional[Dict[str, Any]]:
     userKey = str(userId)
     if userKey in playerDataDict:
-        return ensurePlayerDataDefaults(playerDataDict[userKey])
+        data = ensurePlayerDataDefaults(playerDataDict[userKey])
+
+        db_result = execute_query(
+            "SELECT owned_accessories FROM player_data WHERE user_id = ?",
+            (userId,), fetch_one=True
+        )
+
+        if db_result and db_result[0]:
+            try:
+                data["ownedAccessories"] = json.loads(db_result[0])
+            except:
+                data["ownedAccessories"] = []
+
+        return data
+
+    db_result = execute_query(
+        "SELECT username, currency, avatar_data, owned_accessories, pfp, server_id FROM player_data WHERE user_id = ?",
+        (userId,), fetch_one=True
+    )
+
+    if db_result:
+        data = DEFAULT_PLAYER_SCHEMA.copy()
+        data["username"] = db_result[0]
+        data["userId"] = userId
+        data["currency"] = db_result[1]
+
+        if db_result[2]:
+            try:
+                data["avatar"] = json.loads(db_result[2])
+            except:
+                pass
+
+        if db_result[3]:
+            try:
+                data["ownedAccessories"] = json.loads(db_result[3])
+            except:
+                data["ownedAccessories"] = []
+
+        if db_result[4]:
+            data["pfp"] = db_result[4]
+
+        if db_result[5]:
+            data["serverId"] = db_result[5]
+
+        playerDataDict[userKey] = data
+        return ensurePlayerDataDefaults(data)
 
     return None
 
 def savePlayerData(userId: int, data: Dict[str, Any]):
     userKey = str(userId)
-    playerDataDict[userKey] = ensurePlayerDataDefaults(data)
+    data = ensurePlayerDataDefaults(data)
+    playerDataDict[userKey] = data
+
+    avatar_json = json.dumps(data.get("avatar", {}))
+    owned_accessories_json = json.dumps(data.get("ownedAccessories", []))
+
+    execute_query(
+        """INSERT OR REPLACE INTO player_data
+           (user_id, username, currency, avatar_data, owned_accessories, pfp, server_id, schema_version)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+        (userId, data.get("username", ""), data.get("currency", 100),
+         avatar_json, owned_accessories_json, data.get("pfp", ""),
+         data.get("serverId"), data.get("schemaVersion", 1))
+    )
+
     savePlayerDataDict()
 
 def createPlayerData(userId: int, username: str) -> Dict[str, Any]:
