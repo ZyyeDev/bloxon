@@ -27,6 +27,7 @@ func _ready() -> void:
 	if Global.localPlayer:
 		Global.localPlayer.rebirthsVal.changed.connect(updateRebirth)
 	else:
+		if !is_instance_valid(Global.localPlayer): Global.localPlayer = null
 		await Global.localPlayer != null
 		updateRebirth()
 
@@ -59,9 +60,12 @@ func _process(delta: float) -> void:
 func createIndexBrainrots():
 	for i in indexPanel.get_node("GridContainer").get_children():
 		i.queue_free()
-	while not Server.playerData.has(int(Global.user_id)):
+	if Global.myPlrData == null: Global.myPlrData = {}
+	while !Global.myPlrData and Global.myPlrData.size() <= 0:
 		await Global.wait(1)
+	print("creating index things")
 	for i in Global.myPlrData["indexBrainrots"]:
+		print("index: ",i)
 		var ins = load("res://scenes/indexThing.tscn").instantiate()
 		ins.Name = i
 		var temp = load("res://brainrots/%s.tscn" % i).instantiate()
