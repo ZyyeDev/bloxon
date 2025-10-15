@@ -4,7 +4,11 @@
 [ext_resource type="Script" uid="uid://cwey6s7uflpa" path="res://scripts/shop_item.gd" id="1_gaggj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuba"]
-bg_color = Color(0.185981, 0.185981, 0.185981, 1)
+bg_color = Color(0.224304, 0.224304, 0.224304, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="GDScript" id="GDScript_l2vun"]
 script/source = "@tool
@@ -111,12 +115,13 @@ func _on_item_rect_changed() -> void:
 		call_deferred(\"update_font_size\")
 "
 
-[node name="ShopItem" type="Panel" node_paths=PackedStringArray("itemNameLabel", "CostLabel")]
+[node name="ShopItem" type="Panel" node_paths=PackedStringArray("itemNameLabel", "CostLabel", "sprite2d")]
 custom_minimum_size = Vector2(128, 164)
 theme_override_styles/panel = SubResource("StyleBoxFlat_lfuba")
 script = ExtResource("1_gaggj")
 itemNameLabel = NodePath("ItemName")
 CostLabel = NodePath("Cost")
+sprite2d = NodePath("Sprite2D")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(65, 48)

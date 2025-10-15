@@ -90,11 +90,14 @@ func _on_item_rect_changed() -> void:
 		call_deferred(\"update_font_size\")
 "
 
-[node name="indexThing" type="Panel"]
+[node name="indexThing" type="Panel" node_paths=PackedStringArray("iconSprite", "NameLabel", "amountLabel")]
 custom_minimum_size = Vector2(126, 126)
 offset_right = 126.0
 offset_bottom = 126.0
 script = ExtResource("1_tmkkw")
+iconSprite = NodePath("Icon")
+NameLabel = NodePath("Name")
+amountLabel = NodePath("Amount")
 
 [node name="Icon" type="Sprite2D" parent="."]
 position = Vector2(63, 65)

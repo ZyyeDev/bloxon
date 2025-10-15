@@ -29,6 +29,7 @@ extends Control
 @export var itemCostLabel:Label
 @export var itemIcon:Sprite2D
 
+@export var buyAccessoryButton:Button
 @export var avatarPages:Control
 @export var avatarEditorTab:Control
 @export var avatarTabs:HBoxContainer
@@ -45,6 +46,9 @@ var newAvatarColor = {}
 var friends = []
 var currentProfileID = 0
 var isFriend = false
+
+var currentAccessories = []
+var invUpdateFuncs = []
 
 var friendServerId = ""
 
@@ -67,6 +71,9 @@ func _process(delta: float) -> void:
 		avatarColorPicker.visible = true
 	else:
 		avatarColorPicker.visible = false
+	
+	for i:Callable in invUpdateFuncs:
+		i.call()
 
 func updateCurrency():
 	var currency = await Client.getCurrency(Global.user_id,Global.token)
@@ -110,7 +117,7 @@ func updateSmallFriends():
 		friendContainterSmall.add_child(button)
 
 func _on_join_game_pressed() -> void:
-	playSound(load("res://assets/sounds/UI/ButtonPress.wav"))
+	playSound(load("res://assets/sounds/UI/ButtonPress.wav"),-10)
 	await CoreGui.showConnect("Loading game...")
 	get_tree().change_scene_to_file("res://scenes/mainGame.tscn")
 	Client.requestServer()
@@ -142,9 +149,10 @@ func hideAllPages():
 	homePageButton.modulate = Color8(179,179,179,255)
 	configPageButton.modulate = Color8(179,179,179,255)
 
-func playSound(loaded):
+func playSound(loaded,volume=0):
 	var snd = AudioStreamPlayer.new()
 	Global.add_child(snd)
+	snd.volume_db = volume
 	snd.stream = loaded
 	snd.play()
 	Debris.addItem(snd,snd.stream.get_length())
@@ -174,7 +182,7 @@ func _on_avatar_page_button_pressed() -> void:
 	currentPage = "avatar"
 	hideAllPages()
 	avatarPage.visible = true
-	updateMarketplace()
+	updateInventory()
 
 func _on_profile_page_button_pressed() -> void:
 	hideAllPages()
@@ -360,17 +368,20 @@ func updateMarketplace():
 		for myData in marketData:
 			#print(" i is ",i)
 			#var myData = marketData[i]
+			print(myData)
 			var id = int(myData["id"])
 			var Name = myData["name"]
 			var type = myData["type"]
 			var price = myData["price"]
 			var downloadUrl = myData["downloadUrl"]
+			var iconUrl = myData["iconUrl"]
 			var createdAt = myData["createdAt"]
 			var equipSlot = myData["equipSlot"]
 			
 			Client.downloadAccessoryModel(downloadUrl,id)
 			
 			var shopInst = load("res://scenes/menus/shop_item.tscn").instantiate()
+			shopInst.spriteTexture = await Client.loadTextureFromUrl(iconUrl)
 			shopInst.itemName = Name
 			shopInst.Cost = price
 			shopInst.pressed.connect(func():showItemPage(myData))
@@ -378,6 +389,9 @@ func updateMarketplace():
 
 func showItemPage(myData:Dictionary):
 	hideAllPages()
+	avatarLoadingSpinner.visible = true
+	var successAc = await Client.getUserAccessories(Global.user_id,Global.token)
+	avatarLoadingSpinner.visible = false
 	ItemPage.visible = true
 	var id = int(myData["id"])
 	var Name = myData["name"]
@@ -385,17 +399,36 @@ func showItemPage(myData:Dictionary):
 	var price = myData["price"]
 	var downloadUrl = myData["downloadUrl"]
 	var createdAt = myData["createdAt"]
+	var iconUrl = myData["iconUrl"]
 	var equipSlot = myData["equipSlot"]
+	
+	itemIcon.texture = await Client.loadTextureFromUrl(iconUrl)
 	
 	currentAccessoryId = id
 	
 	itemNameLabel.text = Name
 	itemCostLabel.text = "𝔹 " + str(int(price))
+	if checkOwnsAccessory(successAc,currentAccessoryId):
+		buyAccessoryButton.text = "Owned"
+	else:
+		buyAccessoryButton.text = "Buy"
+
+func checkOwnsAccessory(rawRequest:Dictionary,acId:int):
+	var userAccessories = rawRequest.get("data",[])
+	## server will return all of the values as ints, or godot is dumb and converts them into ints.
+	## store here all values as int. Maybe there's a better way, but idgaf.
+	var intAccessories = []
+	for i in userAccessories:
+		intAccessories.append(int(i))
+	return acId in intAccessories
 
 func _on_buy_item_button_pressed() -> void:
+	var successAc = await Client.getUserAccessories(Global.user_id,Global.token)
+	if checkOwnsAccessory(successAc,currentAccessoryId):
+		return
 	avatarLoadingSpinner.visible = true
 	ItemPage.visible = false
-	var success = await Client.buyAccessory(Global.user_id,currentAccessoryId,Global.token)
+	var success = await Client.buyAccessory(currentAccessoryId,Global.token)
 	print(success)
 	avatarLoadingSpinner.visible = false
 	ItemPage.visible = true
@@ -445,5 +478,81 @@ func _on_inventory_button_pressed() -> void:
 	avatarEditorTab.visible = true
 
 func _on_marketplace_pressed() -> void:
+	updateMarketplace()
 	marketplaceContainer.visible = true
 	avatarEditorTab.visible = false
+
+func updateInventory():
+	Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
+	await getAvatar(false)
+	avatarLoadingSpinner.visible = true
+	invUpdateFuncs.clear()
+	for i in inventoryContainer.get_children():
+		i.queue_free()
+	var req = await Client.getUserAccessories(Global.user_id,Global.token)
+	avatarLoadingSpinner.visible = false
+	var data = req.get("data",[])
+	print("datadata ",req)
+	
+	for i in data:
+		var acReq = await Client.getAccessoryData(int(i),Global.token)
+		var myData = acReq.get("data",{})
+		if myData.is_empty(): continue
+		var id = int(myData["id"])
+		var Name = myData["name"]
+		var type = myData["type"]
+		var price = myData["price"]
+		var downloadUrl = myData["downloadUrl"]
+		var iconUrl = myData["iconUrl"]
+		var createdAt = myData["createdAt"]
+		var equipSlot = myData["equipSlot"]
+		
+		var shopInst = load("res://scenes/menus/shop_item.tscn").instantiate()
+		shopInst.spriteTexture = await Client.loadTextureFromUrl(iconUrl)
+		
+		invUpdateFuncs.append(func():
+			if Global.avatarData["accessories"].has(id):
+				shopInst.light()
+			else:
+				shopInst.normal()
+			)
+		
+		shopInst.itemName = Name
+		shopInst.Cost = price
+		shopInst.pressed.connect(func():
+			var newData:Dictionary = Global.avatarData.duplicate(true)
+			var didEquip = false
+			if newData["accessories"].has(float(id)):
+				newData["accessories"].erase(float(id))
+			else:
+				didEquip = true
+				newData["accessories"].append(float(id))
+			print(newData)
+			Global.avatarData = newData.duplicate(true)
+			Client.updateAvatar(Global.user_id,Global.avatarData,Global.token)
+			for v in currentAccessories:
+				if is_instance_valid(v):
+					v.queue_free()
+			currentAccessories.clear()
+			if didEquip:
+				var accMesh = await Client.addAccessoryToPlayer(id,$Control/AvatarPage/SubViewport/Node3D)
+				if accMesh:
+					currentAccessories.append(accMesh)
+			)
+		inventoryContainer.add_child(shopInst)
+
+func createCurrencyPackages():
+	var packages = await Client.getCurrencyPackages()
+	# TODO
+
+func getAvatar(getAvatarFromServer:bool):
+	if getAvatarFromServer:
+		Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
+	for v in currentAccessories:
+		if is_instance_valid(v):
+			v.queue_free()
+	currentAccessories.clear()
+	for id in Global.avatarData["accessories"]:
+		var accMesh = await Client.addAccessoryToPlayer(id,$Control/AvatarPage/SubViewport/Node3D)
+		if accMesh:
+			currentAccessories.append(accMesh)

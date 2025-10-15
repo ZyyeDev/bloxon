@@ -137,25 +137,26 @@ func get_or_create_override_material(mesh_instance: MeshInstance3D, surface_inde
 
 @rpc("authority", "call_remote", "reliable")
 func changeColors(data):
-	if not data.has("bodyColors"):
-		return
+	if data.has("bodyColors"):
+		var bodyColors = data.bodyColors
 		
-	var bodyColors = data.bodyColors
-	
-	print(uid, " | ",bodyColors)
-	
-	if head:
-		get_or_create_override_material(head).albedo_color = Color(bodyColors.head)
-	if Torso:
-		get_or_create_override_material(Torso).albedo_color = Color(bodyColors.torso)
-	if RightArm:
-		get_or_create_override_material(RightArm).albedo_color = Color(bodyColors.right_arm)
-	if LeftArm:
-		get_or_create_override_material(LeftArm).albedo_color = Color(bodyColors.left_arm)
-	if LeftLeg:
-		get_or_create_override_material(LeftLeg).albedo_color = Color(bodyColors.left_leg)
-	if RightLeg:
-		get_or_create_override_material(RightLeg).albedo_color = Color(bodyColors.right_leg)
+		print(uid, " | ",bodyColors)
+		
+		if head:
+			get_or_create_override_material(head).albedo_color = Color(bodyColors.head)
+		if Torso:
+			get_or_create_override_material(Torso).albedo_color = Color(bodyColors.torso)
+		if RightArm:
+			get_or_create_override_material(RightArm).albedo_color = Color(bodyColors.right_arm)
+		if LeftArm:
+			get_or_create_override_material(LeftArm).albedo_color = Color(bodyColors.left_arm)
+		if LeftLeg:
+			get_or_create_override_material(LeftLeg).albedo_color = Color(bodyColors.left_leg)
+		if RightLeg:
+			get_or_create_override_material(RightLeg).albedo_color = Color(bodyColors.right_leg)
+	if data.has("accessories"):
+		for i in data["accessories"]:
+			Client.addAccessoryToPlayer(int(i),$Node3D)
 
 func init():
 	if await Global.whatHouseIm():
@@ -516,3 +517,8 @@ func syncInventory(inventory_data: Dictionary):
 		Global.currentInventory = inventory_data
 		if CoreGui:
 			CoreGui.updateInv()
+
+@rpc("authority")
+func kick(msg:String):
+	Global.errorMessage(msg,Global.ERROR_CODES.DISCONNECT,"Kicked","Leave",func():
+		get_tree().change_scene_to_file("res://scenes/INIT.tscn"))

@@ -78,6 +78,14 @@ var RARITIES_PERCENT = {
 	4 : 10
 }
 
+var RARITIES_STRING = {
+	0 : "COMMON",
+	1 : "RARE",
+	2 : "EPIC",
+	3 : "LEGENDARY",
+	4 : "MYTHIC",
+}
+
 var avatarData = {}
 var player_money = 0
 var canSave = false
@@ -96,11 +104,12 @@ var myPlrData = {}
 signal myPlrDataUpdate
 
 var ERROR_CODES = {
+	MAINTENANCE = 49,
 	SERVER_REACH = 50,
 	CANT_REACH = 100,
 	DISCONNECT = 101,
 	TIMEOUT = 800,
-	CORRUPTED_FILES = -555
+	CORRUPTED_FILES = -555,
 }
 var alrHasError = false
 
@@ -208,6 +217,8 @@ func spawnBrainrotLoop():
 	timer.autostart = true
 	timer.wait_time = 1.5
 	timer.timeout.connect(func():
+		if Server.inMaintenance:
+			return
 		spawnBrainrot()
 		)
 	add_child(timer)
@@ -226,6 +237,8 @@ func getRandomBrainrot():
 
 @rpc("authority", "call_remote", "reliable")
 func spawnBrainrot(brUID="", brData={}): 
+	if Server.inMaintenance:
+		return
 	if not Game or not Game.workspace:
 		print("No workspace available")
 		return
@@ -240,7 +253,7 @@ func spawnBrainrot(brUID="", brData={}):
 	
 	if !brData.is_empty():
 		if not brData.has("target_position"):
-			printerr("no target pos ðŸ¤ªðŸ¤ª")
+			printerr("no target pos")
 			return
 		
 		if brData.has("position") and brData.has("target_position"):
@@ -702,16 +715,8 @@ func rebirth(token):
 	var phouse:house = whatHousePlr(sender).ref 
 	var brainrots = phouse.brainrots 
 	
-	print("=== REBIRTH DEBUG START ===")
-	print("Sender ID: ", sender)
-	print("Player rebirth level: ", plr.rebirthsVal.Value+1)
-	print("Player money: ", plr.moneyValue.Value)
-	print("House brainrots count: ", phouse.brainrots.size())
-	print("Available rebirth keys: ", rebirths.keys())
-	
 	if plr.rebirthsVal.Value+1 not in rebirths:
 		print("ERROR: Rebirth level ", plr.rebirthsVal.Value+1, " does not exist in rebirths dict!")
-		print("=== REBIRTH DEBUG END ===")
 		return
 	
 	var rebirthData = rebirths[plr.rebirthsVal.Value+1]
@@ -719,12 +724,10 @@ func rebirth(token):
 	
 	if rebirthData == null:
 		print("ERROR: rebirthData is null!")
-		print("=== REBIRTH DEBUG END ===")
 		return
 	
 	if not "need" in rebirthData:
 		print("ERROR: rebirthData has no 'need' key!")
-		print("=== REBIRTH DEBUG END ===")
 		return
 	
 	var brainrotsNeeded = {} 
@@ -769,7 +772,7 @@ func rebirth(token):
 				break 
 		plr.moneyValue.Value = moneyGet
 		
-		for i in phouse.brainrots: 
+		for i in phouse.brainrots:
 			phouse.removeBrainrot(i) 
 		
 		plr.rebirthsVal.Value += 1

@@ -163,7 +163,7 @@ static func _create_obj(
 	var vertices: PackedVector3Array = PackedVector3Array([Vector3.ZERO])
 	var normals: PackedVector3Array = PackedVector3Array([Vector3.ONE])
 	var uvs: PackedVector2Array = PackedVector2Array([Vector2.ZERO])
-	var faces: Dictionary[String, Array] = {}
+	var faces: Dictionary = {}
 	for mat_key: String in materials.keys(): faces[mat_key] = []
 	
 	var lines: PackedStringArray = obj.split("\n", false)
@@ -191,8 +191,10 @@ static func _create_obj(
 				uvs.append(n_uv)
 			"usemtl":
 				mat_name = line.substr(feature.length() + 1).strip_edges()
-				if (faces.has(mat_name)): continue
-				mat_name = "_default"
+				if not faces.has(mat_name):
+					faces[mat_name] = []
+					if not materials.has(mat_name):
+						materials[mat_name] = StandardMaterial3D.new()
 			"f":
 				var line_remaining: String = line.substr(feature.length() + 1)
 				var def_count: int = line_remaining.count(" ") + 1

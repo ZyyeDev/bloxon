@@ -99,6 +99,9 @@ func _process(delta: float) -> void:
 	if Global.isClient: 
 		return
 	
+	if Server.inMaintenance:
+		global_position = target_position
+	
 	if global_position.distance_to(target_position) <= 7:
 		if pGet == "":
 			if UID in Global.brainrots:

@@ -11,11 +11,30 @@ var assetsPreload = [
 
 # this is so all menus stay in here (music persistancy and some other things ill need too)
 var oldScene = null
+var maintenance = false
 
 func _ready():
 	if !Global.isClient: return
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args: return
+	
+	MobileAds.initialize()
+	
+	var maintenanceRq = await Client.checkMaintenance()
+	maintenance = maintenanceRq.get("maintenance",false)
+	print("maintenance ",maintenance)
+	if maintenance:
+		$Error.play()
+		var box = Global.errorMessage(
+			"Servers are currently on maintenance. Please come back later!",
+			Global.ERROR_CODES.MAINTENANCE,
+			"Servers Maintenance",
+			"Retry",
+			func():
+				get_tree().reload_current_scene()
+				#heckAuth()
+		)
+		return
 	oldScene = $scene
 	infoLabel.text = "Preloading assets..."
 	## here
@@ -104,6 +123,7 @@ func connectionError():
 	self.add_child(box)
 
 func _on_timer_timeout() -> void:
+	if maintenance: return
 	timeoutConnection = true
 	connectionError()
 

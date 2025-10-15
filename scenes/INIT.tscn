@@ -194,7 +194,7 @@ offset_bottom = 40.0
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_7s0ea")
-volume_db = -23.637
+volume_db = -21.1
 
 [node name="Done" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_47vhm")

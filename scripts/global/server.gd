@@ -15,8 +15,34 @@ var uidToUserId = {}
 var connectedPlayers = {}
 var pending_registrations = {}
 
+var last_checked_message_id = 0 
+
+var inMaintenance = false
+
 func _ready():
 	if !Global.isClient:
+		var timer = Timer.new()
+		timer.wait_time = 5
+		timer.timeout.connect(_check_messages)
+		add_child(timer)
+		var maintenanceTimer = Timer.new()
+		maintenanceTimer.wait_time = 10
+		maintenanceTimer.timeout.connect(func():
+			var maintenanceRq = await Client.checkMaintenance()
+			inMaintenance = maintenanceRq.get("maintenance",false)
+			if inMaintenance:
+				await Global.wait(5)
+				for peer_id in uidToUserId:
+					var user_id = uidToUserId[peer_id]
+					var plr = Global.getPlayer(peer_id)
+					if plr:
+						plr.kick("Server shutting down for maintenance.")
+				await Global.wait(2)
+				get_tree().quit()
+			)
+		add_child(maintenanceTimer)
+		
+		timer.start()
 		print("Starting dedicated server...")
 		await get_tree().process_frame
 		get_tree().change_scene_to_file("res://scenes/mainGame.tscn")
@@ -349,7 +375,7 @@ func savePlayerData(user_id: int):
 		"brainrots_grabbed": 0
 	})
 	
-	var key = "player_" + str(user_id)
+	var key = "brainrotsplayer_" + str(user_id)
 	print("  Calling SetAsync with key: ", key)
 	var success = await SetAsync(key, current_data)
 	print("  SetAsync result: ", success)
@@ -372,7 +398,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 	print("Loading player data for user_id: ", user_id, " peer_id: ", peer_id)
 	var load_start = Time.get_ticks_msec()
 	
-	var key = "player_" + str(user_id)
+	var key = "brainrotsplayer_" + str(user_id)
 	var data = await GetAsync(key)
 	
 	var load_time = Time.get_ticks_msec() - load_start
@@ -398,6 +424,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 	if data != null:
 		var loaded_money = data.get("money", 100)
 		var loaded_rebirths = data.get("rebirths", 0)
+		var last_save = data.get("last_save",-1)
 		
 		if data.get("indexBrainrots",null) == null:
 			data["indexBrainrots"] = createBrainrotsIndex()
@@ -440,7 +467,12 @@ func loadPlayerData(user_id: int, peer_id: int):
 		await get_tree().create_timer(0.5).timeout
 		
 		if data.has("house_data") and data["house_data"].has("brainrots"):
-			var saved_brainrots = data["house_data"]["brainrots"].duplicate(true)
+			var saved_brainrots = {}
+			for i in data["house_data"]["brainrots"].duplicate(true):
+				var newData = data["house_data"]["brainrots"][i].duplicate(true)
+				if int(round(last_save)) > 0:
+					newData["money"] = max(newData.get("money", 0)*clamp(int(int(round(Time.get_unix_time_from_system()-last_save/2))),0,100000),0)
+				saved_brainrots[i] = newData
 			var house_node = Global.getHouse(house_id)
 			
 			if house_node:
@@ -784,3 +816,15 @@ func _are_arrays_equal(arr1: Array, arr2: Array) -> bool:
 			return false
 	
 	return true
+
+func _handle_global_message(msg):
+	print(msg) ## TODO
+
+func _check_messages():
+	var result = await Client.getGlobalMessages(last_checked_message_id)
+	
+	if result.success:
+		for msg in result.data.messages:
+			_handle_global_message(msg)
+		
+		last_checked_message_id = result.data.latest_id

@@ -485,7 +485,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "buyAccessoryButton", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -515,6 +515,7 @@ avatarLoadingSpinner = NodePath("Control/LoadingSpinner")
 itemNameLabel = NodePath("Control/ItemPage/NameLabel")
 itemCostLabel = NodePath("Control/ItemPage/CostLabel")
 itemIcon = NodePath("Control/ItemPage/ItemIcon")
+buyAccessoryButton = NodePath("Control/ItemPage/BuyItemButton")
 avatarPages = NodePath("Control/AvatarPage/AvatarPages")
 avatarEditorTab = NodePath("Control/AvatarPage/AvatarEditor")
 avatarTabs = NodePath("Control/AvatarPage/AvatarEditor/Tabs")
@@ -750,6 +751,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_lgdhf")
 text = "Log Out"
 
 [node name="AvatarPage" type="Panel" parent="Control"]
+visible = false
 layout_mode = 0
 offset_left = 80.0
 offset_right = 1152.0
@@ -855,28 +857,28 @@ offset_top = 241.0
 offset_right = 236.0
 offset_bottom = 363.0
 
-[node name="Left Arm" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
+[node name="Right Arm" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
 layout_mode = 0
 offset_left = 61.0
 offset_top = 241.0
 offset_right = 105.0
 offset_bottom = 363.0
 
-[node name="Right Arm" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
+[node name="Left Arm" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
 layout_mode = 0
 offset_left = 242.0
 offset_top = 241.0
 offset_right = 286.0
 offset_bottom = 363.0
 
-[node name="Right Leg" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
+[node name="Left Leg" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
 layout_mode = 0
 offset_left = 179.0
 offset_top = 373.0
 offset_right = 234.0
 offset_bottom = 495.0
 
-[node name="Left Leg" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
+[node name="Right Leg" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors/Control"]
 layout_mode = 0
 offset_left = 111.0
 offset_top = 373.0
@@ -1204,6 +1206,50 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
 text = "  No friends :("
 
+[node name="CurrencyPurchase" type="Panel" parent="Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
+
+[node name="HScrollBar" type="HScrollBar" parent="Control/CurrencyPurchase"]
+layout_mode = 0
+offset_top = 140.0
+offset_right = 1067.0
+offset_bottom = 440.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/CurrencyPurchase/HScrollBar"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel" type="Panel" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer"]
+custom_minimum_size = Vector2(200, 300)
+layout_mode = 2
+
+[node name="Price" type="Label" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer/Panel"]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 242.0
+offset_right = 121.0
+offset_bottom = 265.0
+text = "$4.99"
+
+[node name="Price2" type="Label" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer/Panel"]
+layout_mode = 0
+offset_left = 59.0
+offset_top = 213.0
+offset_right = 148.0
+offset_bottom = 236.0
+text = "𝔹 10000000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="FriendInfo" type="Panel" parent="Control"]
 visible = false
 layout_mode = 1
@@ -1312,6 +1358,8 @@ horizontal_alignment = 1
 [node name="UpdateServers" type="Timer" parent="."]
 wait_time = 15.0
 autostart = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/homePageButton" to="." method="_on_home_page_button_pressed"]
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]

@@ -361,7 +361,8 @@ func sendFriendRequest(fromUserId: int, toUserId: int, token: String) -> Diction
 			},
 			"raw_response": response_body
 		}
-	return response_body
+	print(response_body)
+	return jsonResponse
 
 func getFriendRequests(userId: int, token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
@@ -567,7 +568,7 @@ func getUserAccessories(userId: int, token: String) -> Dictionary:
 	
 	var requestData = {
 		"token": token,
-		"userId": userId
+		"user_id":userId
 	}
 	
 	var headers = ["Content-Type: application/json"]
@@ -584,13 +585,54 @@ func getUserAccessories(userId: int, token: String) -> Dictionary:
 	
 	return {}
 
-func buyAccessory(userId: int, itemId: int, token: String) -> Dictionary:
+func getUserAccessoriesFull(token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
 	var requestData = {
 		"token": token,
-		"userId": userId,
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/avatar/get_full", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+func checkMaintenance() -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/maintenance_status", headers, HTTPClient.METHOD_GET, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+func buyAccessory(itemId: int, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
 		"itemId": itemId
 	}
 	
@@ -614,18 +656,32 @@ func buyAccessory(userId: int, itemId: int, token: String) -> Dictionary:
 		}
 	}
 
-func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> String:
+func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> Dictionary:
 	var cacheDir = "user://cache/accessories/"
-	var fileName = str(accessoryId) + "_" + downloadUrl.get_file()
+	var fileName = downloadUrl.get_file()
 	var cachePath = cacheDir + fileName
 	
 	if not DirAccess.dir_exists_absolute(cacheDir):
 		DirAccess.open("user://").make_dir_recursive("cache/accessories")
 	
+	var returnData = {
+		"model" = ""
+	}
+	
 	if FileAccess.file_exists(cachePath):
 		print("Accessory model already cached: ", cachePath)
-		return cachePath
+		returnData["model"] = cachePath
+		return returnData
 	
+	returnData["model"] = await downloadFile(downloadUrl,cachePath)
+	
+	if ".obj" in downloadUrl:
+		var mtlDownload = downloadUrl.replace("_model.obj","_material.mtl")
+		returnData["mtl"] = await downloadFile(mtlDownload,cachePath.replace("_model.obj","_material.mtl"))
+	
+	return returnData
+
+func downloadFile(downloadUrl:String,DownloadPath:String):
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
@@ -634,20 +690,19 @@ func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> String:
 	httpRequest.queue_free()
 	
 	if response[1] == 200:
-		var file = FileAccess.open(cachePath, FileAccess.WRITE)
+		var file = FileAccess.open(DownloadPath, FileAccess.WRITE)
 		if file:
 			file.store_buffer(response[3])
 			file.close()
-			print("Downloaded accessory model: ", cachePath)
-			return cachePath
+			print("Downloaded file: ", DownloadPath)
+			return DownloadPath
 		else:
-			print("Failed to save accessory model to cache")
+			print("Failed to save file")
 			return ""
 	else:
-		print("Failed to download accessory model, code: ", response[1])
+		print("Failed to download file, code: ", response[1], " | ",downloadUrl)
 		return ""
 
-# TODO
 func loadAccessoryModelNode(accessoryId: int, token: String) -> Node3D:
 	var accessoryData = await getAccessoryData(accessoryId, token)
 	
@@ -675,20 +730,13 @@ func loadAccessoryModelNode(accessoryId: int, token: String) -> Node3D:
 		var error = gltf.append_from_file(modelPath, state)
 		if error == OK:
 			modelNode = gltf.generate_scene(state)
-	elif modelPath.ends_with(".obj"):pass
-		#var objLoader = load("res://addons/obj_loader/OBJLoader.gd")
-		#if objLoader:
-		#	modelNode = objLoader.load_obj(modelPath)
+	elif modelPath.ends_with(".obj"):
+		pass
 	elif modelPath.ends_with(".fbx"):
 		return null
 	
 	if modelNode:
 		modelNode.name = "Accessory_" + str(accessoryId)
-		#var accessoryScript = preload("res://scripts/AccessoryNode.gd")
-		#if accessoryScript:
-		#	modelNode.set_script(accessoryScript)
-		#	modelNode.accessoryId = accessoryId
-		#	modelNode.accessoryData = data
 	
 	return modelNode
 
@@ -735,13 +783,12 @@ func isAccessoryModelCached(accessoryId: int, downloadUrl: String) -> bool:
 	var cachePath = cacheDir + fileName
 	return FileAccess.file_exists(cachePath)
 
-func equipAccessory(userId: int, accessoryId: int, token: String) -> Dictionary:
+func equipAccessory(accessoryId: int, token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
 	var requestData = {
 		"token": token,
-		"userId": userId,
 		"accessoryId": accessoryId
 	}
 	
@@ -765,13 +812,12 @@ func equipAccessory(userId: int, accessoryId: int, token: String) -> Dictionary:
 		}
 	}
 
-func unequipAccessory(userId: int, accessoryId: int, token: String) -> Dictionary:
+func unequipAccessory(accessoryId: int, token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
 	var requestData = {
 		"token": token,
-		"userId": userId,
 		"accessoryId": accessoryId
 	}
 	
@@ -870,3 +916,134 @@ func format_number(num: float) -> String:
 		formatted = formatted.substr(0, formatted.length() - 1)
 	
 	return formatted + suffixes[exp]
+
+func processPurchase(token: String, product_id: String, purchase_token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"product_id": product_id,
+		"purchase_token": purchase_token
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/payments/purchase", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func processAdReward(token: String, ad_network: String, ad_unit_id: String, reward_amount: int, verification_data: Dictionary) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"ad_network": ad_network,
+		"ad_unit_id": ad_unit_id,
+		"reward_amount": reward_amount,
+		"verification_data": verification_data
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/payments/ad_reward", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func getCurrencyPackages() -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var headers = ["Content-Type: application/json"]
+	
+	httpRequest.request(Global.masterIp + "/payments/packages", headers, HTTPClient.METHOD_GET, "")
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+func getGlobalMessages(since_id: int = 0) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"since_id": since_id
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/global_messages", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
+	var acReq = await Client.getAccessoryData(int(accessoryId),Global.token)
+	var myData = acReq.get("data",{})
+	if myData.is_empty(): return null
+	var id = int(myData["id"])
+	var Name = myData["name"]
+	var type = myData["type"]
+	var price = myData["price"]
+	var downloadUrl = myData["downloadUrl"]
+	var iconUrl = myData["iconUrl"]
+	var createdAt = myData["createdAt"]
+	var equipSlot = myData["equipSlot"]
+	
+	var cachePath = await Client.downloadAccessoryModel(downloadUrl,id)
+	var mesh = null
+	if !cachePath.is_empty():
+		var mtlPath = ""
+		if cachePath.has("mtl"):
+			mtlPath = cachePath["mtl"]
+		mesh = ObjParse.from_path(cachePath["model"],mtlPath)
+	var mesh_instance = MeshInstance3D.new()
+	mesh_instance.mesh = mesh
+	var possibleLimbs = {}
+	for v in charRef.get_children():
+		possibleLimbs[v.name.to_lower()] = v
+	possibleLimbs[equipSlot.to_lower()].add_child(mesh_instance)
+	mesh_instance.scale = Vector3(.5,.5,.5)
+	mesh_instance.position = Vector3(0,-.6,0)
+	return mesh_instance

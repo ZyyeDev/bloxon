@@ -140,7 +140,7 @@ const MIN_ZOOM = -3.0
 const MAX_ZOOM = 10.0
 const ROTATION_SENSITIVITY = 0.005
 const ZOOM_SMOOTHING = 0.3
-const PINCH_SENSITIVITY = 0.02
+const PINCH_SENSITIVITY = 0.2
 
 @onready var normalSpringLength = spring_arm.spring_length
 
@@ -1014,6 +1014,9 @@ skeleton = NodePath("../..")
 transform = Transform3D(-1.095, 0, -2.77602e-06, 0, 1.095, 0, 2.77602e-06, 0, -1.095, 0, 2.72624, 0)
 mesh = SubResource("ArrayMesh_yllr7")
 skeleton = NodePath("../..")
+
+[node name="7Model" type="MeshInstance3D" parent="Node3D"]
+transform = Transform3D(0.833333, 0, 0, 0, 0.833333, 0, 0, 0, 0.833333, 0.583895, 0, 3.43789)
 
 [node name="cameraMiddle" type="Node3D" parent="." node_paths=PackedStringArray("spring_arm", "camera", "head")]
 transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 1.61002, 0)
