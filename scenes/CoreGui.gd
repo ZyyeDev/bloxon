@@ -202,10 +202,10 @@ func updateInv():
 func _on_line_edit_editing_toggled(toggled_on: bool) -> void:
 	chatTexting = toggled_on
 
-func coolColorRectEffect():
-	var tw = get_tree().create_tween()
-	tw.tween_property($connectGui/ColorRect,"Color",Color(1,1,1,1),2)
-	tw.play()
+func coolColorRectEffect():pass
+	#var tw = get_tree().create_tween()
+	#tw.tween_property($connectGui/ColorRect, "Color", Color(1, 1, 1, 1), 2)
+	#tw.play()
 
 func _on_players_pressed() -> void:
 	$Game/escape/PlayerList.visible = true

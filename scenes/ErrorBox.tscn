@@ -5,7 +5,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_npie7"]
 shader = ExtResource("2_eqjjv")
-shader_parameter/sigma = 3.3
+shader_parameter/sigma = 1.5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_002qg"]
 bg_color = Color(0.2, 0.2, 0.2, 0.9)
@@ -52,9 +52,12 @@ leaveBtn = NodePath("_Panel_5/_VBoxContainer_6/_Control_14/_Button_15")
 
 [node name="_ColorRect_4" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_npie7")
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 color = Color(0, 0, 0, 0.4)
 
 [node name="_Panel_5" type="Panel" parent="."]
