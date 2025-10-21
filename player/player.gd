@@ -176,6 +176,15 @@ func init():
 		network_position = global_position
 		network_rotation = player_mesh.rotation.y
 
+func process_collisions():
+	for i in range(get_slide_collision_count()):
+		var collision = get_slide_collision(i)
+		var body = collision.get_collider()
+		if body is RigidBody3D:
+			var point = collision.get_position() - body.global_position
+			var force = 5.0
+			body.apply_impulse(-collision.get_normal() * force, point)
+
 func _physics_process(delta):
 	if Global.isClient and !Client.is_connected: return
 	was_grounded = grounded
@@ -185,6 +194,7 @@ func _physics_process(delta):
 	if localPlayer:
 		handle_local_physics(delta)
 		handle_network_sync(delta)
+		process_collisions()
 	else:
 		handle_remote_physics(delta)
 
