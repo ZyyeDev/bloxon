@@ -77,11 +77,14 @@ func checkAuth():
 func _on_validate_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
 	Client.http.request_completed.disconnect(_on_validate_completed)
 	
+	print(result,response_code)
+	
 	if response_code == 200:
 		var json = JSON.new()
 		var parse_result = json.parse(body.get_string_from_utf8())
 		if parse_result == OK:
 			var response = json.data
+			print("response: ",response)
 			if response.has("status") and response["status"] == "valid":
 				Global.user_id = response["user_id"]
 				Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)

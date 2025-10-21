@@ -25,4 +25,5 @@ func _process(delta: float) -> void:
 				imgRef.texture = await ToolController.createTextureFrom3D(tool_data)
 
 func _on_pressed() -> void:
-	Global.rpc_id(1, "changeHoldingItem", itemId, Global.UID, Global.token)
+	if not Global.isClient: return
+	Global.rpc_id(1,"changeHoldingItem", itemId, Global.UID, Global.token)

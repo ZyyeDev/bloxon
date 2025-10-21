@@ -151,9 +151,8 @@ func _on_register_completed(result, code, headers, body):
 func startHeartbeat():
 	if !server_running:
 		return
-		
 	heartbeat_timer = Timer.new()
-	heartbeat_timer.wait_time = 5.0
+	heartbeat_timer.wait_time = 3.0
 	heartbeat_timer.autostart = true
 	add_child(heartbeat_timer)
 	heartbeat_timer.timeout.connect(_on_heartbeat_timer)
@@ -267,6 +266,8 @@ func _on_peer_disconnected(id):
 		await savePlayerData(user_id)
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)
+		if connectedPlayers.size() == 0:
+			get_tree().quit()
 	
 	for house_id in Global.houses:
 		if Global.houses[house_id]["plr"] == str(id):
@@ -434,10 +435,15 @@ func loadPlayerData(user_id: int, peer_id: int):
 		
 		data["money"] = loaded_money
 		
-		if not data.has("inventory"):
+		if true:#not data.has("inventory"):
 			data["inventory"] = {}
 		if not data["inventory"].has("1"):
 			data["inventory"]["1"] = 1
+		
+		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths)
+		for tool_id in tools_for_rebirth:
+			if not data["inventory"].has(str(tool_id)):
+				data["inventory"][str(tool_id)] = 1
 		
 		playerData[user_id] = data.duplicate(true)
 		

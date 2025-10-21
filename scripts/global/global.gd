@@ -343,7 +343,7 @@ func server_try_grab(brUID, pUID):
 			if get_parent().has_node("Server"):
 				var server = get_parent().get_node("Server")
 				server.updatePlayerMoney(pUID, plr.moneyValue.Value)
-				var user_id = server.uidToUserId.get(pUID)
+				var user_id = int(server.uidToUserId.get(pUID))
 				if user_id:
 					server.updatePlayerStatistic(user_id, "brainrots_grabbed", server.playerData[user_id].get("statistics", {}).get("brainrots_grabbed", 0) + 1)
 		else:
@@ -379,7 +379,7 @@ func brainrotCollected(brUID, ref, pUID):
 				
 				if get_parent().has_node("Server"):
 					var server = get_parent().get_node("Server")
-					var user_id = server.uidToUserId.get(pUID)
+					var user_id = int(server.uidToUserId.get(pUID))
 					if user_id and user_id in server.playerData:
 						if not server.playerData[user_id].has("brainrots_collected"):
 							server.playerData[user_id]["brainrots_collected"] = {}
@@ -557,7 +557,7 @@ func collectMoney(pUID, index):
 					if get_parent().has_node("Server"):
 						var server = get_parent().get_node("Server")
 						server.updatePlayerMoney(pUID, plr.moneyValue.Value)
-						var user_id = server.uidToUserId.get(pUID)
+						var user_id = int(server.uidToUserId.get(pUID))
 						if user_id:
 							server.updatePlayerActivity(user_id)
 				else:
@@ -634,7 +634,7 @@ func sendChatMessage(message: String, senderUID: String, senderToken: String):
 			
 			if get_parent().has_node("Server"):
 				var server = get_parent().get_node("Server")
-				var user_id = server.uidToUserId.get(senderUID)
+				var user_id = int(server.uidToUserId.get(senderUID))
 				if not user_id:
 					print("Chat message rejected: Invalid user")
 					return
@@ -666,30 +666,42 @@ func changeHoldingItem(itemId, myId, mytoken):
 	if !isClient:
 		if get_parent().has_node("Server"):
 			var server = get_parent().get_node("Server")
-			var user_id = server.uidToUserId.get(str(sender))
+			var user_id = int(server.uidToUserId.get(str(sender)))
+			#print("holdingitem uid: ",user_id," and ", server.uidToUserId.get(str(sender))," | ",server.uidToUserId.get(int(sender)))
 			if user_id and server.playerData.has(user_id):
 				var player_inventory = server.playerData[user_id].get("inventory", {})
+				print(player_inventory.has(str(itemId)) or itemId == -1)
 				if player_inventory.has(str(itemId)) or itemId == -1:
 					server.playerData[user_id]["holdingItem"] = itemId
 					rpc("syncHoldingItem", str(sender), itemId)
+					syncHoldingItem(str(sender), itemId)
+					
+					var plr = getPlayer(str(sender))
+					if plr:
+						plr.toolHolding = itemId
+					else:
+						printerr("PLAYER IS NULL!!!!")
+		else:
+			printerr("server dont have server script???")
 	else:
-		if mytoken == token:
-			if localPlayer:
-				localPlayer.toolHolding = itemId
+		printerr("cant call from client!")
 
 @rpc("authority", "call_remote", "reliable")
 func syncHoldingItem(pUID: String, itemId: int):
-	var player = getPlayer(pUID)
-	if player:
-		player.toolHolding = itemId
+	var plr = getPlayer(pUID)
+	if plr:
+		print("synced Holding Item ", pUID, itemId)
+		plr.toolHolding = itemId
+	else:
+		printerr("PLAYER IS NULL FROM SYNC HOLDING ITEM")
 
 @rpc("any_peer", "call_remote", "reliable")
 func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
-	var sender = multiplayer.get_remote_sender_id()
+	var sender:int = multiplayer.get_remote_sender_id()
 	if !isClient:
 		if get_parent().has_node("Server"):
 			var server = get_parent().get_node("Server")
-			var user_id = server.uidToUserId.get(str(sender))
+			var user_id = int(server.uidToUserId.get(sender))
 			if user_id and server.playerData.has(user_id):
 				if not server.playerData[user_id].has("inventory"):
 					server.playerData[user_id]["inventory"] = {}
@@ -708,7 +720,7 @@ func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
 				if player:
 					player.rpc("syncInventory", inventory)
 
-@rpc("any_peer") 
+@rpc("any_peer")
 func rebirth(token): 
 	var sender = multiplayer.get_remote_sender_id() 
 	var plr:player = getPlayer(sender) 
@@ -716,53 +728,34 @@ func rebirth(token):
 	var brainrots = phouse.brainrots 
 	
 	if plr.rebirthsVal.Value+1 not in rebirths:
-		print("ERROR: Rebirth level ", plr.rebirthsVal.Value+1, " does not exist in rebirths dict!")
 		return
 	
 	var rebirthData = rebirths[plr.rebirthsVal.Value+1]
-	print("Rebirth data: ", rebirthData)
 	
 	if rebirthData == null:
-		print("ERROR: rebirthData is null!")
 		return
 	
 	if not "need" in rebirthData:
-		print("ERROR: rebirthData has no 'need' key!")
 		return
 	
 	var brainrotsNeeded = {} 
 	var hasMoney = false 
 	
-	print("Requirements: ", rebirthData.need)
-	
 	for i in rebirthData.need:
-		print("Checking requirement: ", i)
 		if i.type == "money": 
 			if plr.moneyValue.Value >= i.what: 
 				hasMoney = true
-				print("Money requirement MET: ", i.what)
-			else:
-				print("Money requirement FAILED: need ", i.what, " have ", plr.moneyValue.Value)
 		elif i.type == "brainrot":
-			print("Brainrot requirement type, i.what = ", i.what)
 			brainrotsNeeded[i.what] = false
 			for v in phouse.brainrots: 
 				var brainrot = phouse.brainrots[v]["brainrot"]
-				print("Checking house brainrot id: ", brainrot.id, " against requirement: ", i.what)
 				if brainrot.id == i.what:
 					brainrotsNeeded[i.what] = true
-					print("Brainrot requirement MET: ", i.what)
-	
-	print("brainrotsNeeded dict: ", brainrotsNeeded)
 	
 	var brainrotHas = 0 
 	
 	for i in brainrotsNeeded: 
 		if brainrotsNeeded[i] == true: brainrotHas += 1 
-	
-	print("Has money: ", hasMoney)
-	print("Brainrots owned: ", brainrotHas, "/", brainrotsNeeded.size())
-	print("Can rebirth: ", hasMoney and brainrotHas == brainrotsNeeded.size())
 	
 	if hasMoney and brainrotHas == brainrotsNeeded.size(): 
 		var moneyGet = 0 
@@ -776,6 +769,36 @@ func rebirth(token):
 			phouse.removeBrainrot(i) 
 		
 		plr.rebirthsVal.Value += 1
+		
+		giveRebirthTools(str(sender), plr.rebirthsVal.Value)
+
+func getToolsForRebirth(rebirthLevel: int) -> Array:
+	var tools = [1]
+	
+	if rebirthLevel >= 1:
+		tools.append_array([2, 3, 4])
+	
+	return tools
+
+func giveRebirthTools(pUID: String, rebirthLevel: int):
+	if isClient: return
+	
+	if get_parent().has_node("Server"):
+		var server = get_parent().get_node("Server")
+		var user_id = int(server.uidToUserId.get(pUID))
+		
+		if user_id and server.playerData.has(user_id):
+			var tools = getToolsForRebirth(rebirthLevel)
+			var new_inventory = {}
+			
+			for tool_id in tools:
+				new_inventory[str(tool_id)] = 1
+			
+			server.playerData[user_id]["inventory"] = new_inventory
+			
+			var player = getPlayer(pUID)
+			if player:
+				player.rpc("syncInventory", new_inventory)
 
 @rpc("any_peer")
 func trySteal(slot_name, plruid):
@@ -852,7 +875,7 @@ func server_give_item(pUID: String, itemId: int, quantity: int = 1):
 	
 	if get_parent().has_node("Server"):
 		var server = get_parent().get_node("Server")
-		var user_id = server.uidToUserId.get(pUID)
+		var user_id = int(server.uidToUserId.get(pUID))
 		
 		if user_id and server.playerData.has(user_id):
 			if not server.playerData[user_id].has("inventory"):

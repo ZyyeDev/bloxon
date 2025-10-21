@@ -111,7 +111,7 @@ func _on_server_disconnected():
 
 func startHeartbeat():
 	heartbeat_timer = Timer.new()
-	heartbeat_timer.wait_time = 10.0
+	heartbeat_timer.wait_time = 5.0
 	heartbeat_timer.autostart = true
 	add_child(heartbeat_timer)
 	heartbeat_timer.timeout.connect(_on_heartbeat_timer)
@@ -120,55 +120,25 @@ func startHeartbeat():
 func _on_heartbeat_timer():
 	if !is_connected:
 		return
-		
 	var url = Global.masterIp + "/heartbeat_client"
 	var headers = ["Content-Type: application/json"]
 	var body = {"player_id": playerId,"token": Global.token}
-	
-	var timeout = Timer.new()
-	timeout.autostart = true
-	timeout.wait_time = 5
-	heartbeatCompleted[timeout] = false
-	lastTimerheartbeatCompleted = timeout
-	timeout.timeout.connect(func():
-		if !heartbeatCompleted[timeout]:
-			Global.errorMessage("Timeout",Global.ERROR_CODES.TIMEOUT)
-		else:
-			heartbeatCompleted.erase(timeout)
-		timeout.queue_free()
-		)
-	
-	add_child(timeout)
-	
 	var http_hb = HTTPRequest.new()
 	add_child(http_hb)
 	http_hb.request_completed.connect(_on_heartbeat_completed)
+	http_hb.timeout = 3.0
 	http_hb.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
 
 func _on_heartbeat_completed(result, code, headers, body):
 	var sender = get_children().back()
 	if sender is HTTPRequest:
 		sender.queue_free()
-	
-	if lastTimerheartbeatCompleted and lastTimerheartbeatCompleted in heartbeatCompleted:
-		heartbeatCompleted[lastTimerheartbeatCompleted] = true
-	
 	if not is_connected:
-		print("cant hb, not connected yet!")
 		return
-	
 	if code == 200:
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		if data and data.has("status") and data["status"] == "alive":
-			last_heartbeat_success = Time.get_unix_time_from_system()
-		else:
-			Global.errorMessage("Couldn't reach server",Global.ERROR_CODES.CANT_REACH)
-			print("Server says we don't exist")
-			emit_signal("kicked_from_server")
+		last_heartbeat_success = Time.get_unix_time_from_system()
 	else:
-		print("Heartbeat failed with code: ", code)
-		if Time.get_unix_time_from_system() - last_heartbeat_success > 30.0:
-			print("Haven't received successful heartbeat in 30 seconds")
+		if Time.get_unix_time_from_system() - last_heartbeat_success > 15.0:
 			Global.errorMessage("Couldn't reach server",Global.ERROR_CODES.CANT_REACH)
 			emit_signal("server_disconnected")
 
@@ -1047,3 +1017,79 @@ func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
 	mesh_instance.scale = Vector3(.5,.5,.5)
 	mesh_instance.position = Vector3(0,-.6,0)
 	return mesh_instance
+
+func generateCaptcha() -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var headers = ["Content-Type: application/json"]
+	
+	httpRequest.request(Global.masterIp + "/captcha/generate", headers, HTTPClient.METHOD_POST, "")
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": "Failed to generate CAPTCHA"
+	}
+
+func verifyCaptcha(captcha_id: String, answer: int) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"captcha_id": captcha_id,
+		"answer": answer
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/captcha/verify", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"message": "Request failed"
+	}
+
+## This should be the normal register function, also change on server backend for release!!!
+func registerWithCaptcha(username: String, password: String, gender: String, captcha_id: String, captcha_answer: int) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"username": username,
+		"password": password,
+		"gender": gender,
+		"captcha_id": captcha_id,
+		"captcha_answer": captcha_answer
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/auth/register_with_captcha", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"status": "failed",
+		"error": "Request failed with code: " + str(response[1])
+	}
