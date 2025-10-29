@@ -7,6 +7,7 @@ extends Node3D
 @export var cost = 0
 @export var generate = 0
 @export var rarity = 0
+@export var chanceOverride = -1
 
 var target_position: Vector3 = Vector3.ZERO
 var has_target: bool = false

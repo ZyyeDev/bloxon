@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnpk4rlxoxlbx"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ipr1p"]
+bg_color = Color(0.08, 0.12, 0.16, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.15, 0.25, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="_ColorRect_7" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.05, 0.08, 1)
+
+[node name="_Label_10" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -570.0
+offset_top = 44.0
+offset_right = 563.0
+offset_bottom = 67.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "Get Blips to buy great new looks for your Avatar, plus perks and abilities in-game."
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -572.5
+offset_top = -244.5
+offset_right = 572.5
+offset_bottom = 244.5
+grow_horizontal = 2
+grow_vertical = 2
+columns = 3
+
+[node name="currencyButtonSmall" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(316.667, 166.667)
+layout_mode = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_ipr1p")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ipr1p")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ipr1p")
+
+[node name="Blips" type="Label" parent="GridContainer/currencyButtonSmall"]
+layout_mode = 2
+offset_left = 22.0
+offset_top = 31.0
+offset_right = 180.0
+offset_bottom = 73.0
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "𝔹 400"
+vertical_alignment = 1
+
+[node name="Cost" type="Label" parent="GridContainer/currencyButtonSmall"]
+layout_mode = 2
+offset_left = 150.0
+offset_top = 107.0
+offset_right = 303.0
+offset_bottom = 149.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "$4.99"
+horizontal_alignment = 2

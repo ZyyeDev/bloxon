@@ -26,4 +26,9 @@ func _process(delta: float) -> void:
 
 func _on_pressed() -> void:
 	if not Global.isClient: return
-	Global.rpc_id(1,"changeHoldingItem", itemId, Global.UID, Global.token)
+	if Global.localPlayer.currentSlot == invId:
+		print("changeHoldingItem", "-1")
+		Global.rpc_id(1,"changeHoldingItem", -1, -1, Global.UID, Global.token)
+	else:
+		print("changeHoldingItem", " ", invId, " ", itemId, " ", Global.UID, " ", Global.token)
+		Global.rpc_id(1,"changeHoldingItem", invId, itemId, Global.UID, Global.token)

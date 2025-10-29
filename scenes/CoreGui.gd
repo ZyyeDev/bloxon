@@ -174,30 +174,27 @@ func updateInv():
 	
 	for i in range(9):
 		var slot = load("res://scenes/inventorySlot.tscn").instantiate()
-		slot.invId = id
-		slot.name = "slot"+str(id)
+		slot.invId = i
+		slot.name = "slot"+str(i)
 		slot.itemId = -1
 		inventoryBox.add_child(slot)
-		id += 1
 	
 	await get_tree().process_frame
 	
 	if Global.currentInventory.size() > 0:
 		print("Populating inventory with: ", Global.currentInventory)
-		var slot_index = 0
-		for item_id_str in Global.currentInventory:
-			if slot_index >= 9:
-				break
+		
+		for slot_index in Global.currentInventory:
+			if slot_index < 0 or slot_index >= 9:
+				continue
 			
-			var item_id = int(item_id_str)
-			var quantity = Global.currentInventory[item_id_str]
+			var item_id = Global.currentInventory[slot_index]
 			
-			if quantity > 0:
+			if item_id != -1:
 				var slot_node = inventoryBox.get_node("slot" + str(slot_index))
 				if slot_node:
 					slot_node.itemId = item_id
 					print("Set slot ", slot_index, " to item ID ", item_id)
-				slot_index += 1
 
 func _on_line_edit_editing_toggled(toggled_on: bool) -> void:
 	chatTexting = toggled_on
@@ -250,3 +247,14 @@ func _on_graphics_bar_changed(new_value: Variant) -> void:
 	else:
 		viewport.msaa_3d = Viewport.MSAA_DISABLED
 		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_DISABLED)
+
+func addAnnouncement(text:String,duration:float):
+	var textL = load("res://scenes/announcement.tscn").instantiate()
+	textL.text = text
+	var snd = AudioStreamPlayer.new()
+	add_child(snd)
+	snd.stream = load("res://assets/sounds/UI/PopUp2.wav")
+	snd.play()
+	Debris.addItem(snd,snd.stream.get_length())
+	$Announcements.add_child(textL)
+	Debris.addItem(textL,duration)

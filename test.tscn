@@ -1,0 +1,109 @@
+[gd_scene load_steps=2 format=3 uid="uid://q7js6vwgwsb8"]
+
+[sub_resource type="GDScript" id="GDScript_mf4mk"]
+script/source = "extends Control
+const P=[{\"a\":400,\"p\":4.99,\"b\":0},{\"a\":800,\"p\":9.99,\"b\":6},{\"a\":1700,\"p\":19.99,\"b\":6},{\"a\":4500,\"p\":49.99,\"b\":12},{\"a\":10000,\"p\":99.99,\"b\":24},{\"a\":22500,\"p\":199.99,\"b\":40}]
+func _ready():
+	var bg=ColorRect.new()
+	bg.color=Color(0.02,0.05,0.08)
+	bg.set_anchors_preset(15)
+	add_child(bg)
+	var m=MarginContainer.new()
+	m.set_anchors_preset(15)
+	m.add_theme_constant_override(\"margin_left\",120)
+	m.add_theme_constant_override(\"margin_right\",120)
+	m.add_theme_constant_override(\"margin_top\",40)
+	m.add_theme_constant_override(\"margin_bottom\",40)
+	add_child(m)
+	var vb=VBoxContainer.new()
+	vb.add_theme_constant_override(\"separation\",25)
+	m.add_child(vb)
+	var tt=Label.new()
+	tt.text=\"Get Robux to buy great new looks for your Avatar, plus perks and abilities in games.\"
+	tt.add_theme_font_size_override(\"font_size\",16)
+	tt.add_theme_color_override(\"font_color\",Color(0.7,0.7,0.7))
+	vb.add_child(tt)
+	var g=GridContainer.new()
+	g.columns=3
+	g.add_theme_constant_override(\"h_separation\",20)
+	g.add_theme_constant_override(\"v_separation\",20)
+	g.size_flags_vertical=3
+	vb.add_child(g)
+	for i in range(6):
+		var btn=Button.new()
+		btn.custom_minimum_size=Vector2(380,200)
+		var ps=StyleBoxFlat.new()
+		ps.bg_color=Color(0.08,0.12,0.16,0.9)
+		ps.border_color=Color(0.15,0.25,0.35)
+		ps.border_width_left=2
+		ps.border_width_right=2
+		ps.border_width_top=2
+		ps.border_width_bottom=2
+		ps.corner_radius_top_left=8
+		ps.corner_radius_top_right=8
+		ps.corner_radius_bottom_left=8
+		ps.corner_radius_bottom_right=8
+		btn.add_theme_stylebox_override(\"normal\",ps)
+		btn.add_theme_stylebox_override(\"hover\",ps)
+		btn.add_theme_stylebox_override(\"pressed\",ps)
+		var mc=MarginContainer.new()
+		mc.add_theme_constant_override(\"margin_left\",20)
+		mc.add_theme_constant_override(\"margin_right\",20)
+		mc.add_theme_constant_override(\"margin_top\",20)
+		mc.add_theme_constant_override(\"margin_bottom\",20)
+		mc.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		btn.add_child(mc)
+		var vbc=VBoxContainer.new()
+		vbc.add_theme_constant_override(\"separation\",5)
+		vbc.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		mc.add_child(vbc)
+		var hl=HBoxContainer.new()
+		hl.add_theme_constant_override(\"separation\",10)
+		hl.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		vbc.add_child(hl)
+		var ic=TextureRect.new()
+		ic.custom_minimum_size=Vector2(50,50)
+		ic.modulate=Color(0.2,0.8,0.3)
+		ic.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		hl.add_child(ic)
+		var am=Label.new()
+		am.text=str(P[i].a)
+		am.add_theme_font_size_override(\"font_size\",56)
+		am.add_theme_color_override(\"font_color\",Color.WHITE)
+		am.size_flags_horizontal=0
+		am.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		hl.add_child(am)
+		if P[i].b>0:
+			var bn=Label.new()
+			bn.text=str(P[i].b)+\"% More\"
+			bn.add_theme_font_size_override(\"font_size\",16)
+			bn.add_theme_color_override(\"font_color\",Color(0.2,0.9,0.4))
+			bn.mouse_filter=Control.MOUSE_FILTER_IGNORE
+			vbc.add_child(bn)
+		var sp=Control.new()
+		sp.size_flags_vertical=3
+		sp.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		vbc.add_child(sp)
+		var pr=Label.new()
+		pr.text=\"$\"+str(P[i].p)
+		pr.add_theme_font_size_override(\"font_size\",48)
+		pr.add_theme_color_override(\"font_color\",Color.WHITE)
+		pr.horizontal_alignment=2
+		pr.mouse_filter=Control.MOUSE_FILTER_IGNORE
+		vbc.add_child(pr)
+		g.add_child(btn)
+	var bal=Label.new()
+	bal.text=\"My Balance: R$3,060,000\"
+	bal.add_theme_font_size_override(\"font_size\",28)
+	bal.add_theme_color_override(\"font_color\",Color.WHITE)
+	vb.add_child(bal)
+"
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = SubResource("GDScript_mf4mk")

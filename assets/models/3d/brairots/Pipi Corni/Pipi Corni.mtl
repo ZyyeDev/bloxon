@@ -1,0 +1,206 @@
+newmtl Cube0191Mtl
+Material Color
+Ka 0.875138 0.344026 0.280124
+Kd 0.875138 0.344026 0.280124
+Ks 0.0549106 0.0215859 0.0175764 
+
+d 1
+
+Ns 0
+
+newmtl Cube0171Mtl
+Material Color
+Ka 0.715465 0.592438 0.404541
+Kd 0.715465 0.592438 0.404541
+Ks 0.0645322 0.0534356 0.036488 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cylinder0031Mtl
+Material Color
+Ka 0.0938759 0.297653 0.0277553
+Kd 0.0938759 0.297653 0.0277553
+Ks 0.00846724 0.0268471 0.00250342 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cube0031Mtl
+Material Color
+Ka 0.638779 0.632043 0.659224
+Kd 0.638779 0.632043 0.659224
+Ks 0.0576154 0.0570078 0.0594594 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cube0141Mtl
+Material Color
+Ka 0.271577 0.103634 0.0511221
+Kd 0.271577 0.103634 0.0511221
+Ks 0.0170402 0.00650253 0.00320766 
+
+d 1
+
+Ns 0
+
+newmtl Cube0011Mtl
+Material Color
+Ka 0.12753 0.404541 0.0356144
+Kd 0.12753 0.404541 0.0356144
+Ks 0.0115027 0.036488 0.00321228 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cylinder1Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0322335 0.0318 0.03311 
+
+d 1
+
+Ns 255
+
+map_Ka Cylinder1_diff.png
+map_Kd Cylinder1_diff.png
+map_d Cylinder1_diff.png
+
+newmtl Cube0181Mtl
+Material Color
+Ka 0.183549 0.585973 0.0528416
+Kd 0.183549 0.585973 0.0528416
+Ks 0.0165554 0.0528525 0.00476611 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cylinder0041Mtl
+Material Color
+Ka 0.0717615 0.227137 0.0199178
+Kd 0.0717615 0.227137 0.0199178
+Ks 0.0064726 0.0204868 0.00179651 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cube0121Mtl
+Material Color
+Ka 0.638779 0.625345 0.47044
+Kd 0.638779 0.625345 0.47044
+Ks 0.0576154 0.0564036 0.0424319 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cube0061Mtl
+Material Color
+Ka 0.875138 0.147998 0.0869013
+Kd 0.875138 0.147998 0.0869013
+Ks 0.0549106 0.00928615 0.00545263 
+
+d 1
+
+Ns 0
+
+newmtl Cube0041Mtl
+Material Color
+Ka 0.320382 0.139022 0.0846415
+Kd 0.320382 0.139022 0.0846415
+Ks 0.0288972 0.0125393 0.00763433 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+
+newmtl Cylinder0011Mtl
+Material Color
+Ka 0.0581872 0.180144 0.0160677
+Kd 0.0581872 0.180144 0.0160677
+Ks 0.00524826 0.0162483 0.00144924 
+
+d 1
+
+Ns 0
+
+map_Ka Cube0031_diff.png
+map_Kd Cube0031_diff.png
+map_d Cube0031_diff.png
+
+map_Bump Cube0031_nmap.png
+
+map_Ns Cube0031_spec.png
+

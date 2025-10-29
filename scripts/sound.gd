@@ -2,9 +2,18 @@
 extends AudioStreamPlayer3D
 class_name Sound
 
+@export var dontAdd = false
+
 var _last_playing = false
 var _last_volume = 0.0
 var _last_position = 0.0
+
+func _ready():
+	while get_parent() == null:
+		await Global.wait(.1)
+	if !Global.isClient and dontAdd == false:
+		print("sending sound data")
+		Global.rpc("register_sound", get_parent().get_path(),stream.resource_path,volume_db,playing,position)
 
 func _process(delta):
 	if multiplayer.is_server():

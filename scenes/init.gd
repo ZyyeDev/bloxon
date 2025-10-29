@@ -47,7 +47,7 @@ func _ready():
 		else:
 			push_warning("Failed to load: " + path)
 	infoLabel.text = "Connecting to server..."
-	if LocalData.file_exists("data.dat"):
+	if LocalData.fileExists("data.dat"):
 		var data = LocalData.loadData("data.dat")
 		Global.user_id = data["user_id"]
 		Global.token = data["token"]

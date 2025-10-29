@@ -38,7 +38,7 @@ func _ready():
 					if plr:
 						plr.kick("Server shutting down for maintenance.")
 				await Global.wait(2)
-				get_tree().quit()
+				#get_tree().quit()
 			)
 		add_child(maintenanceTimer)
 		
@@ -71,7 +71,7 @@ func _ready():
 		
 		await get_tree().process_frame
 		print("Registering server...")
-		registerServer()
+		#registerServer()
 		print("Starting heartbeat...")
 		startHeartbeat()
 		
@@ -96,13 +96,6 @@ func parseArgs():
 		if a == "--uid" and i + 1 < args.size():
 			uid = args[i + 1]
 			i += 1
-		elif a == "--port" and i + 1 < args.size():
-			port = int(args[i + 1])
-			i += 1
-		elif a == "--master" and i + 1 < args.size():
-			Global.masterIp = args[i + 1]
-			i += 1
-		i += 1
 
 func get_external_ip():
 	var addresses = IP.get_local_addresses()
@@ -113,30 +106,30 @@ func get_external_ip():
 			return addr
 	return Global.noportIp
 
-func registerServer():
-	if !server_running:
-		print("Server not running, skipping registration")
-		return
-		
-	var url = Global.masterIp + "/register_server"
-	var headers = ["Content-Type: application/json"]
-	var server_ip = Global.noportIp
-	print("Registering server with IP: ", server_ip)
-	
-	if uid == "": 
-		uid = str(randi_range(1111,99999999999))
-		print("Generated server UID: ", uid)
-	
-	var body = {"uid": uid, "ip": server_ip, "port": port, "max_players": maxPlayers}
-	print("Registration payload: ", JSON.stringify(body))
-	
-	var register_http = HTTPRequest.new()
-	add_child(register_http)
-	register_http.request_completed.connect(_on_register_completed)
-	var err = register_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
-	if err != OK:
-		print("Failed to send registration request: ", err)
-		register_http.queue_free()
+#func registerServer():
+#	if !server_running:
+#		print("Server not running, skipping registration")
+#		return
+#		
+#	var url = Global.masterIp + "/register_server"
+#	var headers = ["Content-Type: application/json"]
+#	var server_ip = Global.noportIp
+#	print("Registering server with IP: ", server_ip)
+#	
+#	if uid == "": 
+#		uid = str(randi_range(1111,99999999999))
+#		print("Generated server UID: ", uid)
+#	
+#	var body = {"uid": uid, "ip": server_ip, "port": port, "max_players": maxPlayers}
+#	print("Registration payload: ", JSON.stringify(body))
+#	
+#	var register_http = HTTPRequest.new()
+#	add_child(register_http)
+#	register_http.request_completed.connect(_on_register_completed)
+#	var err = register_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+#	if err != OK:
+#		print("Failed to send registration request: ", err)
+#		register_http.queue_free()
 
 func _on_register_completed(result, code, headers, body):
 	var sender = get_children().back()
@@ -161,10 +154,24 @@ func _on_heartbeat_timer():
 	if !server_running:
 		print("Server not running, skipping heartbeat")
 		return
-		
-	var url = Global.masterIp + "/heartbeat_server"
+	
+	var player_uids = []
+	for peer_id in uidToUserId:
+		player_uids.append(int(peer_id))
+	
+	var url = Global.masterIp + "/vm/heartbeat"
 	var headers = ["Content-Type: application/json"]
-	var body = {"uid": uid}
+	var body = {
+		"vm_id": uid,
+		"servers": [{
+			"uid": uid,
+			"port": port,
+			"player_count": player_uids.size(),
+			"status": "running"
+		}],
+		"timestamp": Time.get_unix_time_from_system(),
+		"total_players": player_uids.size()
+	}
 	
 	var http_hb = HTTPRequest.new()
 	add_child(http_hb)
@@ -179,8 +186,13 @@ func _on_heartbeat_completed(result, code, headers, body):
 	if sender is HTTPRequest:
 		sender.queue_free()
 	
-	if code != 200:
-		pass
+	if code == 200:
+		var response = JSON.parse_string(body.get_string_from_utf8())
+		if response and response.has("command"):
+			if response["command"] == "shutdown":
+				print("Master server requested shutdown")
+				await cleanup_server()
+				get_tree().quit()
 
 func _on_request_completed(result, code, headers, body):
 	if code == 200:
@@ -266,8 +278,14 @@ func _on_peer_disconnected(id):
 		await savePlayerData(user_id)
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)
+		
 		if connectedPlayers.size() == 0:
-			get_tree().quit()
+			print("No players left, shutting down in 30 seconds...")
+			await get_tree().create_timer(30.0).timeout
+			if connectedPlayers.size() == 0:
+				print("Still no players, shutting down now")
+				await cleanup_server()
+				get_tree().quit()
 	
 	for house_id in Global.houses:
 		if Global.houses[house_id]["plr"] == str(id):
@@ -335,11 +353,14 @@ func savePlayerData(user_id: int):
 	
 	if money_to_save < 0:
 		money_to_save = 0
-	if rebirth_to_save < 0: # this cant happen, but just to make sure
+	if rebirth_to_save < 0:
 		rebirth_to_save = 0
 	
 	current_data["money"] = money_to_save
 	current_data["rebirths"] = rebirth_to_save
+	
+	if current_data.has("inventory"):
+		current_data.erase("inventory")
 	
 	var house_id = current_data.get("house_id")
 	if house_id and house_id in Global.houses:
@@ -395,6 +416,69 @@ func createBrainrotsIndex():
 		dic[i] = false
 	return dic
 
+func createDefaultInventory() -> Dictionary:
+	var inv = {}
+	for i in 9:
+		inv[i] = -1
+	inv[0] = 1
+	return inv
+
+func setPlayerInventorySlot(user_id: int, slot: int, item_id: int):
+	if user_id in playerData:
+		if not playerData[user_id].has("inventory"):
+			playerData[user_id]["inventory"] = createDefaultInventory()
+		
+		if slot >= 0 and slot < 9:
+			playerData[user_id]["inventory"][slot] = item_id
+			
+			var peer_id = getUserPeerId(user_id)
+			if peer_id != -1:
+				var plr = Global.getPlayer(str(peer_id))
+				if plr:
+					plr.rpc("syncInventory", playerData[user_id]["inventory"])
+			
+			return true
+	return false
+
+func giveItemToPlayerSlot(user_id: int, item_id: int) -> int:
+	if user_id in playerData:
+		if not playerData[user_id].has("inventory"):
+			playerData[user_id]["inventory"] = createDefaultInventory()
+		
+		var inventory = playerData[user_id]["inventory"]
+		
+		for slot in 9:
+			if inventory[slot] == -1:
+				inventory[slot] = item_id
+				
+				var peer_id = getUserPeerId(user_id)
+				if peer_id != -1:
+					var plr = Global.getPlayer(str(peer_id))
+					if plr:
+						plr.rpc("syncInventory", inventory)
+				
+				return slot
+		
+		return -1
+	return -1
+
+func removeItemFromSlot(user_id: int, slot: int) -> bool:
+	if user_id in playerData:
+		if not playerData[user_id].has("inventory"):
+			return false
+		
+		if slot >= 0 and slot < 9:
+			playerData[user_id]["inventory"][slot] = -1
+			
+			var peer_id = getUserPeerId(user_id)
+			if peer_id != -1:
+				var plr = Global.getPlayer(str(peer_id))
+				if plr:
+					plr.rpc("syncInventory", playerData[user_id]["inventory"])
+			
+			return true
+	return false
+
 func loadPlayerData(user_id: int, peer_id: int):
 	print("Loading player data for user_id: ", user_id, " peer_id: ", peer_id)
 	var load_start = Time.get_ticks_msec()
@@ -435,15 +519,14 @@ func loadPlayerData(user_id: int, peer_id: int):
 		
 		data["money"] = loaded_money
 		
-		if true:#not data.has("inventory"):
-			data["inventory"] = {}
-		if not data["inventory"].has("1"):
-			data["inventory"]["1"] = 1
+		var inventory = createDefaultInventory()
+		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths-1)
 		
-		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths)
-		for tool_id in tools_for_rebirth:
-			if not data["inventory"].has(str(tool_id)):
-				data["inventory"][str(tool_id)] = 1
+		for i in range(tools_for_rebirth.size()):
+			if i < 9:
+				inventory[i] = tools_for_rebirth[i]
+		
+		data["inventory"] = inventory
 		
 		playerData[user_id] = data.duplicate(true)
 		
@@ -459,8 +542,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 			print("  Set player rebirths to: ", loaded_rebirths)
 		
 		if plr.has_method("rpc"):
-			plr.rpc("syncInventory", data["inventory"])
-			print("  Synced inventory to player")
+			plr.rpc("syncInventory", inventory)
+			print("  Synced inventory to player: ", inventory)
 		
 		var house_id = data.get("house_id")
 		
@@ -507,6 +590,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 				print("  ERROR: House node not found for house_id: ", house_id)
 	else:
 		print("  No saved data for user_id: ", user_id, ", creating new")
+		var new_inventory = createDefaultInventory()
+		
 		playerData[user_id] = {
 			"money": 100,
 			"rebirths": 0,
@@ -515,7 +600,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 			"house_id": null,
 			"house_data": {"brainrots": {}},
 			"brainrots_collected": {},
-			"inventory": {"1": 1},
+			"inventory": new_inventory,
 			"indexBrainrots": createBrainrotsIndex(),
 			"statistics": {
 				"sessions_played": 0,
@@ -534,8 +619,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 			print("  New player assigned to house ", current_house.id)
 		
 		if plr.has_method("rpc"):
-			plr.rpc("syncInventory", {"1": 1})
-			print("  New player, gave bat and synced inventory")
+			plr.rpc("syncInventory", new_inventory)
+			print("  New player, gave bat and synced inventory: ", new_inventory)
 	
 	Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
 	
@@ -751,9 +836,16 @@ func _make_request(http_request: HTTPRequest, url: String, data: Dictionary) -> 
 	
 	return promise
 
+@rpc("any_peer","call_remote","reliable")
+func client_heartbeat(client_uid: String):
+	var sender_id = multiplayer.get_remote_sender_id()
+	var user_id = uidToUserId.get(str(sender_id))
+	
+	if user_id:
+		updatePlayerActivity(user_id)
+
 ## This is REALLY bad, ik!!!! I'm just trying to finish this fucking already im done with this
 ## fucking shit
-
 var playerDataSnapshots = {}
 
 func startPlayerDataMonitor():

@@ -10,6 +10,16 @@ var last_heartbeat_success: float = 0.0
 var heartbeatCompleted = {}
 var lastTimerheartbeatCompleted = null
 
+var paymentConnected = false
+
+var payment
+var recent_product_id
+var recent_purchase_type
+var purchased_products_ids = []
+
+var ws: WebSocketPeer
+var message_callbacks = []
+
 var serverUID = ""
 
 var servers = []
@@ -20,18 +30,37 @@ signal server_connected
 signal server_disconnected
 signal kicked_from_server
 signal serverlist_update
+signal bought_product(product_id: String)
 
 func _ready():
-	if Global.isClient:
-		for i in 10:
-			inventory[i] = ""
+	var args = OS.get_cmdline_args()
+	if Global.isClient and not "--pfp-render" in args:
+		for i in 9:
+			inventory[i] = -1
 		playerId = str(randi())
 		http = HTTPRequest.new()
 		add_child(http)
 		http.request_completed.connect(_on_request_completed)
+		Client.subscribeToGlobalMessages(_on_global_message)
+
+func _on_global_message(message: Dictionary):
+	var msg_type = message.get("type")
+	var properties = message.get("properties", {})
+	
+	match msg_type:
+		"Maintenance":
+			if properties.get("enabled", false):
+				Global.errorMessage(
+					properties.get("message", "Server maintenance"),
+					Global.ERROR_CODES.MAINTENANCE
+				)
+		"Announcement":
+			CoreGui.addAnnouncement(properties.get("text", ""),2)
+		"ServerShutdown":
+			CoreGui.addAnnouncement("Server restarting soon!",2)
 
 func requestServer():
-	CoreGui.showConnect("Searching servers...")
+	CoreGui.showConnect("Searching for servers...")
 	var url = Global.masterIp + "/request_server"
 	var headers = ["Content-Type: application/json"]
 	var body = {"player_id": playerId,"token": Global.token}
@@ -42,12 +71,28 @@ func _on_request_completed(result, code, headers, body):
 	print("Response code: ", code, " Body: ", response_text)
 	
 	if code != 200:
+		if code == 503:
+			var data = JSON.parse_string(response_text)
+			if data and data.has("error"):
+				if data["error"] == "vm_timeout":
+					CoreGui.showConnect("Server is starting, please wait...")
+					await get_tree().create_timer(10.0).timeout
+					requestServer()
+					return
+				elif data["error"] == "vm_full":
+					CoreGui.showConnect("All servers full, creating new one...")
+					await get_tree().create_timer(5.0).timeout
+					requestServer()
+					return
+		
+		Global.errorMessage("Failed to find server", Global.ERROR_CODES.SERVER_REACH)
 		print("Failed to get server info, code: ", code)
 		return
 		
 	var data = JSON.parse_string(response_text)
 	if data == null:
 		print("Failed to parse response")
+		Global.errorMessage("Server error", Global.ERROR_CODES.CORRUPTED_FILES)
 		return
 		
 	if data.has("error"):
@@ -55,8 +100,10 @@ func _on_request_completed(result, code, headers, body):
 			emit_signal("kicked_from_server")
 		return
 		
-	if data.has("ip") and data["ip"] != null and data.has("uid") and data["uid"] != null:
+	if data.has("ip") and data["ip"] != null and data.has("uid"):
 		print("Connecting to server: ", data["ip"], ":", data["port"])
+		CoreGui.showConnect("Connecting to " + data["ip"] + ":" + str(data["port"]))
+		await get_tree().create_timer(2.0).timeout
 		connectToServer(data["ip"], int(data["port"]))
 		startHeartbeat()
 
@@ -95,6 +142,7 @@ func _on_connected_to_server():
 	Global.on_player_connected()
 
 func _on_connection_failed():
+	Global.errorMessage("Error",Global.ERROR_CODES.TIMEOUT,"Failed to connect to server.","Leave")
 	print("Failed to connect to server")
 	serverUID = ""
 	is_connected = false
@@ -120,14 +168,11 @@ func startHeartbeat():
 func _on_heartbeat_timer():
 	if !is_connected:
 		return
-	var url = Global.masterIp + "/heartbeat_client"
-	var headers = ["Content-Type: application/json"]
-	var body = {"player_id": playerId,"token": Global.token}
-	var http_hb = HTTPRequest.new()
-	add_child(http_hb)
-	http_hb.request_completed.connect(_on_heartbeat_completed)
-	http_hb.timeout = 3.0
-	http_hb.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
+	
+	last_heartbeat_success = Time.get_unix_time_from_system()
+	
+	if multiplayer.has_multiplayer_peer():
+		Server.rpc_id(1, "client_heartbeat", Global.UID)
 
 func _on_heartbeat_completed(result, code, headers, body):
 	var sender = get_children().back()
@@ -887,85 +932,6 @@ func format_number(num: float) -> String:
 	
 	return formatted + suffixes[exp]
 
-func processPurchase(token: String, product_id: String, purchase_token: String) -> Dictionary:
-	var httpRequest = HTTPRequest.new()
-	add_child(httpRequest)
-	
-	var requestData = {
-		"token": token,
-		"product_id": product_id,
-		"purchase_token": purchase_token
-	}
-	
-	var headers = ["Content-Type: application/json"]
-	var jsonString = JSON.stringify(requestData)
-	
-	httpRequest.request(Global.masterIp + "/payments/purchase", headers, HTTPClient.METHOD_POST, jsonString)
-	
-	var response = await httpRequest.request_completed
-	httpRequest.queue_free()
-	
-	if response[1] == 200:
-		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
-		return jsonResponse if jsonResponse != null else {}
-	
-	return {
-		"success": false,
-		"error": {
-			"code": "HTTP_ERROR",
-			"message": "Request failed with code: " + str(response[1])
-		}
-	}
-
-func processAdReward(token: String, ad_network: String, ad_unit_id: String, reward_amount: int, verification_data: Dictionary) -> Dictionary:
-	var httpRequest = HTTPRequest.new()
-	add_child(httpRequest)
-	
-	var requestData = {
-		"token": token,
-		"ad_network": ad_network,
-		"ad_unit_id": ad_unit_id,
-		"reward_amount": reward_amount,
-		"verification_data": verification_data
-	}
-	
-	var headers = ["Content-Type: application/json"]
-	var jsonString = JSON.stringify(requestData)
-	
-	httpRequest.request(Global.masterIp + "/payments/ad_reward", headers, HTTPClient.METHOD_POST, jsonString)
-	
-	var response = await httpRequest.request_completed
-	httpRequest.queue_free()
-	
-	if response[1] == 200:
-		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
-		return jsonResponse if jsonResponse != null else {}
-	
-	return {
-		"success": false,
-		"error": {
-			"code": "HTTP_ERROR",
-			"message": "Request failed with code: " + str(response[1])
-		}
-	}
-
-func getCurrencyPackages() -> Dictionary:
-	var httpRequest = HTTPRequest.new()
-	add_child(httpRequest)
-	
-	var headers = ["Content-Type: application/json"]
-	
-	httpRequest.request(Global.masterIp + "/payments/packages", headers, HTTPClient.METHOD_GET, "")
-	
-	var response = await httpRequest.request_completed
-	httpRequest.queue_free()
-	
-	if response[1] == 200:
-		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
-		return jsonResponse if jsonResponse != null else {}
-	
-	return {}
-
 func getGlobalMessages(since_id: int = 0) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
@@ -1093,3 +1059,182 @@ func registerWithCaptcha(username: String, password: String, gender: String, cap
 		"status": "failed",
 		"error": "Request failed with code: " + str(response[1])
 	}
+
+func subscribeToGlobalMessages(callback: Callable):
+	message_callbacks.append(callback)
+	
+	if not ws or ws.get_ready_state() != WebSocketPeer.STATE_OPEN:
+		connectToMessageStream()
+
+func connectToMessageStream():
+	ws = WebSocketPeer.new()
+	var ws_url = Global.masterIp.replace("http://", "ws://").replace("https://", "wss://")
+	var err = ws.connect_to_url(ws_url + "/ws/messages")
+	
+	if err != OK:
+		print("Failed to connect to message stream: ", err)
+		return
+	
+	var timer = Timer.new()
+	timer.wait_time = 0.1
+	timer.timeout.connect(func():
+		_poll_messages()
+		timer.queue_free()
+		)
+	add_child(timer)
+	timer.start()
+
+func _poll_messages():
+	if not ws:
+		return
+	
+	ws.poll()
+	
+	var state = ws.get_ready_state()
+	if state == WebSocketPeer.STATE_OPEN:
+		while ws.get_available_packet_count():
+			var packet = ws.get_packet()
+			var message_text = packet.get_string_from_utf8()
+			var message = JSON.parse_string(message_text)
+			
+			if message:
+				for callback in message_callbacks:
+					callback.call(message)
+	
+	elif state == WebSocketPeer.STATE_CLOSED:
+		#print("Message stream closed, reconnecting...")
+		await get_tree().create_timer(5.0).timeout
+		connectToMessageStream()
+		return
+
+func processPurchase(token: String, product_id: String, purchase_token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"product_id": product_id,
+		"purchase_token": purchase_token
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/payments/purchase", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func processAdReward(token: String, ad_network: String, ad_unit_id: String, reward_amount: int, verification_data: Dictionary) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"ad_network": ad_network,
+		"ad_unit_id": ad_unit_id,
+		"reward_amount": reward_amount,
+		"verification_data": verification_data
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/payments/ad_reward", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}
+
+func getCurrencyPackages(justReturn:bool=false) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var headers = ["Content-Type: application/json"]
+	
+	httpRequest.request(Global.masterIp + "/payments/packages", headers, HTTPClient.METHOD_GET, "")
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		if justReturn:
+			return jsonResponse if jsonResponse != null else {}
+		if jsonResponse.get("success",false):
+			var packData = jsonResponse.get("data",{})
+			var products = []
+			if !packData.is_empty():
+				for i in packData:
+					var product_id = i["product_id"]
+					var amount = i["amount"]
+					var price_usd = i["price_usd"]
+					products.append(product_id)
+				payment = BillingClient.new()
+				payment.connected.connect(func():
+					print("Billing connected! :3")
+					payment.query_product_details(products,BillingClient.ProductType.INAPP)
+					payment.query_purchases(BillingClient.ProductType.INAPP)
+					paymentConnected = true
+					)
+				payment.connect_error.connect(func():
+					printerr("BILLING CONNECTION ERROR!!")
+					paymentConnected = false
+					return {"error":"billing_connection"}
+					)
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {"error":"no_data"}
+
+func getPaymentHistory(token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/payments/history", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+#BUY FUNCTION (payment shit)
+func buy(product_id, purchase_type):
+	if !paymentConnected: return false
+	recent_product_id = product_id
+	recent_purchase_type = purchase_type
+	payment.purchase(product_id) # This purchases the item
+###

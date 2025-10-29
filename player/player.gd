@@ -14,7 +14,7 @@ class_name player
 @export var cameraMiddle : Node3D
 @export var cursorSpr : Sprite2D
 @export var playerCollider : CollisionShape3D
-@export var player_mesh : Node3D 
+@export var player_mesh : Node3D
 @export var head:MeshInstance3D
 @export var Torso:MeshInstance3D
 @export var RightArm:MeshInstance3D
@@ -22,6 +22,7 @@ class_name player
 @export var LeftLeg:MeshInstance3D
 @export var RightLeg:MeshInstance3D
 @export var toolHolding = -1
+@export var currentSlot = -1
 @export var brainrotHolding = ""
 
 @export_group("Movement vars")
@@ -63,6 +64,8 @@ var last_anim_speed: float = 1.0
 var oldtoolHolding = -1
 var toolHoldingInst = null
 
+var original_jump_strength = 50
+
 var _collider_margin : float
 var grounded : bool
 var was_grounded : bool
@@ -90,6 +93,15 @@ var current_anim_name = "idle"
 
 var inventory: Dictionary = {}
 
+var original_mesh_positions: Dictionary = {}
+var original_mesh_rotations: Dictionary = {}
+
+var is_ragdolled : bool = false
+var ragdoll_timer : float = 0.0
+var ragdoll_bodies: Dictionary = {}
+var ragdoll_container: Node3D
+var ragdoll_lerp_speed: float = 20.0
+
 func _ready():
 	if Global.isClient and !Client.is_connected:
 		$MainUi.visible = false
@@ -97,8 +109,25 @@ func _ready():
 		return
 	_collider_margin = playerCollider.shape.margin
 	
+	original_jump_strength = jump_strength
+	
 	if localPlayer:
 		Global.localPlayer = self
+		original_mesh_positions["Torso"] = Torso.position
+		original_mesh_rotations["Torso"] = Torso.rotation
+		original_mesh_positions["Head"] = head.position
+		original_mesh_rotations["Head"] = head.rotation
+		original_mesh_positions["RightArm"] = RightArm.position
+		original_mesh_rotations["RightArm"] = RightArm.rotation
+		original_mesh_positions["LeftArm"] = LeftArm.position
+		original_mesh_rotations["LeftArm"] = LeftArm.rotation
+		original_mesh_positions["LeftLeg"] = LeftLeg.position
+		original_mesh_rotations["LeftLeg"] = LeftLeg.rotation
+		original_mesh_positions["RightLeg"] = RightLeg.position
+		original_mesh_rotations["RightLeg"] = RightLeg.rotation
+		
+		print("original_mesh_positions ",original_mesh_positions)
+		print("original_mesh_rotations ",original_mesh_rotations)
 	
 	is_mobile = OS.get_name() == "Android" or OS.get_name() == "iOS"
 	
@@ -191,12 +220,185 @@ func _physics_process(delta):
 	grounded = is_on_floor()
 	desired_velocity = Vector3.ZERO
 	
+	if is_ragdolled:
+		handle_ragdoll_physics(delta)
+		if localPlayer:
+			handle_network_sync(delta)
+		return
+	
 	if localPlayer:
 		handle_local_physics(delta)
 		handle_network_sync(delta)
 		process_collisions()
 	else:
 		handle_remote_physics(delta)
+
+func create_ragdoll_body(mesh: MeshInstance3D, part_name: String) -> RigidBody3D:
+	var rigid_body = RigidBody3D.new()
+	rigid_body.name = part_name + "_Ragdoll"
+	rigid_body.mass = 1.0
+	rigid_body.can_sleep = false
+	rigid_body.continuous_cd = true
+	rigid_body.gravity_scale = 1.0
+	
+	var collision_shape = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	
+	if mesh and mesh.mesh:
+		var aabb = mesh.mesh.get_aabb()
+		shape.size = aabb.size * mesh.scale
+	else:
+		shape.size = Vector3(0.5, 0.5, 0.5)
+	
+	collision_shape.shape = shape
+	rigid_body.add_child(collision_shape)
+	
+	rigid_body.global_position = mesh.global_position
+	rigid_body.global_rotation = mesh.global_rotation
+	
+	return rigid_body
+
+func create_joint(parent_body: RigidBody3D, child_body: RigidBody3D) -> Generic6DOFJoint3D:
+	var joint = Generic6DOFJoint3D.new()
+	joint.node_a = parent_body.get_path()
+	joint.node_b = child_body.get_path()
+	
+	joint.set_flag_x(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
+	joint.set_flag_y(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
+	joint.set_flag_z(Generic6DOFJoint3D.FLAG_ENABLE_ANGULAR_LIMIT, true)
+	
+	joint.set_param_x(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, -PI/3)
+	joint.set_param_x(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, PI/3)
+	joint.set_param_y(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, -PI/3)
+	joint.set_param_y(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, PI/3)
+	joint.set_param_z(Generic6DOFJoint3D.PARAM_ANGULAR_LOWER_LIMIT, -PI/3)
+	joint.set_param_z(Generic6DOFJoint3D.PARAM_ANGULAR_UPPER_LIMIT, PI/3)
+	
+	joint.set_param_x(Generic6DOFJoint3D.PARAM_ANGULAR_DAMPING, 0.5)
+	joint.set_param_y(Generic6DOFJoint3D.PARAM_ANGULAR_DAMPING, 0.5)
+	joint.set_param_z(Generic6DOFJoint3D.PARAM_ANGULAR_DAMPING, 0.5)
+	
+	return joint
+
+func start_ragdoll(initial_velocity: Vector3):
+	if is_ragdolled:
+		return
+		
+	is_ragdolled = true
+	playerCollider.disabled = true
+	
+	if $animations:
+		$animations.stop()
+	
+	ragdoll_container = Node3D.new()
+	ragdoll_container.name = "RagdollContainer"
+	get_parent().add_child(ragdoll_container)
+	ragdoll_container.global_position = global_position
+	
+	var body_parts = {
+		"Torso": Torso,
+		"Head": head,
+		"RightArm": RightArm,
+		"LeftArm": LeftArm,
+		"RightLeg": RightLeg,
+		"LeftLeg": LeftLeg
+	}
+	
+	for part_name in body_parts:
+		var mesh = body_parts[part_name]
+		if mesh:
+			var rb = create_ragdoll_body(mesh, part_name)
+			ragdoll_container.add_child(rb)
+			rb.linear_velocity = initial_velocity
+			ragdoll_bodies[part_name] = rb
+	
+	if ragdoll_bodies.has("Torso"):
+		if ragdoll_bodies.has("Head"):
+			var neck_joint = create_joint(ragdoll_bodies["Torso"], ragdoll_bodies["Head"])
+			ragdoll_container.add_child(neck_joint)
+		
+		if ragdoll_bodies.has("RightArm"):
+			var right_shoulder = create_joint(ragdoll_bodies["Torso"], ragdoll_bodies["RightArm"])
+			ragdoll_container.add_child(right_shoulder)
+		
+		if ragdoll_bodies.has("LeftArm"):
+			var left_shoulder = create_joint(ragdoll_bodies["Torso"], ragdoll_bodies["LeftArm"])
+			ragdoll_container.add_child(left_shoulder)
+		
+		if ragdoll_bodies.has("RightLeg"):
+			var right_hip = create_joint(ragdoll_bodies["Torso"], ragdoll_bodies["RightLeg"])
+			ragdoll_container.add_child(right_hip)
+		
+		if ragdoll_bodies.has("LeftLeg"):
+			var left_hip = create_joint(ragdoll_bodies["Torso"], ragdoll_bodies["LeftLeg"])
+			ragdoll_container.add_child(left_hip)
+
+func end_ragdoll():
+	if !is_ragdolled:
+		return
+		
+	is_ragdolled = false
+	playerCollider.disabled = false
+	velocity = Vector3.ZERO
+	
+	if ragdoll_bodies.has("Torso"):
+		global_position = ragdoll_bodies["Torso"].global_position
+	
+	for part_name in original_mesh_positions.keys():
+		var mesh = get(part_name)
+		if mesh and mesh is MeshInstance3D:
+			mesh.position = original_mesh_positions[part_name]
+			mesh.rotation = original_mesh_rotations[part_name]
+	
+	if ragdoll_container:
+		ragdoll_container.queue_free()
+		ragdoll_container = null
+	
+	ragdoll_bodies.clear()
+	
+	if player_mesh:
+		player_mesh.rotation = Vector3.ZERO
+
+func handle_ragdoll_physics(delta):
+	ragdoll_timer -= delta
+	
+	var body_parts = {
+		"Torso": Torso,
+		"Head": head,
+		"RightArm": RightArm,
+		"LeftArm": LeftArm,
+		"RightLeg": RightLeg,
+		"LeftLeg": LeftLeg
+	}
+	
+	for part_name in body_parts:
+		var mesh = body_parts[part_name]
+		if mesh and ragdoll_bodies.has(part_name):
+			var rb = ragdoll_bodies[part_name]
+			mesh.global_position = lerp(mesh.global_position, rb.global_position, ragdoll_lerp_speed * delta)
+			mesh.global_rotation = lerp(mesh.global_rotation, rb.global_rotation, ragdoll_lerp_speed * delta)
+	
+	if ragdoll_bodies.has("Torso"):
+		var torso_rb = ragdoll_bodies["Torso"]
+		global_position = torso_rb.global_position - Vector3(0, 1, 0)
+		
+		var avg_velocity = Vector3.ZERO
+		var part_count = 0
+		for part in ragdoll_bodies.values():
+			avg_velocity += part.linear_velocity
+			part_count += 1
+		if part_count > 0:
+			velocity = avg_velocity / part_count
+	
+	if ragdoll_timer <= 0:
+		var all_stopped = true
+		for part in ragdoll_bodies.values():
+			if part.linear_velocity.length() > 0.5:
+				all_stopped = false
+				break
+		
+		if all_stopped:
+			end_ragdoll()
 
 func move_and_stair_step():
 	stair_step_up()
@@ -270,9 +472,10 @@ func stair_step_up() -> void:
 func handle_local_physics(delta):
 	if Global.isClient and !Client.is_connected: return
 	if Global.alrHasError: return
+	
 	var move_direction : Vector3 = Vector3.ZERO
 	
-	if !CoreGui.chatTexting:
+	if !CoreGui.chatTexting and !is_ragdolled:
 		move_direction.x = Input.get_action_strength("move_right") - Input.get_action_strength("move_left")
 		move_direction.z = Input.get_action_strength("move_backwards") - Input.get_action_strength("move_forward")
 		
@@ -306,7 +509,7 @@ func handle_local_physics(delta):
 			$landSound.play()
 			$airSound.stop()
 		
-		if Input.is_action_just_pressed("jump") and !CoreGui.chatTexting:
+		if Input.is_action_just_pressed("jump") and !CoreGui.chatTexting and !is_ragdolled:
 			$jumpSound.play()
 			velocity.y = (Global.fromStud(jump_strength)+(playerCollider.shape.size.y-1.4)*6)
 	else:
@@ -469,7 +672,7 @@ func _process(_delta):
 				var tool_data = ToolController.getToolById(toolHolding)
 				$animations/AnimationPlayer.play("ToolHold")
 				print("tool_data ",tool_data)
-				var inst = load("res://assets/Tools/"+tool_data+".tscn").instantiate()
+				var inst = load("res://assets/Tools/"+tool_data.trim_suffix(".remap")+".tscn").instantiate()
 				$"Node3D/Right Arm/ToolPos".add_child(inst)
 				toolHoldingInst = inst
 				inst.holderUID = int(uid)
@@ -492,6 +695,8 @@ func _process(_delta):
 		cursorSpr.visible = false
 
 func die():
+	if is_ragdolled:
+		end_ragdoll()
 	global_position = spawn_position
 	$dieSound.play()
 	if localPlayer:
@@ -499,6 +704,8 @@ func die():
 
 @rpc("any_peer", "call_remote", "reliable")
 func syncDie():
+	if is_ragdolled:
+		end_ragdoll()
 	global_position = spawn_position
 
 func addBottomMsg(msg,time):
@@ -532,3 +739,35 @@ func syncInventory(inventory_data: Dictionary):
 func kick(msg:String):
 	Global.errorMessage(msg,Global.ERROR_CODES.DISCONNECT,"Kicked","Leave",func():
 		get_tree().change_scene_to_file("res://scenes/INIT.tscn"))
+
+@rpc("authority")
+func syncToolAnim(animName):
+	$animations/ToolAnims.play(animName)
+
+@rpc("authority", "call_remote", "reliable")
+func server_apply_knockback(direction: Vector3, force: float):
+	if !is_ragdolled:
+		var knockback_vel = direction.normalized() * force
+		start_ragdoll(knockback_vel)
+		ragdoll_timer = 2.0
+	else:
+		if ragdoll_bodies.has("Torso"):
+			ragdoll_bodies["Torso"].apply_central_impulse(direction.normalized() * force)
+
+@rpc("authority", "call_remote", "reliable") 
+func server_start_ragdoll(duration: float, initial_velocity: Vector3):
+	start_ragdoll(initial_velocity)
+	#ragdoll_timer = duration
+	if !Global.isClient:
+		var timer = Timer.new()
+		timer.wait_time = duration
+		add_child(timer)
+		timer.timeout.connect(func():
+			end_ragdoll()
+			rpc("end_ragdoll")
+			timer.queue_free()
+		)
+
+@rpc("authority", "call_remote", "reliable")
+func server_end_ragdoll():
+	end_ragdoll()

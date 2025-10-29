@@ -72,9 +72,10 @@ offset_right = -1152.0
 offset_bottom = -648.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("1_7l3lq")
 moneyLabel = NodePath("MoneyLabel")
-bottomMsgsContainer = NodePath("bottomMsgsContainer")
+bottomMsgsContainer = NodePath("")
 unlockHBox = NodePath("RebirthPanel/Main/Unlocks")
 requirementsHBox = NodePath("RebirthPanel/Main/RequirementsFrame/Requirements")
 progressBar = NodePath("RebirthPanel/Main/RequirementsFrame/ProgressBar")
@@ -106,21 +107,17 @@ theme_override_constants/shadow_outline_size = 2
 theme_override_font_sizes/font_size = 20
 text = "Friend boost: 0%"
 
-[node name="bottomMsgsContainer" type="VBoxContainer" parent="."]
+[node name="Announcements" type="VBoxContainer" parent="."]
 z_index = 495
 custom_minimum_size = Vector2(463, 68)
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = 291.0
-offset_top = 503.0
-offset_right = 879.0
-offset_bottom = 598.0
+offset_left = 266.0
+offset_right = 889.0
+offset_bottom = 95.0
 grow_horizontal = 2
-grow_vertical = 2
 
 [node name="RebirthPanel" type="Panel" parent="."]
 visible = false

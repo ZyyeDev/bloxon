@@ -1,0 +1,158 @@
+newmtl Cube0111Mtl
+Material Color
+Ka 0.0199178 0.0143105 0.00837312
+Kd 0.0199178 0.0143105 0.00837312
+Ks 0.00179651 0.00129075 0.000755222 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Sphere0011Mtl
+Material Color
+Ka 0.38891 0.835528 0.0581872
+Kd 0.38891 0.835528 0.0581872
+Ks 0.0350782 0.0753613 0.00524826 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Cube0071Mtl
+Material Color
+Ka 0.7593 0.7593 0.7593
+Kd 0.7593 0.7593 0.7593
+Ks 0.0684858 0.0684858 0.0684858 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Cube0041Mtl
+Material Color
+Ka 0.2468 0.173439 0.101145
+Kd 0.2468 0.173439 0.101145
+Ks 0.0222604 0.0156435 0.0091229 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Cube0081Mtl
+Material Color
+Ka 0.737205 0.420508 0.22331
+Kd 0.737205 0.420508 0.22331
+Ks 0.066493 0.0379282 0.0201417 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Cube0051Mtl
+Material Color
+Ka 0.373615 0.368591 0.383775
+Kd 0.373615 0.368591 0.383775
+Ks 0.0322335 0.0318 0.03311 
+
+d 1
+
+Ns 255
+
+map_Ka Cube0051_diff.png
+map_Kd Cube0051_diff.png
+map_d Cube0051_diff.png
+
+newmtl Cube0301Mtl
+Material Color
+Ka 0.0209511 0.0242229 0.0399472
+Kd 0.0209511 0.0242229 0.0399472
+Ks 0.00188971 0.00218481 0.00360308 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Cube0021Mtl
+Material Color
+Ka 0.715465 1 0.373615
+Kd 0.715465 1 0.373615
+Ks 0.0645322 0.0901961 0.0336986 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+
+newmtl Sphere1Mtl
+Material Color
+Ka 0.45908 0.106156 0.0328759
+Kd 0.45908 0.106156 0.0328759
+Ks 0.0414072 0.00957486 0.00296528 
+
+d 1
+
+Ns 0
+
+map_Ka Sphere0011_diff.png
+map_Kd Sphere0011_diff.png
+map_d Sphere0011_diff.png
+
+map_Bump Sphere0011_nmap.png
+
+map_Ns Sphere0011_spec.png
+

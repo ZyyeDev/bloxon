@@ -57,7 +57,8 @@ func _process(delta: float) -> void:
 	if moneyLabel:
 		moneyLabel.text = "$" + str(Client.format_number(money))
 
-func createIndexBrainrots():
+func createIndexBrainrots(): 
+	if true: return
 	for i in indexPanel.get_node("GridContainer").get_children():
 		i.queue_free()
 	if Global.myPlrData == null: Global.myPlrData = {}
@@ -103,7 +104,15 @@ func updateRebirth():
 			var thing = load("res://scenes/rebirthThing.tscn").instantiate()
 			if data["type"] == "money" and whichIm == 1: return
 			if data["type"] == "tool":
-				thing.Name = str(data["what"])
+				var itemId = data["what"]
+				var toolGot = ToolController.getToolById(itemId)
+				if !toolGot:
+					push_error("GetToolById is returning null! ItemId: ",itemId, " toolGot: ",toolGot)
+				print("toolGot ",toolGot)
+				var tool_data = ToolController.toolData[toolGot]
+				var toolName = ToolController.getToolById(itemId)
+				thing.iconSprite.texture = await ToolController.createTextureFrom3D(toolName)
+				thing.Name = str(tool_data["Name"])
 			elif data["type"] == "money":
 				thing.iconSprite.texture = load("res://assets/images/money.png")
 				thing.Name = data["type"]

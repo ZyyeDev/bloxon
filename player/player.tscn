@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=4 uid="uid://c51n1q7iukno3"]
+[gd_scene load_steps=39 format=4 uid="uid://c51n1q7iukno3"]
 
 [ext_resource type="Script" uid="uid://deyohpk41p88f" path="res://player/player.gd" id="1_063y0"]
 [ext_resource type="Texture2D" uid="uid://bws3ourj3f7pp" path="res://assets/images/UI/mouse/ArrowCursor.png" id="2_8fpuw"]
@@ -842,7 +842,7 @@ tracks/3/keys = {
 "values": [Vector3(0, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_2ieo8"]
+[sub_resource type="Animation" id="Animation_ebec5"]
 resource_name = "ToolHold"
 loop_mode = 1
 tracks/0/type = "value"
@@ -855,7 +855,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector3(-1.63, 1.51455, 0.493787)]
+"values": [Vector3(-1.63, 1.54482, 0.52866)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -870,64 +870,43 @@ tracks/1/keys = {
 "values": [Vector3(-1.5708, 0, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_hg6s5"]
-resource_name = "holdBrainrot"
-length = 0.001
-loop_mode = 1
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_2ieo8"]
+_data = {
+&"RESET": SubResource("Animation_8t03j"),
+&"ToolHold": SubResource("Animation_ebec5")
+}
+
+[sub_resource type="Animation" id="Animation_2ieo8"]
+resource_name = "BatHit"
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
 tracks/0/path = NodePath("../Node3D/Right Arm:position")
-tracks/0/interp = 1
+tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.166667, 0.300563, 0.4, 0.533333, 0.633333, 0.8, 0.866667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(-1.63, 2.76819, -0.003)]
+"values": [Vector3(-1.63, 1.51455, 0.493787), Vector3(-1.63, 1.51455, 0.615411), Vector3(-1.63, 1.51455, 0.345557), Vector3(-1.63, 1.51455, -0.339546), Vector3(-1.63, 1.55833, 0.639533), Vector3(-1.63, 1.31271, 0.616583), Vector3(-1.63, 1.50712, 0.62808), Vector3(-1.63, 1.51455, 0.493787)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("../Node3D/Left Arm:position")
+tracks/1/path = NodePath("../Node3D/Right Arm:rotation")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
+"times": PackedFloat32Array(0, 0.1, 0.166667, 0.4, 0.533333, 0.633333, 0.733333, 0.8, 0.866667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(1.631, 2.76819, -0.003)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("../Node3D/Right Arm:rotation")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(-3.14159, 0, 0)]
-}
-tracks/3/type = "value"
-tracks/3/imported = false
-tracks/3/enabled = true
-tracks/3/path = NodePath("../Node3D/Left Arm:rotation")
-tracks/3/interp = 1
-tracks/3/loop_wrap = true
-tracks/3/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector3(-3.14159, 0, 0)]
+"values": [Vector3(-1.5708, 0, 0), Vector3(-1.41546, -1.04022, 0.963422), Vector3(-0.677188, -2.08043, 1.9251), Vector3(0.488692, -2.80474, 3.12239), Vector3(-0.327633, -0.749689, 0.976327), Vector3(-0.636242, 0.0272185, 0.165013), Vector3(-1.07687, 0.0279253, 0.628319), Vector3(-1.56207, 2.35794, -2.26893), Vector3(-1.5708, 0, 0)]
 }
 
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_2ieo8"]
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ebec5"]
 _data = {
-&"RESET": SubResource("Animation_8t03j"),
-&"ToolHold": SubResource("Animation_2ieo8"),
-&"holdBrainrot": SubResource("Animation_hg6s5")
+&"BatHit": SubResource("Animation_2ieo8"),
+&"RESET": SubResource("Animation_8t03j")
 }
 
 [sub_resource type="GDScript" id="GDScript_8t03j"]
@@ -1069,6 +1048,11 @@ libraries = {
 [node name="AnimationPlayer" type="AnimationPlayer" parent="animations"]
 libraries = {
 &"": SubResource("AnimationLibrary_2ieo8")
+}
+
+[node name="ToolAnims" type="AnimationPlayer" parent="animations"]
+libraries = {
+&"": SubResource("AnimationLibrary_ebec5")
 }
 
 [node name="MainUi" parent="." instance=ExtResource("4_1xtq5")]

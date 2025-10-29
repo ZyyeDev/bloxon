@@ -1,5 +1,7 @@
 extends Node
 
+var CLIENT_VERSION = "1.0.0"
+
 var isClient = true
 var UID = ""
 var user_id = 0
@@ -48,19 +50,99 @@ var rebirths = {
 				"type": "lockBase"
 			},
 			{
-				"what": "Iron Slap",
+				"what": 2,
+				"type": "tool",
+			},
+			{
+				"what": 3,
+				"type": "tool",
+			},
+			#{
+			#	"what": "Bee Launcher",
+			#	"type": "tool"
+			#},
+		]
+	},
+	2: {
+		"need": [
+			{
+				"what": 3000000,
+				"type": "money"
+			},
+			{
+				"what": "Brr Brr Patapim",
+				"type": "brainrot"
+			},
+			{
+				"what": "Boneca Ambalabu",
+				"type": "brainrot"
+			},
+		],
+		"get": [
+			{
+				"what": 10000,
+				"type": "money"
+			},
+			{
+				"what": 10,
+				"type": "lockBase"
+			},
+			{
+				"what": 1,
+				"type": "slot"
+			},
+			{
+				"what": "Gold Slap",
 				"type": "tool"
 			},
 			{
-				"what": "Gravity Coil",
+				"what": "Coil Combo",
 				"type": "tool"
 			},
 			{
-				"what": "Bee Launcher",
+				"what": "Rage Table",
 				"type": "tool"
 			},
 		]
-	}
+	},
+	3: {
+		"need": [
+			{
+				"what": 12500000,
+				"type": "money"
+			},
+			{
+				"what": "Trulimero Trulicina",
+				"type": "brainrot"
+			},
+			{
+				"what": "Chimpanzini Bananini",
+				"type": "brainrot"
+			},
+		],
+		"get": [
+			{
+				"what": 25000,
+				"type": "money"
+			},
+			{
+				"what": 10,
+				"type": "lockBase"
+			},
+			{
+				"what": 1,
+				"type": "slot"
+			},
+			{
+				"what": "Diamond Slap",
+				"type": "tool"
+			},
+			#{
+			#	"what": "Taser Gun",
+			#	"type": "tool"
+			#}
+		]
+	},
 }
 
 var RARITIES = {
@@ -93,7 +175,7 @@ var currentServer = "test"
 var houses = {}
 var brainrots = {}
 
-var noportIp = "92.176.163.239" #"bloxon-server.onrender.com"
+var noportIp = "46.224.26.214" #"bloxon-server.onrender.com"
 var port = ":8080"
 var masterIp = "http://"+noportIp+port
 var localPlayer:player = null
@@ -118,6 +200,7 @@ func _ready() -> void:
 		masterIp = masterIp.replace("http://","https://")
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args:
+		print("Pfp rendering")
 		get_tree().change_scene_to_file("res://scenes/avatar_rendering.tscn")
 		return
 	if "--server" in args or OS.has_feature("dedicated_server"):
@@ -126,11 +209,42 @@ func _ready() -> void:
 	else:
 		isClient = true
 		print("Running as CLIENT")
+		await checkVersionBeforeStart()
 	if isClient:
+		for i in 9:
+			currentInventory[i] = -1
 		startClient()
 	else:
 		startServer()
 	initializeHouses()
+
+func checkVersionBeforeStart():
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"version": CLIENT_VERSION
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(masterIp + "/check_version", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 426:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		if jsonResponse:
+			errorMessage(
+				"Update Required",
+				ERROR_CODES.CORRUPTED_FILES,
+				"Version Mismatch",
+				"Exit",
+				func(): get_tree().quit()
+			)
+			await get_tree().create_timer(999999).timeout
 
 func saveLocal():
 	if !canSave: return
@@ -226,14 +340,33 @@ func spawnBrainrotLoop():
 
 func getRandomBrainrot():
 	var tries = 0
-	while true:
-		var brainrot = brainrotTypes[randi_range(0,brainrotTypes.size()-1)]
-		var temp = load("res://brainrots/"+brainrot+".tscn").instantiate()
-		if randi_range(0,100) <= RARITIES_PERCENT[temp.rarity]:
+	var weighted_list = []
+	
+	for brainrot in brainrotTypes:
+		var temp = load("res://brainrots/" + brainrot + ".tscn").instantiate()
+		var percent = RARITIES_PERCENT[temp.rarity]
+		
+		if temp.chanceOverride != -1:
+			percent = temp.chanceOverride
+			
+		for i in range(percent):
+			weighted_list.append(brainrot)
+			
+	var brainrot = "noobini pizzanini"
+	while tries < 10:
+		brainrot = weighted_list[randi_range(0, weighted_list.size() - 1)]
+		var temp = load("res://brainrots/" + brainrot + ".tscn").instantiate()
+		var percent = RARITIES_PERCENT[temp.rarity]
+		
+		if temp.chanceOverride != -1:
+			percent = temp.chanceOverride
+			
+		if randi_range(0, 100) <= percent:
 			return brainrot
-		if tries >= 10:
-			return brainrot
+			
 		tries += 1
+		
+	return brainrot
 
 @rpc("authority", "call_remote", "reliable")
 func spawnBrainrot(brUID="", brData={}): 
@@ -660,40 +793,35 @@ func receiveChatMessage(message: String, senderUID: String):
 		
 		print("[CHAT] ", username, ": ", message)
 
-@rpc("any_peer","call_remote","reliable")
-func changeHoldingItem(itemId, myId, mytoken):
+@rpc("any_peer", "call_remote", "reliable")
+func changeHoldingItem(invId, itemId, myId, mytoken):
 	var sender = multiplayer.get_remote_sender_id()
 	if !isClient:
 		if get_parent().has_node("Server"):
 			var server = get_parent().get_node("Server")
 			var user_id = int(server.uidToUserId.get(str(sender)))
-			#print("holdingitem uid: ",user_id," and ", server.uidToUserId.get(str(sender))," | ",server.uidToUserId.get(int(sender)))
+			
 			if user_id and server.playerData.has(user_id):
 				var player_inventory = server.playerData[user_id].get("inventory", {})
-				print(player_inventory.has(str(itemId)) or itemId == -1)
-				if player_inventory.has(str(itemId)) or itemId == -1:
-					server.playerData[user_id]["holdingItem"] = itemId
-					rpc("syncHoldingItem", str(sender), itemId)
-					syncHoldingItem(str(sender), itemId)
+				
+				if invId >= -1 and invId < 9:
+					var slot_item_id = player_inventory.get(invId, -1)
 					
-					var plr = getPlayer(str(sender))
-					if plr:
-						plr.toolHolding = itemId
+					if slot_item_id == itemId or itemId == -1:
+						server.playerData[user_id]["holdingItem"] = itemId
+						rpc("syncHoldingItem", str(sender), invId, itemId)
+						syncHoldingItem(str(sender), invId, itemId)
+						
+						var plr = getPlayer(str(sender))
+						if plr:
+							plr.toolHolding = itemId
+							plr.currentSlot = invId
 					else:
-						printerr("PLAYER IS NULL!!!!")
+						print("Player tried to equip item ", itemId, " from slot ", invId, " but slot contains ", slot_item_id)
 		else:
 			printerr("server dont have server script???")
 	else:
 		printerr("cant call from client!")
-
-@rpc("authority", "call_remote", "reliable")
-func syncHoldingItem(pUID: String, itemId: int):
-	var plr = getPlayer(pUID)
-	if plr:
-		print("synced Holding Item ", pUID, itemId)
-		plr.toolHolding = itemId
-	else:
-		printerr("PLAYER IS NULL FROM SYNC HOLDING ITEM")
 
 @rpc("any_peer", "call_remote", "reliable")
 func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
@@ -701,24 +829,48 @@ func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
 	if !isClient:
 		if get_parent().has_node("Server"):
 			var server = get_parent().get_node("Server")
-			var user_id = int(server.uidToUserId.get(sender))
+			var user_id = int(server.uidToUserId.get(str(sender)))
 			if user_id and server.playerData.has(user_id):
-				if not server.playerData[user_id].has("inventory"):
-					server.playerData[user_id]["inventory"] = {}
+				var slot = server.giveItemToPlayerSlot(user_id, itemId)
 				
-				var inventory = server.playerData[user_id]["inventory"]
-				var item_key = str(itemId)
-				
-				if inventory.has(item_key):
-					inventory[item_key] += 1
+				if slot != -1:
+					print("Gave item ", itemId, " to player ", user_id, " in slot ", slot)
 				else:
-					inventory[item_key] = 1
-				
-				server.updatePlayerActivity(user_id)
-				
-				var player = getPlayer(str(sender))
-				if player:
-					player.rpc("syncInventory", inventory)
+					print("Failed to give item ", itemId, " to player ", user_id, " - inventory full")
+
+func giveRebirthTools(pUID: String, rebirthLevel: int):
+	if isClient: return
+	
+	if get_parent().has_node("Server"):
+		var server = get_parent().get_node("Server")
+		var user_id = int(server.uidToUserId.get(pUID))
+		
+		if user_id and server.playerData.has(user_id):
+			var tools = getToolsForRebirth(rebirthLevel)
+			var new_inventory = {}
+			
+			for i in 9:
+				new_inventory[i] = -1
+			
+			for i in range(tools.size()):
+				if i < 9:
+					new_inventory[i] = tools[i]
+			
+			server.playerData[user_id]["inventory"] = new_inventory
+			
+			var player = getPlayer(pUID)
+			if player:
+				player.rpc("syncInventory", new_inventory)
+	
+@rpc("authority", "call_remote", "reliable")
+func syncHoldingItem(pUID: String, invId, itemId: int):
+	var plr = getPlayer(pUID)
+	if plr:
+		print("synced Holding Item ", pUID, itemId)
+		plr.toolHolding = itemId
+		plr.currentSlot = invId
+	else:
+		printerr("PLAYER IS NULL FROM SYNC HOLDING ITEM")
 
 @rpc("any_peer")
 func rebirth(token): 
@@ -773,32 +925,10 @@ func rebirth(token):
 		giveRebirthTools(str(sender), plr.rebirthsVal.Value)
 
 func getToolsForRebirth(rebirthLevel: int) -> Array:
-	var tools = [1]
-	
-	if rebirthLevel >= 1:
-		tools.append_array([2, 3, 4])
-	
-	return tools
-
-func giveRebirthTools(pUID: String, rebirthLevel: int):
-	if isClient: return
-	
-	if get_parent().has_node("Server"):
-		var server = get_parent().get_node("Server")
-		var user_id = int(server.uidToUserId.get(pUID))
-		
-		if user_id and server.playerData.has(user_id):
-			var tools = getToolsForRebirth(rebirthLevel)
-			var new_inventory = {}
-			
-			for tool_id in tools:
-				new_inventory[str(tool_id)] = 1
-			
-			server.playerData[user_id]["inventory"] = new_inventory
-			
-			var player = getPlayer(pUID)
-			if player:
-				player.rpc("syncInventory", new_inventory)
+	if rebirthLevel == -1:
+		return [1]
+	else:
+		return [2,3]
 
 @rpc("any_peer")
 func trySteal(slot_name, plruid):
@@ -899,3 +1029,27 @@ func server_give_item(pUID: String, itemId: int, quantity: int = 1):
 func updateMyPlrData(npdata):
 	myPlrDataUpdate.emit()
 	myPlrData = npdata
+
+@rpc("authority", "call_remote", "reliable")
+func register_sound(path_to_node: NodePath, stream_sound_path: String, volume: float, playing: bool, position: Vector3):
+	print(path_to_node)
+	
+	var sound = Sound.new()
+	sound.volume_db = volume
+	
+	var stream = load(stream_sound_path)
+	if stream:
+		sound.stream = stream
+	else:
+		push_error("Failed to load AudioStream: " + stream_sound_path)
+		
+	var parent_node = get_node_or_null(path_to_node)
+	if parent_node:
+		parent_node.add_child(sound)
+	else:
+		add_child(sound)
+	
+	sound.position = position
+	
+	if playing:
+		sound.play()

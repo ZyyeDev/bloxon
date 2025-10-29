@@ -47,6 +47,8 @@ var friends = []
 var currentProfileID = 0
 var isFriend = false
 
+var loadedPacks = false
+
 var currentAccessories = []
 var invUpdateFuncs = []
 
@@ -556,3 +558,6 @@ func getAvatar(getAvatarFromServer:bool):
 		var accMesh = await Client.addAccessoryToPlayer(id,$Control/AvatarPage/SubViewport/Node3D)
 		if accMesh:
 			currentAccessories.append(accMesh)
+
+func getOffers():
+	var data = await Client.getCurrencyPackages()

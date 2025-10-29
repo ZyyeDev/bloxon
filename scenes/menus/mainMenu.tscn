@@ -1,4 +1,4 @@
-[gd_scene load_steps=71 format=4 uid="uid://bku4uu237na02"]
+[gd_scene load_steps=72 format=4 uid="uid://bku4uu237na02"]
 
 [ext_resource type="Script" uid="uid://c46h1hory72we" path="res://scenes/menus/main_menu.gd" id="1_rb2ri"]
 [ext_resource type="Texture2D" uid="uid://bl52d4jl405ix" path="res://assets/images/UI/Menu/icon_home.png" id="3_5grun"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="6_bemoo"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="7_wxjkf"]
 [ext_resource type="Texture2D" uid="uid://dxmct6paew4e6" path="res://assets/models/player/parts/Rig1_diff.png" id="8_2yjtc"]
+[ext_resource type="PackedScene" uid="uid://c5bpgg6ji8m2i" path="res://scenes/menus/currency/currency_button_small.tscn" id="8_xxwsn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie7uq"]
 bg_color = Color(0.0784314, 0.0784314, 0.0784314, 1)
@@ -592,6 +593,16 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
 text = "c"
+flat = true
+
+[node name="blipsPageButton2" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+modulate = Color(0.4, 0.7, 1, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.182705, 0.887201, 1, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
+text = "𝔹"
 flat = true
 
 [node name="HomePage" type="Panel" parent="Control"]
@@ -1207,7 +1218,6 @@ theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
 text = "  No friends :("
 
 [node name="CurrencyPurchase" type="Panel" parent="Control"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1217,38 +1227,37 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
 
-[node name="HScrollBar" type="HScrollBar" parent="Control/CurrencyPurchase"]
-layout_mode = 0
-offset_top = 140.0
-offset_right = 1067.0
-offset_bottom = 440.0
+[node name="_Label_10" type="Label" parent="Control/CurrencyPurchase"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -519.0
+offset_top = 40.0
+offset_right = 469.0
+offset_bottom = 63.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "Get Blips to buy great new looks for your Avatar, plus perks and abilities in-game."
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Control/CurrencyPurchase/HScrollBar"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="GridContainer" type="GridContainer" parent="Control/CurrencyPurchase"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -524.0
+offset_top = -244.0
+offset_right = 527.0
+offset_bottom = 245.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 3
 
-[node name="Panel" type="Panel" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer"]
-custom_minimum_size = Vector2(200, 300)
+[node name="currencyButtonSmall" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
 layout_mode = 2
-
-[node name="Price" type="Label" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer/Panel"]
-layout_mode = 0
-offset_left = 80.0
-offset_top = 242.0
-offset_right = 121.0
-offset_bottom = 265.0
-text = "$4.99"
-
-[node name="Price2" type="Label" parent="Control/CurrencyPurchase/HScrollBar/HBoxContainer/Panel"]
-layout_mode = 0
-offset_left = 59.0
-offset_top = 213.0
-offset_right = 148.0
-offset_bottom = 236.0
-text = "𝔹 10000000"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="FriendInfo" type="Panel" parent="Control"]
 visible = false
@@ -1364,6 +1373,7 @@ autostart = true
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/homePageButton" to="." method="_on_home_page_button_pressed"]
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/configPageButton" to="." method="_on_config_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/blipsPageButton2" to="." method="_on_config_page_button_pressed"]
 [connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22/SeeAllFriends" to="." method="_on_see_all_friends_pressed"]
 [connection signal="Pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall/AddFriends" to="." method="_on_addFriends_pressed"]
 [connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/Join Game" to="." method="_on_join_game_pressed"]

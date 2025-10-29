@@ -172,7 +172,7 @@ func unblockBase(senderUID):
 			locked = false
 
 @rpc("any_peer", "call_remote", "reliable")  
-func updateBrainrots(brainrotsList): 
+func updateBrainrots(brainrotsList):
 	for slot_name in brainrots:
 		if brainrots[slot_name].has("proximity_prompt") and brainrots[slot_name]["proximity_prompt"]:
 			if is_instance_valid(brainrots[slot_name]["proximity_prompt"]):

@@ -7,6 +7,7 @@
 bName = "noobini pizzanini"
 cost = 25
 generate = 1
+chanceOverride = 95
 
 [node name="NoobiniPizzanini" parent="." index="0" instance=ExtResource("2_q7878")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0286622, -4.54576, -0.0100722)

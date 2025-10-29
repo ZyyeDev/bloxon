@@ -3,7 +3,7 @@ extends Node3D
 class_name ToolBase
 
 @export_subgroup("Editor")
-@export var itemId = 0
+@export var itemId = -1
 
 @export var toolName = ""
 @export var toolTip = ""
@@ -11,7 +11,9 @@ class_name ToolBase
 @export var canDrop = false
 @export var ManualActivationOnly = false
 
-@export var holderUID = 0
+@export var holderUID = -1
+
+var holder:player = null
 
 var uid = ""
 var register = true
@@ -25,11 +27,19 @@ func _ready() -> void:
 	
 	if register:
 		pass
+	
+	while holderUID == -1:
+		print(holderUID)
+		await Global.wait(.1)
+	
+	holder = Global.getPlayer(holderUID)
+	Equipped.emit()
+	tree_exiting.connect(func():Unequipped.emit())
 
 func _process(delta: float) -> void:
 	if not int(Global.UID) == holderUID: return
 	if Input.is_action_just_pressed("ActivateTool"):
-		Activated.emit()
+		#Activated.emit()
 		rpc_id(1, "activateServer")
 
 func Activate():

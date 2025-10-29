@@ -17,7 +17,8 @@ func _ready() -> void:
 		if fname == "": break
 		if fname == "ToolBase.tscn": continue
 		
-		var loaded = load("res://assets/Tools/"+fname)
+		var path = "res://assets/Tools/"+fname
+		var loaded = load(path.trim_suffix(".remap"))
 		if not loaded: continue
 		var tempTool = loaded.instantiate()
 		tempTool.register = false
@@ -33,20 +34,27 @@ func _ready() -> void:
 			tip = toolTip,
 			canDrop = CanDrop
 		}
-		toolData[fname.replace(".tscn","")] = data
+		toolData[fname.replace(".tscn","").replace(".remaps","")] = data
 
 func createTextureFrom3D(loadedItem) -> Texture:
-	var item = load("res://assets/Tools/"+loadedItem+".tscn").instantiate()
+	var path:String = "res://assets/Tools/"+loadedItem+".tscn"
+	var item = load(path.trim_suffix(".remap")).instantiate()
 	
 	var viewport := SubViewport.new()
-	viewport.size = Vector2i(256, 256)
+	viewport.size = Vector2i(512, 512)
 	viewport.transparent_bg = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 	viewport.world_3d = World3D.new()
 	
+	var camPos:Node3D = item.get_node("cameraPos") if item.has_node("cameraPos") else null
+	if camPos:
+		print("Using cameraPos from item.")
+	else:
+		print("No cameraPos found, using default position.")
+	
 	var camera := Camera3D.new()
 	camera.current = true
-	camera.position = Vector3(0, 0, 2)
+	camera.global_position = Vector3(0, 1, 3)
 	camera.look_at(Vector3.ZERO, Vector3.UP)
 	viewport.add_child(camera)
 	
@@ -64,7 +72,6 @@ func createTextureFrom3D(loadedItem) -> Texture:
 	ambient.environment = env
 	viewport.add_child(ambient)
 	
-	item.position = Vector3.ZERO
 	viewport.add_child(item)
 	
 	get_tree().root.add_child(viewport)

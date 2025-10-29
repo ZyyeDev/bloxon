@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3 uid="uid://c5bpgg6ji8m2i"]
+
+[ext_resource type="Script" uid="uid://sx7ovehfmps7" path="res://scripts/UIs/currency_button_small.gd" id="1_rfew6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_23mai"]
+bg_color = Color(0.08, 0.12, 0.16, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.15, 0.25, 0.35, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="currencyButtonSmall" type="Button"]
+custom_minimum_size = Vector2(316.667, 166.667)
+theme_override_styles/hover = SubResource("StyleBoxFlat_23mai")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_23mai")
+theme_override_styles/normal = SubResource("StyleBoxFlat_23mai")
+script = ExtResource("1_rfew6")
+
+[node name="Blips" type="Label" parent="."]
+layout_mode = 2
+offset_left = 22.0
+offset_top = 31.0
+offset_right = 180.0
+offset_bottom = 73.0
+size_flags_horizontal = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "𝔹 400"
+vertical_alignment = 1
+
+[node name="Cost" type="Label" parent="."]
+layout_mode = 2
+offset_left = 150.0
+offset_top = 107.0
+offset_right = 303.0
+offset_bottom = 149.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "$4.99"
+horizontal_alignment = 2
