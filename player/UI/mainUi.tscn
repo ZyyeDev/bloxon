@@ -75,7 +75,7 @@ grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_7l3lq")
 moneyLabel = NodePath("MoneyLabel")
-bottomMsgsContainer = NodePath("")
+bottomMsgsContainer = NodePath("bottomMsgsContainer")
 unlockHBox = NodePath("RebirthPanel/Main/Unlocks")
 requirementsHBox = NodePath("RebirthPanel/Main/RequirementsFrame/Requirements")
 progressBar = NodePath("RebirthPanel/Main/RequirementsFrame/ProgressBar")
@@ -97,6 +97,7 @@ theme_override_font_sizes/font_size = 40
 text = "$00000"
 
 [node name="FriendBoost" type="Label" parent="."]
+visible = false
 layout_mode = 0
 offset_left = 8.0
 offset_top = 609.0
@@ -106,18 +107,6 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_outline_size = 2
 theme_override_font_sizes/font_size = 20
 text = "Friend boost: 0%"
-
-[node name="Announcements" type="VBoxContainer" parent="."]
-z_index = 495
-custom_minimum_size = Vector2(463, 68)
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = 266.0
-offset_right = 889.0
-offset_bottom = 95.0
-grow_horizontal = 2
 
 [node name="RebirthPanel" type="Panel" parent="."]
 visible = false
@@ -369,8 +358,8 @@ anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 16.0
 offset_top = 146.0
-offset_right = 56.0
-offset_bottom = 451.0
+offset_right = 66.0
+offset_bottom = 454.0
 grow_vertical = 2
 script = ExtResource("2_eplsc")
 
@@ -380,7 +369,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="IndexButton" type="Button" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(40, 40)
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_pt0hv")
 icon = ExtResource("3_xj56v")
@@ -388,12 +377,29 @@ expand_icon = true
 script = SubResource("GDScript_1rl2n")
 
 [node name="RebirthButton" type="Button" parent="MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(40, 40)
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_pt0hv")
 icon = ExtResource("2_pt0hv")
 expand_icon = true
 script = SubResource("GDScript_1rl2n")
+
+[node name="bottomMsgsContainer" type="VBoxContainer" parent="."]
+z_index = 495
+custom_minimum_size = Vector2(463, 68)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 298.0
+offset_top = 526.0
+offset_right = 886.0
+offset_bottom = 621.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 
 [connection signal="pressed" from="RebirthPanel/Main/RebirthConfirm" to="." method="_on_rebirth_confirm_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/IndexButton" to="." method="_on_index_button_pressed"]

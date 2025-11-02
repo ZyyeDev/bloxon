@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://bthb6q7x3ol4v"]
+
+[ext_resource type="PackedScene" uid="uid://bvgg3h3hsytyy" path="res://Resources/brainrot_walk.tscn" id="1_0g6e0"]
+[ext_resource type="PackedScene" uid="uid://1c5cdic0pbc7" path="res://brainrots/models/Brr Brr Patapim.tscn" id="2_0g6e0"]
+
+[node name="Brr Brr Patapim" instance=ExtResource("1_0g6e0")]
+bName = "Chef Crabracadabra"
+cost = 15000
+generate = 100
+rarity = 3
+chanceOverride = 2
+
+[node name="MeshInstance3D" parent="." index="0"]
+visible = false
+
+[node name="Brr Brr Patapim" parent="." index="5" instance=ExtResource("2_0g6e0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -4.38543, 0)

@@ -1,9 +1,10 @@
-[gd_scene load_steps=72 format=4 uid="uid://bku4uu237na02"]
+[gd_scene load_steps=82 format=4 uid="uid://bku4uu237na02"]
 
 [ext_resource type="Script" uid="uid://c46h1hory72we" path="res://scenes/menus/main_menu.gd" id="1_rb2ri"]
 [ext_resource type="Texture2D" uid="uid://bl52d4jl405ix" path="res://assets/images/UI/Menu/icon_home.png" id="3_5grun"]
 [ext_resource type="Shader" uid="uid://dae1fb2qjpx2p" path="res://assets/shader/cicleImg.gdshader" id="3_bemoo"]
 [ext_resource type="Texture2D" uid="uid://bwi50liih46v3" path="res://assets/images/fallbackPfp.png" id="4_5grun"]
+[ext_resource type="Texture2D" uid="uid://d3eyqugtbhvmg" path="res://assets/images/UI/Menu/cogVector.png" id="5_xxwsn"]
 [ext_resource type="PackedScene" uid="uid://cpl6mmwxarbov" path="res://scenes/menus/addFriendsButton.tscn" id="6_5grun"]
 [ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="6_bemoo"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="7_wxjkf"]
@@ -77,6 +78,27 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wxjkf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4wfs"]
+bg_color = Color(0.214703, 0.214703, 0.214703, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nwx3a"]
+bg_color = Color(0.118581, 0.118581, 0.118581, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lj2uh"]
+bg_color = Color(0.166853, 0.166853, 0.166853, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2yjtc"]
 bg_color = Color(0.789827, 2.79158e-06, 1.2514e-06, 1)
@@ -266,6 +288,68 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_ebec5")
+
+[sub_resource type="Animation" id="Animation_lgdhf"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Node3D/Right Arm:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(-1.63, 1.032, -0.003)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Node3D/Left Arm:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector3(1.631, 1.032, -0.003)]
+}
+
+[sub_resource type="Animation" id="Animation_xxwsn"]
+resource_name = "idle"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Node3D/Right Arm:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(-1.63, 1.032, -0.003), Vector3(-1.63, 1.05454, -0.003), Vector3(-1.63, 1.032, -0.003)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Node3D/Left Arm:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(1.631, 1.032, -0.003), Vector3(1.631, 1.05454, -0.003), Vector3(1.631, 1.032, -0.003)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_k7u30"]
+_data = {
+&"RESET": SubResource("Animation_lgdhf"),
+&"idle": SubResource("Animation_xxwsn")
+}
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2yjtc"]
 
@@ -472,7 +556,7 @@ _data = {
 [sub_resource type="GDScript" id="GDScript_2yjtc"]
 script/source = "extends Sprite2D
 
-@export var amount = 1
+@export var amount = 200
 
 func _physics_process(delta: float) -> void:
 	if visible == true:
@@ -486,7 +570,28 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "buyAccessoryButton", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_403wm"]
+bg_color = Color(0.0987284, 0.0987284, 0.0987284, 0.627451)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nk6lk"]
+bg_color = Color(0.0214346, 0.0214346, 0.0214346, 0.627451)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yic8r"]
+bg_color = Color(0.054902, 0.054902, 0.054902, 0.627451)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "CurrencyPurchase", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "buyAccessoryButton", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -505,6 +610,7 @@ profilePage = NodePath("Control/ProfilePage")
 friendsPage = NodePath("Control/FriendsPage")
 FriendInfo = NodePath("Control/FriendInfo")
 ItemPage = NodePath("Control/ItemPage")
+CurrencyPurchase = NodePath("Control/CurrencyPurchase")
 friendContainterSmall = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall")
 friendsContainer = NodePath("Control/FriendsPage/GridContainer")
 marketplaceContainer = NodePath("Control/AvatarPage/MarketContainer")
@@ -587,26 +693,24 @@ text = "{USERNAME}"
 horizontal_alignment = 1
 
 [node name="configPageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
-modulate = Color(0.4, 0.7, 1, 1)
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
-text = "c"
+icon = ExtResource("5_xxwsn")
 flat = true
+expand_icon = true
 
 [node name="blipsPageButton2" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
-modulate = Color(0.4, 0.7, 1, 1)
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.182705, 0.887201, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0, 0.629095, 0.662462, 1)
+theme_override_font_sizes/font_size = 36
 theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
 text = "𝔹"
 flat = true
 
 [node name="HomePage" type="Panel" parent="Control"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -692,6 +796,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
 text = "Join Game"
 
 [node name="_VBoxContainer_27" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
 
@@ -751,7 +856,31 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
 metadata/_edit_use_anchors_ = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/ConfigPage/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="UsernameConfigLabel" type="Label" parent="Control/ConfigPage/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Username: {USERNAME}"
+horizontal_alignment = 1
+
+[node name="Separation" type="Label" parent="Control/ConfigPage/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "                          "
+horizontal_alignment = 1
+
+[node name="ChangeUsername" type="Button" parent="Control/ConfigPage/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
+theme_override_styles/hover = SubResource("StyleBoxFlat_y4wfs")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nwx3a")
+theme_override_styles/normal = SubResource("StyleBoxFlat_lj2uh")
+text = "Change username"
 
 [node name="LogOut" type="Button" parent="Control/ConfigPage/VBoxContainer"]
 layout_mode = 2
@@ -822,6 +951,11 @@ transform = Transform3D(1, 0, 0, 0, 0.965103, 0.261869, 0, -0.261869, 0.965103, 
 transform = Transform3D(1, 0, 0, 0, 0.965926, -0.258819, 0, 0.258819, 0.965926, 0, 0, 0)
 visible = false
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Control/AvatarPage/SubViewport"]
+libraries = {
+&"": SubResource("AnimationLibrary_k7u30")
+}
+
 [node name="MarketContainer" type="GridContainer" parent="Control/AvatarPage"]
 visible = false
 layout_mode = 0
@@ -829,6 +963,7 @@ offset_left = 10.0
 offset_top = 92.0
 offset_right = 617.0
 offset_bottom = 643.0
+columns = 4
 
 [node name="AvatarEditor" type="Control" parent="Control/AvatarPage"]
 layout_mode = 1
@@ -944,6 +1079,7 @@ offset_left = 10.0
 offset_top = 151.0
 offset_right = 617.0
 offset_bottom = 643.0
+columns = 4
 
 [node name="Tabs" type="HBoxContainer" parent="Control/AvatarPage/AvatarEditor"]
 layout_mode = 0
@@ -1218,6 +1354,7 @@ theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
 text = "  No friends :("
 
 [node name="CurrencyPurchase" type="Panel" parent="Control"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1348,7 +1485,6 @@ visible = false
 position = Vector2(591, 316)
 texture = ExtResource("7_wxjkf")
 script = SubResource("GDScript_2yjtc")
-amount = 200
 
 [node name="Currency" type="Label" parent="Control"]
 layout_mode = 1
@@ -1357,12 +1493,31 @@ anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -122.0
 offset_top = 1.0
-offset_right = -47.0
+offset_right = -42.0
 offset_bottom = 24.0
 grow_horizontal = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_exsfm")
 text = "???"
 horizontal_alignment = 1
+
+[node name="blipsPageButton3" type="Button" parent="Control/Currency"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_top = 23.0
+offset_right = 23.0
+offset_bottom = 59.0
+grow_horizontal = 0
+rotation = -1.57079
+theme_override_colors/font_color = Color(0, 0.629095, 0.662462, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
+theme_override_styles/hover = SubResource("StyleBoxFlat_403wm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nk6lk")
+theme_override_styles/normal = SubResource("StyleBoxFlat_yic8r")
+text = "+"
+expand_icon = true
 
 [node name="UpdateServers" type="Timer" parent="."]
 wait_time = 15.0
@@ -1373,10 +1528,11 @@ autostart = true
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/homePageButton" to="." method="_on_home_page_button_pressed"]
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]
 [connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/configPageButton" to="." method="_on_config_page_button_pressed"]
-[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/blipsPageButton2" to="." method="_on_config_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/blipsPageButton2" to="." method="_on_blips_page_button_2_pressed"]
 [connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22/SeeAllFriends" to="." method="_on_see_all_friends_pressed"]
 [connection signal="Pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall/AddFriends" to="." method="_on_addFriends_pressed"]
 [connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/Join Game" to="." method="_on_join_game_pressed"]
+[connection signal="pressed" from="Control/ConfigPage/VBoxContainer/HBoxContainer/ChangeUsername" to="." method="_on_change_username_pressed"]
 [connection signal="pressed" from="Control/ConfigPage/VBoxContainer/LogOut" to="." method="_on_log_out_pressed"]
 [connection signal="color_changed" from="Control/AvatarPage/AvatarEditor/AvatarColors/ColorPicker" to="." method="_on_color_picker_color_changed"]
 [connection signal="pressed" from="Control/AvatarPage/AvatarEditor/AvatarColors/ApplyAvatar" to="." method="_on_apply_avatar_pressed"]
@@ -1394,4 +1550,5 @@ autostart = true
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Cancel" to="." method="hideFriendInfo"]
 [connection signal="pressed" from="Control/FriendInfo/hide" to="." method="hideFriendInfo"]
+[connection signal="pressed" from="Control/Currency/blipsPageButton3" to="." method="_on_blips_page_button_2_pressed"]
 [connection signal="timeout" from="UpdateServers" to="." method="_on_update_servers_timeout"]

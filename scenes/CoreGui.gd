@@ -14,6 +14,7 @@ class_name core_gui
 @export var chatVBContainer:VBoxContainer
 @export var chatLineEdit:LineEdit
 @export_subgroup("Mobile")
+@export var joystick:Control
 @export var JumpButton:Button
 
 var paused = false
@@ -84,15 +85,27 @@ func hideConnect():
 	connectGui.visible = false
 
 func _on_back_pressed() -> void:
-	Client.disconnect_from_server()
+	hideConnect()
+	await Client.http.cancel_request()
+	await Client.disconnect_from_server()
 	get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+	
+	var snd = AudioStreamPlayer.new()
+	snd.stream = load("res://assets/sounds/UI/")
+	add_child(snd)
+	snd.play()
+	Debris.addItem(snd,snd.stream.get_length())
 
 func showEscape():
 	$Game/AnimationPlayer.play("open")
+	JumpButton.visible = false
+	joystick.visible = false
 	paused = false
 
 func hideEscape():
 	$Game/AnimationPlayer.play("close")
+	JumpButton.visible = true
+	joystick.visible = true
 	paused = true
 
 func _on_resume_pressed() -> void:
@@ -149,10 +162,6 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 		return
 	
 	Global.rpc_id(1,"sendChatMessage",new_text, Global.UID, Global.token)
-
-@rpc("any_peer","call_remote","reliable")
-func sendMessage(text,playerName):
-	addChatMessage(playerName, text)
 
 func _on_jump_pressed() -> void:
 	print("jump mobile")
@@ -253,7 +262,7 @@ func addAnnouncement(text:String,duration:float):
 	textL.text = text
 	var snd = AudioStreamPlayer.new()
 	add_child(snd)
-	snd.stream = load("res://assets/sounds/UI/PopUp2.wav")
+	snd.stream = load("res://assets/sounds/UI/PopUp.wav")
 	snd.play()
 	Debris.addItem(snd,snd.stream.get_length())
 	$Announcements.add_child(textL)

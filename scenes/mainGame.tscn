@@ -100,7 +100,7 @@ shadow_bias = 0.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -310, 6, 4)
 
 [node name="bbye" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 218.356, 6, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 225.356, 6, 4)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_gb8pf")

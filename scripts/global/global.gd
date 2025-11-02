@@ -22,6 +22,7 @@ var brainrotTypes = [
 	"Gangster Footera",
 	"Boneca Ambalabu",
 	"Chef Crabracadabra",
+	"Brr Brr Patapim"
 ]
 
 var rebirths = {
@@ -175,7 +176,7 @@ var currentServer = "test"
 var houses = {}
 var brainrots = {}
 
-var noportIp = "46.224.26.214" #"bloxon-server.onrender.com"
+var noportIp = "46.224.26.214"
 var port = ":8080"
 var masterIp = "http://"+noportIp+port
 var localPlayer:player = null
@@ -594,8 +595,8 @@ func errorMessage(
 			add_child(snd)
 			snd.play()
 			)
-		
-	get_tree().current_scene.add_child(box)
+	
+	CoreGui.add_child(box)
 	return box
 
 func getAllServers():
@@ -765,9 +766,32 @@ func sendChatMessage(message: String, senderUID: String, senderToken: String):
 				print("Chat message rejected: UID mismatch")
 				return
 			
+			var plr = getPlayer(senderUID)
+			if plr:
+				pass
+			
 			if get_parent().has_node("Server"):
 				var server = get_parent().get_node("Server")
+				var moderated = await server.moderation(message)
+				var data = moderated#.get("data",{})
+				print("moderated ",moderated)
+				print(data)
+				
+				## MODERATION SHIT ##
+				if not data.is_empty(): # and moderated.get("success",false):
+					var flagged = false
+					for v in data:
+						var howMuch = data[v]
+						if float(howMuch) > .6: # I think .6 is enough
+							flagged = true
+					if flagged:
+						var msgLength =  message.length()
+						message = ""
+						for i in range(msgLength):
+							message = message+"#"
+				
 				var user_id = int(server.uidToUserId.get(senderUID))
+				
 				if not user_id:
 					print("Chat message rejected: Invalid user")
 					return
@@ -786,7 +810,7 @@ func receiveChatMessage(message: String, senderUID: String):
 		var player = getPlayer(senderUID)
 		var username = "Player"
 		if player:
-			username = player.name
+			username = player.username
 			player.addBubbleBox(message)
 		
 		CoreGui.addChatMessage(username, message)

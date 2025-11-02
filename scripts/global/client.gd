@@ -47,20 +47,35 @@ func _on_global_message(message: Dictionary):
 	var msg_type = message.get("type")
 	var properties = message.get("properties", {})
 	
+	print(message)
+	
 	match msg_type:
 		"Maintenance":
 			if properties.get("enabled", false):
 				Global.errorMessage(
 					properties.get("message", "Server maintenance"),
-					Global.ERROR_CODES.MAINTENANCE
+					Global.ERROR_CODES.MAINTENANCE,
+					"Disconnected",
+					"Leave",
+					func():
+						CoreGui.hideConnect()
+						get_tree().change_scene_to_file("res://scenes/INIT.tscn")
 				)
-		"Announcement":
-			CoreGui.addAnnouncement(properties.get("text", ""),2)
+		"Message":
+			CoreGui.addAnnouncement(properties.get("message", ""),4)
 		"ServerShutdown":
 			CoreGui.addAnnouncement("Server restarting soon!",2)
 
 func requestServer():
 	CoreGui.showConnect("Searching for servers...")
+	## so uhm this is just to show the game is actually reserving a server so people wont leave
+	## it is actually reserving/searching server, but this thing is just not necessary at all
+	var thread = Thread.new()
+	thread.start(func():
+		await Global.wait(randi_range(1,4))
+		CoreGui.showConnect("Reserving server")
+	)
+	var otherTextThread
 	var url = Global.masterIp + "/request_server"
 	var headers = ["Content-Type: application/json"]
 	var body = {"player_id": playerId,"token": Global.token}
@@ -85,14 +100,30 @@ func _on_request_completed(result, code, headers, body):
 					requestServer()
 					return
 		
-		Global.errorMessage("Failed to find server", Global.ERROR_CODES.SERVER_REACH)
+		Global.errorMessage(
+			"Failed to find server",
+			Global.ERROR_CODES.SERVER_REACH,
+			"Disconnected",
+			"Leave",
+			func():
+				CoreGui.hideConnect()
+				get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+		)
 		print("Failed to get server info, code: ", code)
 		return
 		
 	var data = JSON.parse_string(response_text)
 	if data == null:
 		print("Failed to parse response")
-		Global.errorMessage("Server error", Global.ERROR_CODES.CORRUPTED_FILES)
+		Global.errorMessage(
+			"Server error",
+			Global.ERROR_CODES.CORRUPTED_FILES,
+			"Disconnected",
+			"Leave",
+			func():
+				CoreGui.hideConnect()
+				get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+		)
 		return
 		
 	if data.has("error"):
@@ -101,8 +132,11 @@ func _on_request_completed(result, code, headers, body):
 		return
 		
 	if data.has("ip") and data["ip"] != null and data.has("uid"):
+		data["port"] = int(data["port"])
 		print("Connecting to server: ", data["ip"], ":", data["port"])
-		CoreGui.showConnect("Connecting to " + data["ip"] + ":" + str(data["port"]))
+		## show ip in debug mode, for production we dont want that!
+		#CoreGui.showConnect("Connecting to " + data["ip"] + ":" + str(data["port"]))
+		CoreGui.showConnect("Connecting to server...")
 		await get_tree().create_timer(2.0).timeout
 		connectToServer(data["ip"], int(data["port"]))
 		startHeartbeat()
@@ -122,7 +156,7 @@ func connectToServer(ip: String, port: int):
 	if ok != OK:
 		print("Failed to create client connection. | ", ok)
 		return
-	
+	print(ok)
 	get_tree().get_multiplayer().multiplayer_peer = peer
 	get_tree().get_multiplayer().connected_to_server.connect(_on_connected_to_server)
 	get_tree().get_multiplayer().connection_failed.connect(_on_connection_failed)
@@ -142,14 +176,30 @@ func _on_connected_to_server():
 	Global.on_player_connected()
 
 func _on_connection_failed():
-	Global.errorMessage("Error",Global.ERROR_CODES.TIMEOUT,"Failed to connect to server.","Leave")
+	Global.errorMessage(
+		"Error",
+		Global.ERROR_CODES.TIMEOUT,
+		"Failed to connect to server.",
+		"Leave",
+		func():
+			CoreGui.hideConnect()
+			get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+	)
 	print("Failed to connect to server")
 	serverUID = ""
 	is_connected = false
 
 func _on_server_disconnected():
 	Global.localPlayer = null
-	Global.errorMessage("Disconnected from the server",Global.ERROR_CODES.DISCONNECT)
+	Global.errorMessage(
+		"Disconnected from the server",
+		Global.ERROR_CODES.DISCONNECT,
+		"Disconnected",
+		"Leave",
+		func():
+			CoreGui.hideConnect()
+			get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+	)
 	serverUID = ""
 	print("Disconnected from server")
 	is_connected = false
@@ -184,7 +234,15 @@ func _on_heartbeat_completed(result, code, headers, body):
 		last_heartbeat_success = Time.get_unix_time_from_system()
 	else:
 		if Time.get_unix_time_from_system() - last_heartbeat_success > 15.0:
-			Global.errorMessage("Couldn't reach server",Global.ERROR_CODES.CANT_REACH)
+			Global.errorMessage(
+				"Couldn't reach server",
+				Global.ERROR_CODES.CANT_REACH,
+				"Disconnected",
+				"Leave",
+				func():
+					CoreGui.hideConnect()
+					get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+			)
 			emit_signal("server_disconnected")
 
 func _process(delta):
@@ -288,7 +346,7 @@ func getPlayerPfpById(userId: int, token: String) -> String:
 
 func getCurrency(userId: int, token: String) -> int:
 	var playerData = await getPlayerDataById(userId, token)
-	print("playerData ",playerData)
+	#print("playerData ",playerData)
 	if playerData.has("success") and playerData.success:
 		var data = playerData.get("data", {})
 		return data.get("currency", 0)
@@ -315,7 +373,10 @@ func getFriends(userId: int, token: String) -> Dictionary:
 
 func loadTextureFromUrl(url: String) -> ImageTexture:
 	var httpRequest = HTTPRequest.new()
-	add_child(httpRequest)
+	call_deferred("add_child",httpRequest)
+	
+	while !httpRequest.is_inside_tree():
+		await get_tree().process_frame
 	
 	httpRequest.request(url)
 	var response = await httpRequest.request_completed
@@ -343,7 +404,7 @@ func getPlayerPfpTexture(userId: int, token: String) -> ImageTexture:
 	var pfpUrl = await getPlayerPfpById(userId, token)
 	if pfpUrl != "":
 		return await loadTextureFromUrl(pfpUrl)
-	return null
+	return load("res://assets/images/fallbackPfp.png")
 
 func sendFriendRequest(fromUserId: int, toUserId: int, token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
@@ -554,12 +615,12 @@ func listMarketAccessories(token: String, filterData: Dictionary = {}, paginatio
 	
 	return {}
 
-func getAccessoryData(accessoryId: int, token: String) -> Dictionary:
+func getAccessoryData(accessoryId: int) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
 	var requestData = {
-		"token": token,
+		#"token": token,
 		"accessoryId": accessoryId
 	}
 	
@@ -680,17 +741,26 @@ func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> Dictionary
 		DirAccess.open("user://").make_dir_recursive("cache/accessories")
 	
 	var returnData = {
-		"model" = ""
+		"model" = "",
+		"texture" = "",
+		"mtl" = "",
 	}
 	
 	if FileAccess.file_exists(cachePath):
 		print("Accessory model already cached: ", cachePath)
 		returnData["model"] = cachePath
+		if FileAccess.file_exists(cachePath.replace("_model.obj","_texture.png")):
+			returnData["texture"] = cachePath.replace("_model.obj","_texture.png")
+		if FileAccess.file_exists(cachePath.replace("_model.obj","_material.mtl")):
+			returnData["mtl"] = cachePath.replace("_model.obj","_material.mtl")
 		return returnData
 	
 	returnData["model"] = await downloadFile(downloadUrl,cachePath)
 	
+	## TODO: For now on the backend all accessories are .obj, but they wont be .obj forever!!!!!
 	if ".obj" in downloadUrl:
+		var textureDownload = downloadUrl.replace("_model.obj","_texture.png")
+		returnData["texture"] = await downloadFile(textureDownload,cachePath.replace("_model.obj","_texture.png"))
 		var mtlDownload = downloadUrl.replace("_model.obj","_material.mtl")
 		returnData["mtl"] = await downloadFile(mtlDownload,cachePath.replace("_model.obj","_material.mtl"))
 	
@@ -719,7 +789,7 @@ func downloadFile(downloadUrl:String,DownloadPath:String):
 		return ""
 
 func loadAccessoryModelNode(accessoryId: int, token: String) -> Node3D:
-	var accessoryData = await getAccessoryData(accessoryId, token)
+	var accessoryData = await getAccessoryData(accessoryId)
 	
 	if not accessoryData.has("success") or not accessoryData.success:
 		print("Failed to get accessory data")
@@ -784,7 +854,7 @@ func getCacheSize() -> int:
 	return totalSize
 
 func preloadAccessoryModel(accessoryId: int, token: String):
-	var accessoryData = await getAccessoryData(accessoryId, token)
+	var accessoryData = await getAccessoryData(accessoryId)
 	
 	if accessoryData.has("success") and accessoryData.success:
 		var data = accessoryData.get("data", {})
@@ -955,14 +1025,18 @@ func getGlobalMessages(since_id: int = 0) -> Dictionary:
 	return {}
 
 func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
-	var acReq = await Client.getAccessoryData(int(accessoryId),Global.token)
+	var acReq = await Client.getAccessoryData(int(accessoryId))
+	
 	var myData = acReq.get("data",{})
-	if myData.is_empty(): return null
+	if myData.is_empty():
+		push_error("acessory data is empty!!")
+		return null
 	var id = int(myData["id"])
 	var Name = myData["name"]
 	var type = myData["type"]
 	var price = myData["price"]
 	var downloadUrl = myData["downloadUrl"]
+	var textureUrl = myData["textureUrl"]
 	var iconUrl = myData["iconUrl"]
 	var createdAt = myData["createdAt"]
 	var equipSlot = myData["equipSlot"]
@@ -979,6 +1053,8 @@ func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
 	var possibleLimbs = {}
 	for v in charRef.get_children():
 		possibleLimbs[v.name.to_lower()] = v
+	print(equipSlot.to_lower())
+	print(mesh_instance)
 	possibleLimbs[equipSlot.to_lower()].add_child(mesh_instance)
 	mesh_instance.scale = Vector3(.5,.5,.5)
 	mesh_instance.position = Vector3(0,-.6,0)
@@ -1063,23 +1139,26 @@ func registerWithCaptcha(username: String, password: String, gender: String, cap
 func subscribeToGlobalMessages(callback: Callable):
 	message_callbacks.append(callback)
 	
+	print("connect to ws")
+	
 	if not ws or ws.get_ready_state() != WebSocketPeer.STATE_OPEN:
 		connectToMessageStream()
+	else:
+		printerr("has ws")
 
 func connectToMessageStream():
 	ws = WebSocketPeer.new()
 	var ws_url = Global.masterIp.replace("http://", "ws://").replace("https://", "wss://")
 	var err = ws.connect_to_url(ws_url + "/ws/messages")
-	
 	if err != OK:
 		print("Failed to connect to message stream: ", err)
 		return
 	
 	var timer = Timer.new()
 	timer.wait_time = 0.1
+	timer.autostart = true
 	timer.timeout.connect(func():
 		_poll_messages()
-		timer.queue_free()
 		)
 	add_child(timer)
 	timer.start()
@@ -1096,16 +1175,93 @@ func _poll_messages():
 			var packet = ws.get_packet()
 			var message_text = packet.get_string_from_utf8()
 			var message = JSON.parse_string(message_text)
-			
 			if message:
 				for callback in message_callbacks:
 					callback.call(message)
 	
 	elif state == WebSocketPeer.STATE_CLOSED:
-		#print("Message stream closed, reconnecting...")
+		#print("WS Message stream closed, reconnecting...")
 		await get_tree().create_timer(5.0).timeout
 		connectToMessageStream()
 		return
+
+func changeUsername(new_username: String, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"new_username": new_username
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/account/change_username", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": "Request failed with code: " + str(response[1])
+	}
+
+func checkFreeUsername(token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/account/check_free_username", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": "Request failed with code: " + str(response[1])
+	}
+
+func changePassword(old_password: String, new_password: String, token: String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": token,
+		"old_password": old_password,
+		"new_password": new_password
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/account/change_password", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": "Request failed with code: " + str(response[1])
+	}
 
 func processPurchase(token: String, product_id: String, purchase_token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
@@ -1185,7 +1341,7 @@ func getCurrencyPackages(justReturn:bool=false) -> Dictionary:
 		if justReturn:
 			return jsonResponse if jsonResponse != null else {}
 		if jsonResponse.get("success",false):
-			var packData = jsonResponse.get("data",{})
+			var packData = jsonResponse.get("data",{}).get("packages",[])
 			var products = []
 			if !packData.is_empty():
 				for i in packData:

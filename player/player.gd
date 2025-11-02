@@ -2,7 +2,9 @@ extends CharacterBody3D
 class_name player
 
 @export_group("Online")
-@export var uid : String
+@export var username : String
+@export var user_id : int # server uid
+@export var uid : String # peer uid
 @export var localPlayer : bool
 
 @export_group("Player")
@@ -65,6 +67,8 @@ var oldtoolHolding = -1
 var toolHoldingInst = null
 
 var original_jump_strength = 50
+
+var isInAir = false
 
 var _collider_margin : float
 var grounded : bool
@@ -166,10 +170,13 @@ func get_or_create_override_material(mesh_instance: MeshInstance3D, surface_inde
 
 @rpc("authority", "call_remote", "reliable")
 func changeColors(data):
+	if !data:
+		printerr("data is nil!")
+		return false
 	if data.has("bodyColors"):
-		var bodyColors = data.bodyColors
+		var bodyColors = data.get("bodyColors",{})
 		
-		print(uid, " | ",bodyColors)
+		if bodyColors.is_empty(): return
 		
 		if head:
 			get_or_create_override_material(head).albedo_color = Color(bodyColors.head)
@@ -185,7 +192,11 @@ func changeColors(data):
 			get_or_create_override_material(RightLeg).albedo_color = Color(bodyColors.right_leg)
 	if data.has("accessories"):
 		for i in data["accessories"]:
-			Client.addAccessoryToPlayer(int(i),$Node3D)
+			print("ADDING ACCESSORY: ",int(i))
+			var acc = await Client.addAccessoryToPlayer(int(i),$Node3D)
+			print("ADDED: ",acc)
+	else:
+		push_warning("No accessories in data??")
 
 func init():
 	if await Global.whatHouseIm():
@@ -482,12 +493,15 @@ func handle_local_physics(delta):
 	var target_anim = "idle"
 	var target_anim_speed = 1.0
 	
-	if move_direction.x != 0 or move_direction.z != 0:
-		target_anim_speed = walkspeed/16.0
-		target_anim = "walk"
-		if !$footstepSounds.playing:
-			$footstepSounds.stream = load("res://assets/sounds/player/walk/plastic/snd_action_footsteps_plastic%s.wav" % randi_range(2,9))
-			$footstepSounds.play()
+	if isInAir:
+		target_anim = "falling_start"
+	else:
+		if move_direction.x != 0 or move_direction.z != 0:
+			target_anim_speed = walkspeed/16.0
+			target_anim = "walk"
+			if !$footstepSounds.playing:
+				$footstepSounds.stream = load("res://assets/sounds/player/walk/plastic/snd_action_footsteps_plastic%s.wav" % randi_range(2,9))
+				$footstepSounds.play()
 	
 	if target_anim != current_anim_name:
 		$animations.play(target_anim)
@@ -508,6 +522,7 @@ func handle_local_physics(delta):
 		if !was_grounded:
 			$landSound.play()
 			$airSound.stop()
+			isInAir = false
 		
 		if Input.is_action_just_pressed("jump") and !CoreGui.chatTexting and !is_ragdolled:
 			$jumpSound.play()
@@ -515,6 +530,7 @@ func handle_local_physics(delta):
 	else:
 		if !$airSound.playing:
 			$airSound.play()
+			isInAir = true
 		velocity.x = move_direction.x * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.x+Global.fromStud(2))*8))
 		velocity.z = move_direction.z * ((Global.fromStud(walkspeed)+(playerCollider.shape.size.z+Global.fromStud(2))*12))
 

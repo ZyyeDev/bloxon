@@ -29,12 +29,13 @@ func render_pfp_mode():
 		return
 	
 	var avatar_data = load_avatar_config(config_path)
+	print(\"avatar_data: \",avatar_data)
 	if avatar_data == null:
 		print(\"Error: Failed to load avatar config\")
 		get_tree().quit(1)
 		return
 	
-	setup_pfp_scene(avatar_data)
+	await setup_pfp_scene(avatar_data)
 	
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -61,7 +62,8 @@ func load_avatar_config(path: String) -> Dictionary:
 		return {}
 
 func setup_pfp_scene(avatar_data: Dictionary):
-	$CharacterBody3D.changeColors(avatar_data)
+	print(avatar_data)
+	await $CharacterBody3D.changeColors(avatar_data)
 
 func capture_screenshot(output_path: String) -> void:
 	print(\"awaiting for renderingServer\")
@@ -91,13 +93,13 @@ func get_arg_value(arg_name: String) -> String:
 "
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_s52yx"]
-size = Vector3(10.2351, 0.200195, 6.54126)
+size = Vector3(10.2351, 0.200195, 7.96643)
 
 [node name="AvatarRendering" type="Node3D"]
 script = SubResource("GDScript_mssls")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95137, -0.399902, -0.934937)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.95137, -0.399902, -0.222352)
 shape = SubResource("BoxShape3D_s52yx")
 
 [node name="CharacterBody3D" parent="." instance=ExtResource("1_mssls")]
@@ -105,6 +107,7 @@ transform = Transform3D(1.2, 0, 0, 0, 1.2, 0, 0, 0, 1.2, -0.523991, 2.29687, -0.
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.999722, 0.00119297, -0.0235666, 0, 0.998721, 0.0505565, 0.0235968, -0.0505424, 0.998443, -0.559953, 5.53911, 3.04994)
+fov = 88.7
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 

@@ -51,14 +51,17 @@ func _activated():
 					bodies.erase(i)
 			return bodies
 		
+		if !Global.isClient:
+			holder.rpc("syncToolAnim","BatHit")
+		
 		var index = 0
 		var bodies = getBodies.call()
 		while bodies.size() == 0:
 			index += 1
 			bodies = getBodies.call()
-			if index == 10:
+			if index == 5:
 				break
-			await Global.wait(.1)
+			await get_tree().process_frame
 		if bodies.size() != 0:
 			var hitSnd = Sound.new()
 			hitSnd.stream = sound
@@ -67,7 +70,6 @@ func _activated():
 			hitSnd.play()
 		
 		if !Global.isClient:
-			holder.rpc("syncToolAnim","BatHit")
 			await get_tree().process_frame
 			for body in bodies:
 				if body and body.is_in_group("plr"):

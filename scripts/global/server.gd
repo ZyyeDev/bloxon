@@ -3,7 +3,7 @@ extends Node
 var http: HTTPRequest
 var peer: ENetMultiplayerPeer
 var uid: String = ""
-var port: int = 5001 
+var port: int = 9000
 var maxPlayers: int = 8
 var heartbeat_timer: Timer
 var server_running: bool = false
@@ -55,12 +55,14 @@ func _ready():
 		add_child(http)
 		http.request_completed.connect(_on_request_completed)
 		
+		print("creating ENetMutliplayerPeer thing")
 		peer = ENetMultiplayerPeer.new()
 		var ok = peer.create_server(port, maxPlayers)
 		if ok != OK:
 			print("Failed to create server on port ", port, " Error: ", ok)
 			get_tree().quit()
 			return
+		print("done!!")
 		
 		get_tree().get_multiplayer().multiplayer_peer = peer
 		get_tree().get_multiplayer().peer_connected.connect(_on_peer_connected)
@@ -87,15 +89,27 @@ func _ready():
 		startPlayerDataMonitor()
 
 func parseArgs():
+	print("reading args")
 	var args = OS.get_cmdline_args()
+	
 	if args.find("--server") != -1:
 		args.remove_at(args.find("--server"))
+	
+	print("args ",args)
+	
 	var i = 0
 	while i < args.size():
 		var a = args[i]
+		
 		if a == "--uid" and i + 1 < args.size():
 			uid = args[i + 1]
 			i += 1
+		
+		elif a == "--port" and i + 1 < args.size():
+			port = int(args[i + 1])
+			i += 1
+		
+		i += 1
 
 func get_external_ip():
 	var addresses = IP.get_local_addresses()
@@ -234,8 +248,12 @@ func register_client_account(user_id, token):
 		print("Assigned house ", house_id, " with spawn at ", spawn_pos)
 	
 	if PlayerManager:
-		var new_player = await PlayerManager.create_player_for_peer(sender_id, spawn_pos, avatar_data)
-		if not new_player:
+		var new_player:player = await PlayerManager.create_player_for_peer(sender_id, spawn_pos, avatar_data)
+		if new_player:
+			new_player.user_id = user_id
+			var pdata = await Client.getPlayerDataById(user_id,token)
+			new_player.username = pdata.get("data",{}).get("username","NIL")
+		else:
 			print("ERROR: Failed to create player for peer ", sender_id)
 			pending_registrations.erase(sender_id)
 			return
@@ -560,7 +578,9 @@ func loadPlayerData(user_id: int, peer_id: int):
 			for i in data["house_data"]["brainrots"].duplicate(true):
 				var newData = data["house_data"]["brainrots"][i].duplicate(true)
 				if int(round(last_save)) > 0:
-					newData["money"] = max(newData.get("money", 0)*clamp(int(int(round(Time.get_unix_time_from_system()-last_save/2))),0,100000),0)
+					var elapsed = clamp(Time.get_unix_time_from_system() - last_save, 0, 100000)
+					var income_rate = newData.get("money_per_second", 1)
+					newData["money"] = newData.get("money", 0) + elapsed * income_rate
 				saved_brainrots[i] = newData
 			var house_node = Global.getHouse(house_id)
 			
@@ -926,3 +946,32 @@ func _check_messages():
 			_handle_global_message(msg)
 		
 		last_checked_message_id = result.data.latest_id
+
+func moderation(text:String) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"text": text
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.timeout = 2
+	httpRequest.request(Global.masterIp + "/moderation", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	}

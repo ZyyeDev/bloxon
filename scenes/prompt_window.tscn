@@ -1,0 +1,89 @@
+[gd_scene load_steps=7 format=3 uid="uid://c1y4vp2xxhbxq"]
+
+[ext_resource type="Script" uid="uid://cr2y5cmicxacr" path="res://scripts/prompt_window.gd" id="1_8by2s"]
+[ext_resource type="AudioStream" uid="uid://bwrtx4d21q0u" path="res://assets/sounds/UI/OverlayOpen.wav" id="2_r5rne"]
+[ext_resource type="AudioStream" uid="uid://vwx7j0muuk3a" path="res://assets/sounds/UI/ButtonPress.wav" id="3_kk5lk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r5rne"]
+bg_color = Color(0, 0, 0, 0.592157)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4wfs"]
+bg_color = Color(0.147672, 0.147672, 0.147672, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r5rne"]
+
+[node name="PromptWindow" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_r5rne")
+script = ExtResource("1_8by2s")
+
+[node name="BG" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -228.5
+offset_top = -128.0
+offset_right = 228.5
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_y4wfs")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="BG"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 19.0
+offset_top = 11.0
+offset_right = -15.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Do you want to log out?"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BG"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -227.5
+offset_top = -45.0
+offset_right = 229.5
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="Confirm" type="Button" parent="BG/HBoxContainer"]
+custom_minimum_size = Vector2(210, 45)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_r5rne")
+text = "Yes"
+
+[node name="Cancel" type="Button" parent="BG/HBoxContainer"]
+custom_minimum_size = Vector2(210, 45)
+layout_mode = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_r5rne")
+text = "No"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_r5rne")
+
+[node name="pressed" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_kk5lk")
+
+[connection signal="pressed" from="BG/HBoxContainer/Confirm" to="." method="_on_confirm_pressed"]
+[connection signal="pressed" from="BG/HBoxContainer/Cancel" to="." method="_on_cancel_pressed"]

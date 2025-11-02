@@ -11,11 +11,12 @@ config_version=5
 [application]
 
 config/name="Steal An Italian Brainrot"
+config/version="v0.0.1"
 run/main_scene="uid://cvrksydjwh6d5"
 config/features=PackedStringArray("4.4", "Forward Plus")
 boot_splash/bg_color=Color(0.0936694, 0.0936694, 0.0936693, 1)
 boot_splash/show_image=false
-config/icon="uid://dhn2xdg68sda7"
+config/icon="uid://crddmlx5minkm"
 
 [autoload]
 

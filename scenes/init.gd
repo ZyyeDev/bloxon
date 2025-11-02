@@ -37,15 +37,16 @@ func _ready():
 		return
 	oldScene = $scene
 	infoLabel.text = "Preloading assets..."
-	## here
-	for path in assetsPreload:
-		infoLabel.text = "Loading: %s..." % path
-		await get_tree().process_frame 
-		var res = load(path)
-		if res:
-			print("Preloaded: ", path)
-		else:
-			push_warning("Failed to load: " + path)
+	## preload thing, disabled because it wasnt that useful
+	if false:
+		for path in assetsPreload:
+			infoLabel.text = "Loading: %s..." % path
+			await get_tree().process_frame 
+			var res = load(path)
+			if res:
+				print("Preloaded: ", path)
+			else:
+				push_warning("Failed to load: " + path)
 	infoLabel.text = "Connecting to server..."
 	if LocalData.fileExists("data.dat"):
 		var data = LocalData.loadData("data.dat")

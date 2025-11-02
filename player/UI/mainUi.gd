@@ -109,6 +109,7 @@ func updateRebirth():
 				if !toolGot:
 					push_error("GetToolById is returning null! ItemId: ",itemId, " toolGot: ",toolGot)
 				print("toolGot ",toolGot)
+				if !toolGot: return
 				var tool_data = ToolController.toolData[toolGot]
 				var toolName = ToolController.getToolById(itemId)
 				thing.iconSprite.texture = await ToolController.createTextureFrom3D(toolName)

@@ -283,7 +283,7 @@ func _process(delta: float) -> void:
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ouet7"]
 
-[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "JumpButton")]
+[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "joystick", "JumpButton")]
 z_index = 100
 layout_mode = 3
 anchors_preset = 15
@@ -301,6 +301,7 @@ chatContainer = NodePath("Game/Chat")
 chatScrollContainer = NodePath("Game/Chat/ScrollContainer")
 chatVBContainer = NodePath("Game/Chat/ScrollContainer/VBoxContainer")
 chatLineEdit = NodePath("Game/Chat/LineEdit")
+joystick = NodePath("Game/Virtual joystick left")
 JumpButton = NodePath("Game/JumpButton")
 
 [node name="Game" type="Control" parent="."]
@@ -637,7 +638,6 @@ texture = ExtResource("2_4msbc")
 script = SubResource("GDScript_d5h3d")
 
 [node name="Back" type="Button" parent="connectGui"]
-visible = false
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -661,21 +661,18 @@ position = Vector2(584, 986)
 scale = Vector2(2.304, 1.72933)
 texture = ExtResource("6_4igou")
 
-[node name="bottomMsgsContainer" type="VBoxContainer" parent="."]
+[node name="Announcements" type="VBoxContainer" parent="."]
 z_index = 495
 custom_minimum_size = Vector2(463, 68)
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = 291.0
-offset_top = 503.0
-offset_right = 879.0
-offset_bottom = 598.0
+offset_left = -309.0
+offset_top = 40.0
+offset_right = 314.0
+offset_bottom = 135.0
 grow_horizontal = 2
-grow_vertical = 2
 
 [connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
 [connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
