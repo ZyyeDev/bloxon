@@ -109,6 +109,15 @@ func _on_money_timer_timeout() -> void:
 	if Global.isClient:
 		return
 	
+	if plrAssigned == "":
+		return
+	
+	if get_parent().has_node("Server"):
+		var server = get_parent().get_node("Server")
+		if str(plrAssigned) not in server.uidToUserId:
+			print("House ", id, ": Player ", plrAssigned, " not connected, stopping money generation")
+			return
+	
 	var money_updated = false
 	var updated_brainrots = brainrots.duplicate(true)
 	
@@ -124,7 +133,7 @@ func _on_money_timer_timeout() -> void:
 		brainrots = updated_brainrots
 		if id in Global.houses:
 			Global.houses[id]["brainrots"] = updated_brainrots
-		rpc("syncMoney", updated_brainrots) 
+		rpc("syncMoney", updated_brainrots)
 
 @rpc("authority", "call_remote", "reliable")
 func syncMoney(updated_brainrots_data):

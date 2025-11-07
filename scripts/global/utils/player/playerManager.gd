@@ -31,10 +31,20 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	if Global.isClient:
 		if UID == Global.UID and not isLocal:
 			return
+		
+		if isLocal and UID in players:
+			print("Local player already exists, removing old instance")
+			if players[UID]:
+				players[UID].queue_free()
+			players.erase(UID)
 	
 	if UID in players:
-		print("Player ", UID, " already exists, skipping creation")
-		return players[UID]
+		if is_instance_valid(players[UID]) and players[UID].is_inside_tree():
+			print("Player ", UID, " already exists, skipping creation")
+			return players[UID]
+		else:
+			print("Player ", UID, " exists but invalid, removing")
+			players.erase(UID)
 	
 	if UID in players_being_created:
 		print("Player ", UID, " is already being created, waiting...")
@@ -61,6 +71,9 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	playerClone.name = str(UID)
 	
 	if isLocal:
+		if localplayer and is_instance_valid(localplayer):
+			print("Removing old local player")
+			localplayer.queue_free()
 		localplayer = playerClone
 	
 	players[UID] = playerClone
@@ -92,11 +105,14 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 func removePlayer(UID):
 	print_rich("[color=red] Removing player: ", UID, "[/color]")
 	if UID in players:
-		if players[UID]:
+		if players[UID] and is_instance_valid(players[UID]):
 			players[UID].queue_free()
 		players.erase(UID)
 	players_being_created.erase(UID)
 	pending_avatar_data.erase(UID)
+	
+	if Global.isClient and str(UID) in Global.allPlayers:
+		Global.allPlayers.erase(str(UID))
 
 @rpc("any_peer", "call_remote", "unreliable")
 func updatePlayerPosition(UID, position: Vector3, rotation: Vector3, velocity: Vector3, is_grounded: bool, anim_name: String, anim_speed: float):

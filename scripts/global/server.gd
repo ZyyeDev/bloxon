@@ -302,9 +302,24 @@ func _on_peer_disconnected(id):
 		
 		print("Saving data for user_id: ", user_id)
 		await savePlayerData(user_id)
+		
+		var house_id = playerData[user_id].get("house_id")
+		if house_id and house_id in Global.houses:
+			print("Clearing house ", house_id, " for disconnected player ", id)
+			Global.houses[house_id]["plr"] = ""
+			var house_node = Global.getHouse(house_id)
+			if house_node:
+				house_node.plrAssigned = ""
+				house_node.locked = false
+				if house_node.has_node("Timer") and house_node.get_node("Timer").time_left > 0:
+					house_node.get_node("Timer").stop()
+			Global.rpc("client_house_assigned", house_id, "")
+			print("House ", house_id, " freed and broadcasted")
+		
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)
 		Global.allPlayers.erase(str(id))
+		Global.avatarData.erase(str(id))
 		broadcastAllPlayers()
 		
 		if connectedPlayers.size() == 0:
@@ -314,15 +329,6 @@ func _on_peer_disconnected(id):
 				print("Still no players, shutting down now")
 				await cleanup_server()
 				get_tree().quit()
-	
-	for house_id in Global.houses:
-		if Global.houses[house_id]["plr"] == str(id):
-			Global.houses[house_id]["plr"] = ""
-			var house_node = Global.getHouse(house_id)
-			if house_node:
-				house_node.plrAssigned = ""
-			Global.rpc("client_house_assigned", house_id, "")
-			break
 	
 	if str(id) in PlayerManager.players:
 		PlayerManager.removePlayer(str(id))

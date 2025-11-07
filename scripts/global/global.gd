@@ -289,16 +289,33 @@ func assignHouse(playerUID):
 		for house_id in houses:
 			if houses[house_id]["plr"] == "" or houses[house_id]["plr"] == playerUID:
 				if houses[house_id]["plr"] == playerUID:
-					print("Player ", playerUID, " already has house ", house_id)
-					return house_id
+					print("WARNING: Player ", playerUID, " trying to get house ", house_id, " but already assigned!")
+					
+					var is_actually_connected = false
+					if get_parent().has_node("Server"):
+						var server = get_parent().get_node("Server")
+						if str(playerUID) in server.uidToUserId:
+							is_actually_connected = true
+					
+					if not is_actually_connected:
+						print("Player not actually connected, reassigning house ", house_id)
+						houses[house_id]["plr"] = ""
+						var house_node = getHouse(house_id)
+						if house_node:
+							house_node.plrAssigned = ""
+							house_node.locked = false
+					else:
+						return house_id
 				
-				houses[house_id]["plr"] = playerUID
-				var house_node = getHouse(house_id)
-				if house_node:
-					house_node.plrAssigned = playerUID
-				print("Assigned house ", house_id, " to player ", playerUID)
-				rpc("client_house_assigned", house_id, playerUID)
-				return house_id
+				if houses[house_id]["plr"] == "":
+					houses[house_id]["plr"] = playerUID
+					var house_node = getHouse(house_id)
+					if house_node:
+						house_node.plrAssigned = playerUID
+						house_node.locked = false
+					print("Assigned house ", house_id, " to player ", playerUID)
+					rpc("client_house_assigned", house_id, playerUID)
+					return house_id
 		print("No available houses for player ", playerUID)
 		return null
 
