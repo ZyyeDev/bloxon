@@ -81,13 +81,18 @@ func showConnect(text:String):
 
 func hideConnect():
 	if not connectGui: return
+	updateGraphics()
+	updateVolume()
 	gameGui.visible = true
 	connectGui.visible = false
 
 func _on_back_pressed() -> void:
 	hideConnect()
-	await Client.http.cancel_request()
+	Client.http.cancel_request()
 	await Client.disconnect_from_server()
+	if Client.peer:
+		Client.peer.close()
+		Client.peer = null
 	get_tree().change_scene_to_file("res://scenes/INIT.tscn")
 	
 	var snd = AudioStreamPlayer.new()
@@ -112,6 +117,7 @@ func _on_resume_pressed() -> void:
 	hideEscape()
 
 func _on_leave_pressed() -> void:
+	Global.saveLocal()
 	hideEscape()
 	Client.disconnect_from_server()
 
@@ -238,7 +244,7 @@ func set_master_volume(percent: float):
 
 func _on_audio_bar_changed(new_value) -> void: 
 	Global.volume = new_value
-	set_master_volume(float((new_value+1)*10))
+	updateVolume()
 	var snd = AudioStreamPlayer.new()
 	snd.stream = load("res://assets/sounds/UI/volume_slider.ogg")
 	snd.volume_db = -10
@@ -247,15 +253,22 @@ func _on_audio_bar_changed(new_value) -> void:
 	Debris.addItem(snd,snd.stream.get_length())
 
 func _on_graphics_bar_changed(new_value: Variant) -> void:
-	Global.graphics = new_value
 	new_value += 1
+	Global.graphics = new_value
+	updateGraphics()
+
+func updateGraphics():
 	var viewport = get_viewport()
-	if new_value >= 5:
+	if Global.graphics >= 5:
 		viewport.msaa_3d = Viewport.MSAA_2X
 		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_FXAA)
 	else:
 		viewport.msaa_3d = Viewport.MSAA_DISABLED
 		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_DISABLED)
+
+func updateVolume():
+	print("updateVolume ",Global.volume)
+	set_master_volume(float((Global.volume+1)*10))
 
 func addAnnouncement(text:String,duration:float):
 	var textL = load("res://scenes/announcement.tscn").instantiate()

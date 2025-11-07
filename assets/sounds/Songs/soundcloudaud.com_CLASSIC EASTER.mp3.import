@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cl52bpi0wkj34"
+path="res://.godot/imported/soundcloudaud.com_CLASSIC EASTER.mp3-9bcc38ce372550bab9367ba9ef82b4c6.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/Songs/soundcloudaud.com_CLASSIC EASTER.mp3"
+dest_files=["res://.godot/imported/soundcloudaud.com_CLASSIC EASTER.mp3-9bcc38ce372550bab9367ba9ef82b4c6.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

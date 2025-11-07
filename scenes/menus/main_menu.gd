@@ -58,7 +58,12 @@ var invUpdateFuncs = []
 
 var friendServerId = ""
 
+var previewCharacterNode = null
+
+var cachedTextures = {}
+
 func _ready() -> void:
+	print("getPaymentHistory ",await Client.getPaymentHistory(Global.token))
 	var updateCurrencyTimer = Timer.new()
 	updateCurrencyTimer.wait_time = 2.5
 	updateCurrencyTimer.timeout.connect(updateCurrency)
@@ -67,10 +72,16 @@ func _ready() -> void:
 	
 	$Control/AvatarPage/SubViewport/AnimationPlayer.play("idle")
 	
+	CoreGui.updateGraphics()
+	CoreGui.updateVolume()
+	
+	if Client.peer:
+		Client.peer.close()
+		Client.peer = null
+	
 	_on_home_page_button_pressed()
 	updateUsername()
 	Client.serverlist_update.connect(_on_serverlist_update)
-	#Global.getAllServers()
 	selfPfp.texture = await Client.getPlayerPfpTexture(Global.user_id,Global.token)
 	updateSmallFriends()
 	updateCurrency()
@@ -80,6 +91,8 @@ func _ready() -> void:
 			currentLimbEditing = i.name
 			avatarColorPicker.color = Global.avatarData["bodyColors"][currentLimbEditing.to_lower().replace(" ","_")]
 			)
+	
+	previewCharacterNode = $Control/AvatarPage/SubViewport/Node3D
 
 func _process(delta: float) -> void:
 	if currentLimbEditing != "":
@@ -155,7 +168,7 @@ func _on_serverlist_update():
 		serverListContainter.add_child(server)
 
 func _on_update_servers_timeout() -> void:
-	pass#Global.getAllServers()
+	pass
 
 func hideAllPages():
 	homePage.visible = false
@@ -207,10 +220,10 @@ func _on_avatar_page_button_pressed() -> void:
 func _on_profile_page_button_pressed() -> void:
 	hideAllPages()
 	profilePage.visible = true
+	loadCharacterAvatar(currentProfileID, previewCharacterNode)
 	var pData = await Client.getPlayerDataById(currentProfileID,Global.token)
 	pData = pData.get("data",{})
 	
-	#HACK: godot keeps making all ints into floats, just keep it like that
 	isFriend = pData.get("friends",{}).has(float(Global.user_id)) 
 	var addfriendBtnText = "Add Friend"
 	if isFriend:
@@ -404,6 +417,8 @@ func updateMarketplace():
 	updateMarketplaceInProgress = true
 	avatarLoadingSpinner.visible = true
 	
+	var loading = createLoadingSpinner()
+	
 	for i in marketplaceContainer.get_children():
 		i.queue_free()
 		
@@ -416,28 +431,44 @@ func updateMarketplace():
 	if marketData.is_empty():
 		updateMarketplaceInProgress = false
 		return
-		
+	
+	var all_items = []
 	for myData in marketData:
-		var thr = Thread.new()
-		thr.start(func():
-			var id = int(myData["id"])
-			var Name = myData["name"]
-			var type = myData["type"]
-			var price = myData["price"]
-			var downloadUrl = myData["downloadUrl"]
-			var iconUrl = myData["iconUrl"]
-			var createdAt = myData["createdAt"]
-			var equipSlot = myData["equipSlot"]
-			
-			var tex = await Client.loadTextureFromUrl(iconUrl)
+		var id = int(myData["id"])
+		var Name = myData["name"]
+		var type = myData["type"]
+		var price = myData["price"]
+		var downloadUrl = myData["downloadUrl"]
+		var iconUrl = myData["iconUrl"]
+		var createdAt = myData["createdAt"]
+		var equipSlot = myData["equipSlot"]
+		
+		print("checking cached ",downloadUrl)
+		
+		if !Client.alrCached(downloadUrl):
+			print("not cached")
 			Client.downloadAccessoryModel(downloadUrl, id)
-			
-			call_deferred("add_market_item", myData, tex)
-		)
+		
+		all_items.append({"data":myData, "tex": iconUrl})
+		
+		#add_market_item(myData, tex)
+	
+	for i in all_items:
+		add_market_item(i["data"], i["tex"])
+	
+	loading.queue_free()
+	
 	updateMarketplaceInProgress = false
 
-func add_market_item(myData, tex):
+func add_market_item(myData, iconUrl):
 	var shopInst = load("res://scenes/menus/shop_item.tscn").instantiate()
+	var tex = null
+	
+	if cachedTextures.has(iconUrl):
+		tex = cachedTextures[iconUrl]
+	else:
+		tex = await Client.loadTextureFromUrl(iconUrl)
+		cachedTextures[iconUrl] = tex
 	shopInst.spriteTexture = tex
 	shopInst.itemName = myData["name"]
 	shopInst.Cost = myData["price"]
@@ -548,44 +579,45 @@ func updateInventory():
 	if updateInventoryInProgress:
 		return
 	updateInventoryInProgress = true
-	Global.avatarData = await Client.getAvatar(Global.user_id, Global.token)
-	await getAvatar(false)
+	
 	avatarLoadingSpinner.visible = true
 	invUpdateFuncs.clear()
 	for i in inventoryContainer.get_children():
 		i.queue_free()
+	
+	updateAvatarInv()
+	
 	var req = await Client.getUserAccessories(Global.user_id, Global.token)
-	avatarLoadingSpinner.visible = false
 	var data = req.get("data", [])
-
+	
+	var all_inventory_items = []
 	for i in data:
 		var acReq = await Client.getAccessoryData(int(i))
 		var myData = acReq.get("data", {})
 		if myData.is_empty():
 			continue
-		var id = int(myData["id"])
-		var Name = myData["name"]
-		var type = myData["type"]
-		var price = myData["price"]
-		var downloadUrl = myData["downloadUrl"]
+		
 		var iconUrl = myData["iconUrl"]
-		var createdAt = myData["createdAt"]
-		var equipSlot = myData["equipSlot"]
-
-		var thr = Thread.new()
-		thr.start(func():
-			var tex = await Client.loadTextureFromUrl(iconUrl)
-			call_deferred("add_inventory_item", myData, tex)
-		)
+		all_inventory_items.append({"data": myData, "texture": iconUrl})
+	
+	avatarLoadingSpinner.visible = false
+	
+	for item in all_inventory_items:
+		add_inventory_item(item["data"], item["texture"])
+	
 	updateInventoryInProgress = false
 
+func updateAvatarInv():
+	Global.avatarData = await Client.getAvatar(Global.user_id, Global.token)
+	loadCharacterAvatar(Global.user_id, previewCharacterNode)
 
-func add_inventory_item(myData, tex):
+func add_inventory_item(myData, iconUrl):
 	var id = int(myData["id"])
 	var Name = myData["name"]
 	var price = myData["price"]
 
 	var shopInst = load("res://scenes/menus/shop_item.tscn").instantiate()
+	var tex = await Client.loadTextureFromUrl(iconUrl)
 	shopInst.spriteTexture = tex
 	invUpdateFuncs.append(func():
 		if Global.avatarData["accessories"].has(id):
@@ -605,33 +637,44 @@ func add_inventory_item(myData, tex):
 			newData["accessories"].append(float(id))
 		Global.avatarData = newData.duplicate(true)
 		Client.updateAvatar(Global.user_id, Global.avatarData, Global.token)
-		for v in currentAccessories:
-			if is_instance_valid(v):
-				v.queue_free()
-		currentAccessories.clear()
-		if didEquip:
-			var accMesh = await Client.addAccessoryToPlayer(id, $Control/AvatarPage/SubViewport/Node3D)
-			if accMesh:
-				currentAccessories.append(accMesh)
+		
+		loadCharacterAvatar(Global.user_id, previewCharacterNode)
 	)
 	inventoryContainer.add_child(shopInst)
 
-
-func createCurrencyPackages():
-	var packages = await Client.getCurrencyPackages()
-	# TODO
-
-func getAvatar(getAvatarFromServer:bool):
-	if getAvatarFromServer:
-		Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
+func clearCharacterAccessories(characterNode: Node3D):
 	for v in currentAccessories:
 		if is_instance_valid(v):
 			v.queue_free()
 	currentAccessories.clear()
-	for id in Global.avatarData["accessories"]:
-		var accMesh = await Client.addAccessoryToPlayer(id,$Control/AvatarPage/SubViewport/Node3D)
+
+func loadCharacterAvatar(userId: int, characterNode: Node3D):
+	clearCharacterAccessories(characterNode)
+	
+	var avatarData = await Client.getAvatar(userId, Global.token)
+	
+	if avatarData.has("bodyColors"):
+		$Control/AvatarPage/SubViewport.changeColors(avatarData)
+	
+	for id in avatarData.get("accessories", []):
+		var accMesh = await Client.addAccessoryToPlayer(id, characterNode)
 		if accMesh:
 			currentAccessories.append(accMesh)
+
+func previewCharacter(userId: int, characterNode: Node3D = null):
+	if characterNode == null:
+		characterNode = previewCharacterNode
+	
+	await loadCharacterAvatar(userId, characterNode)
+
+func createCurrencyPackages():
+	var packages = await Client.getCurrencyPackages()
+
+func getAvatar(getAvatarFromServer:bool):
+	if getAvatarFromServer:
+		Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
+	
+	await loadCharacterAvatar(Global.user_id, previewCharacterNode)
 
 func getOffers():
 	var data = await Client.getCurrencyPackages()
@@ -643,10 +686,12 @@ func getOffers():
 			var product_id = i["product_id"]
 			var amount = i["amount"]
 			var price_usd = i["price_usd"]
-			var currencyButton = load("res://scenes/menus/currency/currency_button_small.tscn").instantiate()
+			var currencyButton:Button = load("res://scenes/menus/currency/currency_button_small.tscn").instantiate()
 			currencyButton.blips = amount
 			currencyButton.cost = price_usd
 			currencyButton.z_index = amount
+			currencyButton.pressed.connect(func():
+				Client.buy(product_id))
 			CurrencyPurchase.get_node("GridContainer").add_child(currencyButton)
 
 func _on_change_username_pressed() -> void:
@@ -671,7 +716,6 @@ func _on_change_username_pressed() -> void:
 	usernameInput.confirm_pressed.connect(func(newUsername):
 		loadingSpinner = load("res://scenes/loading_spinner.tscn").instantiate()
 		add_child(loadingSpinner)
-		#var newUsername = usernameInput.text
 		usernameInput.queue_free()
 		print("newUsername ",newUsername)
 		var response = await Client.changeUsername(newUsername,Global.token)
@@ -687,3 +731,6 @@ func _on_change_username_pressed() -> void:
 			errorWindow.cancel_pressed.connect(func(): errorWindow.queue_free())
 		)
 	add_child(usernameInput)
+
+func _on_audio_bar_changed(new_value: Variant) -> void:
+	CoreGui._on_audio_bar_changed(new_value)

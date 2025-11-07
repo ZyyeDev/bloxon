@@ -684,14 +684,21 @@ func _process(_delta):
 			toolHoldingInst.queue_free()
 			toolHoldingInst = null
 		if toolHolding != -1:
-			if ToolController.getToolById(toolHolding):
-				var tool_data = ToolController.getToolById(toolHolding)
+			var tool_data = ToolController.getToolById(toolHolding)
+			if tool_data:
 				$animations/AnimationPlayer.play("ToolHold")
 				print("tool_data ",tool_data)
-				var inst = load("res://assets/Tools/"+tool_data.trim_suffix(".remap")+".tscn").instantiate()
-				$"Node3D/Right Arm/ToolPos".add_child(inst)
-				toolHoldingInst = inst
-				inst.holderUID = int(uid)
+				var tool_path = "res://assets/Tools/" + tool_data
+				if not tool_path.ends_with(".tscn"):
+					tool_path += ".tscn"
+				
+				if ResourceLoader.exists(tool_path):
+					var inst = load(tool_path).instantiate()
+					$"Node3D/Right Arm/ToolPos".add_child(inst)
+					toolHoldingInst = inst
+					inst.holderUID = str(uid)
+				else:
+					printerr("Tool scene not found: ", tool_path)
 			else:
 				printerr("tool holding does not exist: ",toolHolding)
 		else:

@@ -50,7 +50,7 @@ static func _get_mtl_tex(mtl_path: String) -> Dictionary[String, ImageTexture]:
 	var textures: Dictionary[String, ImageTexture] = {}
 	for k: String in file_paths:
 		var img: Image = _get_image(mtl_path, k)
-		if (img.is_empty()): continue
+		if (img == null || img.is_empty()): continue
 		textures[k] = ImageTexture.create_from_image(img)
 	return textures
 
@@ -61,6 +61,7 @@ static func _get_mtl_tex_paths(mtl_path: String) -> Array[String]:
 	var lines: PackedStringArray = file.get_as_text().split("\n", false)
 	for line: String in lines:
 		var parts: PackedStringArray = line.split(" ", false, 1)
+		if (parts.size() < 2): continue
 		if (!TEXTURE_KEYS.has(parts[0].to_lower())): continue
 		if (paths.has(parts[1])): continue
 		paths.append(parts[1])
@@ -85,6 +86,7 @@ static func _create_mtl(
 	var lines: PackedStringArray = obj.split("\n", false)
 	for line: String in lines:
 		var parts: PackedStringArray = line.split(" ", false)
+		if (parts.size() == 0): continue
 		match parts[0].to_lower():
 			"#":
 				if (!PRINT_COMMENTS): continue
@@ -98,7 +100,7 @@ static func _create_mtl(
 				current_material = StandardMaterial3D.new()
 				materials[mat_name] = current_material
 			"kd":
-				if (parts.size() < 4):
+				if (current_material == null || parts.size() < 4):
 					_debug_msg(["Invalid albedo/diffuse color"])
 					continue
 				current_material.albedo_color = Color(
@@ -107,24 +109,29 @@ static func _create_mtl(
 					parts[3].to_float()
 				)
 			"map_kd":
+				if (current_material == null): continue
 				var path: String = line.split(" ", false, 1)[1]
 				if (!textures.has(path)): continue
 				current_material.albedo_texture = textures[path]
 			"map_disp", "disp":
+				if (current_material == null): continue
 				var path: String = line.split(" ", false, 1)[1]
 				if (!textures.has(path)): continue
 				current_material.heightmap_enabled = true
 				current_material.heightmap_texture = textures[path]
 			"map_bump", "map_normal", "bump":
+				if (current_material == null): continue
 				var path: String = line.split(" ", false, 1)[1]
 				if (!textures.has(path)): continue
 				current_material.normal_enabled = true
 				current_material.normal_texture = textures[path]
 			"map_ao":
+				if (current_material == null): continue
 				var path: String = line.split(" ", false, 1)[1]
 				if (!textures.has(path)): continue
 				current_material.ao_texture = textures[path]
 			"map_ks":
+				if (current_material == null): continue
 				var path: String = line.split(" ", false, 1)[1]
 				if (!textures.has(path)): continue
 				current_material.roughness_texture = textures[path]
@@ -145,11 +152,16 @@ static func _get_image(mtl_filepath: String, tex_filename: String) -> Image:
 	_debug_msg(["Texture file path:", tex_filepath, "of type", file_type])
 	
 	var img: Image = Image.new()
-	img.load(tex_filepath)
+	var err = img.load(tex_filepath)
+	if err != OK:
+		_debug_msg(["Failed to load image:", tex_filepath, "Error:", err])
+		return null
 	return img
 
 static func _get_texture(mtl_filepath, tex_filename) -> ImageTexture:
-	var tex = ImageTexture.create_from_image(_get_image(mtl_filepath, tex_filename))
+	var img = _get_image(mtl_filepath, tex_filename)
+	if img == null: return null
+	var tex = ImageTexture.create_from_image(img)
 	_debug_msg(["Texture is", str(tex)])
 	return tex
 
@@ -160,9 +172,9 @@ static func _create_obj(
 	var mat_name: String = "_default"
 	if (!materials.has("_default")): materials["_default"] = StandardMaterial3D.new()
 	var mesh: ArrayMesh = ArrayMesh.new()
-	var vertices: PackedVector3Array = PackedVector3Array([Vector3.ZERO])
-	var normals: PackedVector3Array = PackedVector3Array([Vector3.ONE])
-	var uvs: PackedVector2Array = PackedVector2Array([Vector2.ZERO])
+	var vertices: PackedVector3Array = PackedVector3Array()
+	var normals: PackedVector3Array = PackedVector3Array()
+	var uvs: PackedVector2Array = PackedVector2Array()
 	var faces: Dictionary = {}
 	for mat_key: String in materials.keys(): faces[mat_key] = []
 	
@@ -177,16 +189,19 @@ static func _create_obj(
 			"v":
 				var line_remaining: String = line.substr(feature.length() + 1)
 				var parts: PackedFloat64Array = line_remaining.split_floats(" ")
+				if parts.size() < 3: continue
 				var n_v: Vector3 = Vector3(parts[0], parts[1], parts[2])
 				vertices.append(n_v)
 			"vn":
 				var line_remaining: String = line.substr(feature.length() + 1)
 				var parts: PackedFloat64Array = line_remaining.split_floats(" ")
+				if parts.size() < 3: continue
 				var n_vn: Vector3 = Vector3(parts[0], parts[1], parts[2])
 				normals.append(n_vn)
 			"vt":
 				var line_remaining: String = line.substr(feature.length() + 1)
 				var parts: PackedFloat64Array = line_remaining.split_floats(" ")
+				if parts.size() < 2: continue
 				var n_uv: Vector2 = Vector2(parts[0], 1 - parts[1])
 				uvs.append(n_uv)
 			"usemtl":
@@ -213,10 +228,19 @@ static func _create_obj(
 					continue
 				var face: ObjParseFace = ObjParseFace.new()
 				for cursor: int in def_count:
-					if (sectioned): cursor *= components_per
-					face.v.append(int(parts[cursor]))
-					face.vt.append(int(parts[cursor + 1]) if sectioned else 0)
-					face.vn.append(int(parts[cursor + 2]) if sectioned else 0)
+					var idx = cursor
+					if (sectioned): idx *= components_per
+					var v_idx = int(parts[idx]) - 1
+					var vt_idx = (int(parts[idx + 1]) - 1) if sectioned else -1
+					var vn_idx = (int(parts[idx + 2]) - 1) if sectioned else -1
+					
+					if v_idx < 0: v_idx = vertices.size() + v_idx + 1
+					if vt_idx < -1 && vt_idx != -1: vt_idx = uvs.size() + vt_idx + 1
+					if vn_idx < -1 && vn_idx != -1: vn_idx = normals.size() + vn_idx + 1
+					
+					face.v.append(v_idx)
+					face.vt.append(vt_idx)
+					face.vn.append(vn_idx)
 				if (def_count == 3):
 					faces[mat_name].append(face)
 					continue
@@ -239,6 +263,8 @@ static func _create_obj(
 		return mesh
 	
 	for mat_group: String in faces.keys():
+		if faces[mat_group].is_empty(): continue
+		
 		_debug_msg([
 			"Creating surface for material", mat_group,
 			"with", str(faces[mat_group].size()), "faces"
@@ -253,20 +279,25 @@ static func _create_obj(
 		
 		for face: ObjParseFace in faces[mat_group]:
 			var fan_v: PackedVector3Array = PackedVector3Array()
-			fan_v.append(vertices[face.v[0]])
-			fan_v.append(vertices[face.v[2]])
-			fan_v.append(vertices[face.v[1]])
 			var fan_vn: PackedVector3Array = PackedVector3Array()
-			fan_vn.append(normals[face.vn[0]])
-			fan_vn.append(normals[face.vn[2]])
-			fan_vn.append(normals[face.vn[1]])
 			var fan_vt: PackedVector2Array = PackedVector2Array()
+			
 			for k: int in [0, 2, 1]:
-				var f = face.vt[k]
-				if (f < 0 || f >= uvs.size()): continue
-				var uv: Vector2 = uvs[f]
-				fan_vt.append(uv)
-			st.add_triangle_fan(fan_v, fan_vt, PackedColorArray(), PackedVector2Array(), fan_vn, [])
+				if face.v[k] < 0 || face.v[k] >= vertices.size(): continue
+				fan_v.append(vertices[face.v[k]])
+				
+				if face.vn[k] >= 0 && face.vn[k] < normals.size():
+					fan_vn.append(normals[face.vn[k]])
+				else:
+					fan_vn.append(Vector3.UP)
+				
+				if face.vt[k] >= 0 && face.vt[k] < uvs.size():
+					fan_vt.append(uvs[face.vt[k]])
+				else:
+					fan_vt.append(Vector2.ZERO)
+			
+			if fan_v.size() == 3:
+				st.add_triangle_fan(fan_v, fan_vt, PackedColorArray(), PackedVector2Array(), fan_vn, [])
 		
 		mesh = st.commit(mesh)
 	

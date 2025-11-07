@@ -16,9 +16,10 @@ func _ready() -> void:
 		var fname = dir.get_next()
 		if fname == "": break
 		if fname == "ToolBase.tscn": continue
+		if not fname.ends_with(".tscn"): continue
 		
 		var path = "res://assets/Tools/"+fname
-		var loaded = load(path.trim_suffix(".remap"))
+		var loaded = load(path)
 		if not loaded: continue
 		var tempTool = loaded.instantiate()
 		tempTool.register = false
@@ -34,11 +35,11 @@ func _ready() -> void:
 			tip = toolTip,
 			canDrop = CanDrop
 		}
-		toolData[fname.replace(".tscn","").replace(".remaps","")] = data
+		toolData[fname.replace(".tscn","").replace(".remap","")] = data
 
 func createTextureFrom3D(loadedItem) -> Texture:
 	var path:String = "res://assets/Tools/"+loadedItem+".tscn"
-	var item = load(path.trim_suffix(".remap")).instantiate()
+	var item = load(path).instantiate()
 	
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(512, 512)
@@ -97,7 +98,6 @@ func getToolByName(_name):
 func getToolById(id):
 	for packed_scene in toolData:
 		var data = toolData[packed_scene]
-		print(data)
 		if int(data.id) == int(id):
 			return packed_scene
 	return null

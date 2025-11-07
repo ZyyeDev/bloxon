@@ -38,7 +38,6 @@ func _ready():
 					if plr:
 						plr.kick("Server shutting down for maintenance.")
 				await Global.wait(2)
-				#get_tree().quit()
 			)
 		add_child(maintenanceTimer)
 		
@@ -73,7 +72,6 @@ func _ready():
 		
 		await get_tree().process_frame
 		print("Registering server...")
-		#registerServer()
 		print("Starting heartbeat...")
 		startHeartbeat()
 		
@@ -87,6 +85,15 @@ func _ready():
 		)
 		saveTimer.start()
 		startPlayerDataMonitor()
+		
+		var allPlayersTimer = Timer.new()
+		add_child(allPlayersTimer)
+		allPlayersTimer.wait_time = 1.0
+		allPlayersTimer.autostart = true
+		allPlayersTimer.timeout.connect(func():
+			broadcastAllPlayers()
+		)
+		allPlayersTimer.start()
 
 func parseArgs():
 	print("reading args")
@@ -119,31 +126,6 @@ func get_external_ip():
 		elif not addr.begins_with("127.") and not addr.begins_with("169.254") and ":" not in addr:
 			return addr
 	return Global.noportIp
-
-#func registerServer():
-#	if !server_running:
-#		print("Server not running, skipping registration")
-#		return
-#		
-#	var url = Global.masterIp + "/register_server"
-#	var headers = ["Content-Type: application/json"]
-#	var server_ip = Global.noportIp
-#	print("Registering server with IP: ", server_ip)
-#	
-#	if uid == "": 
-#		uid = str(randi_range(1111,99999999999))
-#		print("Generated server UID: ", uid)
-#	
-#	var body = {"uid": uid, "ip": server_ip, "port": port, "max_players": maxPlayers}
-#	print("Registration payload: ", JSON.stringify(body))
-#	
-#	var register_http = HTTPRequest.new()
-#	add_child(register_http)
-#	register_http.request_completed.connect(_on_register_completed)
-#	var err = register_http.request(url, headers, HTTPClient.METHOD_POST, JSON.stringify(body))
-#	if err != OK:
-#		print("Failed to send registration request: ", err)
-#		register_http.queue_free()
 
 func _on_register_completed(result, code, headers, body):
 	var sender = get_children().back()
@@ -236,7 +218,12 @@ func register_client_account(user_id, token):
 		"last_activity": Time.get_unix_time_from_system()
 	}
 	
-	var avatar_data = Global.avatarData.get(str(sender_id), {})
+	var pdata = await Client.getPlayerDataById(user_id,token)
+	var username_str = pdata.get("data",{}).get("username","NIL")
+	
+	var avatar_data = {}
+	avatar_data = await Client.getAvatar(user_id, token)
+	Global.avatarData[str(sender_id)] = avatar_data
 	
 	var house_id = Global.assignHouse(str(sender_id))
 	var spawn_pos = Vector3.ZERO
@@ -251,8 +238,15 @@ func register_client_account(user_id, token):
 		var new_player:player = await PlayerManager.create_player_for_peer(sender_id, spawn_pos, avatar_data)
 		if new_player:
 			new_player.user_id = user_id
-			var pdata = await Client.getPlayerDataById(user_id,token)
-			new_player.username = pdata.get("data",{}).get("username","NIL")
+			new_player.username = username_str
+			
+			Global.allPlayers[str(sender_id)] = {
+				"username": username_str,
+				"user_id": user_id
+			}
+			
+			await get_tree().process_frame
+			broadcastAllPlayers()
 		else:
 			print("ERROR: Failed to create player for peer ", sender_id)
 			pending_registrations.erase(sender_id)
@@ -265,6 +259,20 @@ func register_client_account(user_id, token):
 	print("now loading player data")
 	await loadPlayerData(user_id, sender_id)
 	pending_registrations.erase(sender_id)
+
+func broadcastAllPlayers():
+	var players_data = {}
+	for peer_id in uidToUserId:
+		var user_id = uidToUserId[peer_id]
+		var plr = Global.getPlayer(peer_id)
+		if plr and plr.username:
+			players_data[peer_id] = {
+				"username": plr.username,
+				"user_id": user_id
+			}
+	
+	Global.allPlayers = players_data
+	Global.rpc("updateAllPlayers", players_data)
 
 func _on_peer_connected(id):
 	print("Peer connected: ", id)
@@ -296,6 +304,8 @@ func _on_peer_disconnected(id):
 		await savePlayerData(user_id)
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)
+		Global.allPlayers.erase(str(id))
+		broadcastAllPlayers()
 		
 		if connectedPlayers.size() == 0:
 			print("No players left, shutting down in 30 seconds...")
@@ -864,8 +874,6 @@ func client_heartbeat(client_uid: String):
 	if user_id:
 		updatePlayerActivity(user_id)
 
-## This is REALLY bad, ik!!!! I'm just trying to finish this fucking already im done with this
-## fucking shit
 var playerDataSnapshots = {}
 
 func startPlayerDataMonitor():
@@ -936,7 +944,7 @@ func _are_arrays_equal(arr1: Array, arr2: Array) -> bool:
 	return true
 
 func _handle_global_message(msg):
-	print(msg) ## TODO
+	print(msg)
 
 func _check_messages():
 	var result = await Client.getGlobalMessages(last_checked_message_id)

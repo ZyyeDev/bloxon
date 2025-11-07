@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://c5bpgg6ji8m2i"]
+[gd_scene load_steps=4 format=3 uid="uid://c5bpgg6ji8m2i"]
 
 [ext_resource type="Script" uid="uid://sx7ovehfmps7" path="res://scripts/UIs/currency_button_small.gd" id="1_rfew6"]
+[ext_resource type="AudioStream" uid="uid://vwx7j0muuk3a" path="res://assets/sounds/UI/ButtonPress.wav" id="2_iqd5y"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_23mai"]
 bg_color = Color(0.08, 0.12, 0.16, 0.9)
@@ -43,3 +44,8 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 30
 text = "$4.99"
 horizontal_alignment = 2
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_iqd5y")
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

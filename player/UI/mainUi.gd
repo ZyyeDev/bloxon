@@ -41,7 +41,6 @@ func _process(delta: float) -> void:
 		mainRebirthControl.visible = true
 		rebirthMaxLevel.visible = false
 	
-	##
 	var needMoney = 0
 	if !getMyRebirthData().is_empty():
 		for i in getMyRebirthData().get("need",[{}]):
@@ -52,18 +51,24 @@ func _process(delta: float) -> void:
 	progressBar.max_value = needMoney
 	progressBar.value = money
 	progressBarText.text = "$"+str(money)+" / $"+str(needMoney)
-	##
 	
 	if moneyLabel:
 		moneyLabel.text = "$" + str(Client.format_number(money))
 
-func createIndexBrainrots(): 
-	if true: return
+func createIndexBrainrots():
 	for i in indexPanel.get_node("GridContainer").get_children():
 		i.queue_free()
-	if Global.myPlrData == null: Global.myPlrData = {}
-	while !Global.myPlrData and Global.myPlrData.size() <= 0:
-		await Global.wait(1)
+	
+	if Global.myPlrData == null or Global.myPlrData.is_empty():
+		print("No player data yet, waiting...")
+		return
+	
+	if not Global.myPlrData.has("indexBrainrots"):
+		print("No indexBrainrots in player data")
+		return
+	
+	await get_tree().process_frame
+	
 	print("creating index things")
 	for i in Global.myPlrData["indexBrainrots"]:
 		print("index: ",i)
@@ -140,6 +145,8 @@ func addBottomMsg(msg: String, time: float):
 	var label = RichTextLabel.new()
 	
 	label.bbcode_enabled = true
+	
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	label.text = msg
 	

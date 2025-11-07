@@ -3,9 +3,13 @@
 .nomedia
 
 # Godot-specific ignores
+@BUILDS/
+android/
 .import/
 export.cfg
 export_credentials.cfg
+keystore.keystore
+user.keystore
 
 # Imported translations (automatically generated from CSV files)
 *.translation
@@ -15,22 +19,5 @@ export_credentials.cfg
 data_*/
 mono_crash.*.json
 
-# just train the model yourself, it is 100mb > so i cant upload it to github
-model.pkl
-
 __pycache__/
-@BUILDS/
-server.exe
-server.pck
-android/
-@SERVER/server_data/player_data.dat
-@SERVER/server_data/server.db
-@SERVER/server_data/server.db-wal
-@SERVER/moderation/model_vectorizer.pkl
-@SERVER/server.console.exe
-@SERVER/server_data/friend_requests.dat
-@SERVER/server_data/friends.dat
-@SERVER/server_data/server.db-shm
-/@SERVER
-@SERVER/server_data/friends.dat
-@SERVER/server_data/server.db-shm
+*.exe

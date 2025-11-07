@@ -1,12 +1,12 @@
 [gd_scene load_steps=12 format=3 uid="uid://d3826x21l2j3y"]
 
 [ext_resource type="Script" uid="uid://cdwn3qobt7xob" path="res://scripts/mainGame.gd" id="1_3pjqm"]
-[ext_resource type="AudioStream" uid="uid://cwbnefdcakavm" path="res://assets/sounds/Songs/Music.wav" id="2_b4od1"]
 [ext_resource type="Environment" uid="uid://swjxcwfoog07" path="res://scenes/mainGame.tres" id="2_gb8pf"]
 [ext_resource type="AudioStream" uid="uid://oax40nocvqi" path="res://assets/sounds/Songs/halloween/Spooky Scary Skeletons.ogg" id="3_mwwrp"]
 [ext_resource type="PackedScene" uid="uid://byubr8qbudcxe" path="res://Resources/house.tscn" id="4_gb8pf"]
 [ext_resource type="PackedScene" uid="uid://bc4wwer8xl54l" path="res://assets/models/3d/map/map.tscn" id="5_b4od1"]
 [ext_resource type="AudioStream" uid="uid://bwaj68p1j3hoh" path="res://assets/sounds/Songs/halloween/time.wav" id="5_owcan"]
+[ext_resource type="AudioStream" uid="uid://crpt5mpl0tq6b" path="res://assets/sounds/Songs/background music.wav" id="5_x7hqj"]
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_d5h3d"]
 
@@ -70,7 +70,7 @@ func _process(delta):
 [node name="MainGame" type="Node3D" node_paths=PackedStringArray("audio_player", "playersContainer")]
 script = ExtResource("1_3pjqm")
 audio_player = NodePath("AudioStreamPlayer")
-normalMusic = Array[AudioStream]([ExtResource("2_b4od1")])
+normalMusic = Array[AudioStream]([ExtResource("5_x7hqj")])
 halloweenMusic = Array[AudioStream]([ExtResource("3_mwwrp"), ExtResource("5_owcan")])
 playersContainer = NodePath("players")
 
@@ -78,8 +78,7 @@ playersContainer = NodePath("players")
 camera_attributes = SubResource("CameraAttributesPractical_d5h3d")
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_b4od1")
-volume_db = -11.415
+volume_db = -22.971
 script = SubResource("GDScript_b4od1")
 
 [node name="players" type="Node" parent="."]

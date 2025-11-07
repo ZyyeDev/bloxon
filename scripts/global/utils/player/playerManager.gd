@@ -6,7 +6,7 @@ var localplayer : player
 
 var players = {}
 var pending_avatar_data = {}
-var players_being_created = {}  # Track players currently being created
+var players_being_created = {}
 
 func _ready():
 	if !Global.isClient:
@@ -36,7 +36,6 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 		print("Player ", UID, " already exists, skipping creation")
 		return players[UID]
 	
-	# Check if already being created
 	if UID in players_being_created:
 		print("Player ", UID, " is already being created, waiting...")
 		var wait_count = 0
@@ -67,17 +66,8 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	players[UID] = playerClone
 	playersContainer.add_child(playerClone)
 	
-	## run in another thread cuz it took a lot of time to get this or smth (like 1 or 2 secs, even more tho!)
-	call_deferred("avatarData",avatar_data,playerClone,UID)
-	 
-	playerClone.init()
+	await get_tree().process_frame
 	
-	players_being_created.erase(UID)
-	print("Player ", UID, " successfully created and added to tree")
-	
-	return playerClone
-
-func avatarData(avatar_data,playerClone,UID):
 	if not avatar_data.is_empty():
 		playerClone.changeColors(avatar_data)
 	else:
@@ -90,6 +80,13 @@ func avatarData(avatar_data,playerClone,UID):
 				if !Global.isClient:
 					players[UID].rpc("changeColors", avatarData)
 			pending_avatar_data.erase(UID)
+	 
+	playerClone.init()
+	
+	players_being_created.erase(UID)
+	print("Player ", UID, " successfully created and added to tree")
+	
+	return playerClone
 
 @rpc("authority", "call_remote", "reliable")
 func removePlayer(UID):
@@ -115,8 +112,6 @@ func _on_peer_connected(id):
 	if !Global.isClient:
 		print("PlayerManager: Peer connected: ", id)
 		
-		# Don't create player here - let Server.register_client_account handle it
-		# Just prepare for avatar data fetching
 		await get_tree().process_frame
 		
 		var user_id = int(get_user_id_for_uid(str(id)))
@@ -126,18 +121,17 @@ func _on_peer_connected(id):
 			avatar_data = await Client.getAvatar(user_id, Global.token)
 			Global.avatarData[str(id)] = avatar_data
 		
-		# Sync existing players to the new peer
 		for existing_uid in players:
 			var existing_player = players[existing_uid]
 			if existing_player and is_instance_valid(existing_player):
 				var existing_user_id = int(get_user_id_for_uid(existing_uid))
-				var existing_avatar = {}
-				if existing_user_id > 0:
+				var existing_avatar = Global.avatarData.get(existing_uid, {})
+				if existing_avatar.is_empty() and existing_user_id > 0:
 					existing_avatar = await Client.getAvatar(existing_user_id, Global.token)
+					Global.avatarData[existing_uid] = existing_avatar
 				rpc_id(id, "createPlayer", existing_uid, existing_player.global_position, false, existing_avatar)
 
 func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dictionary = {}):
-	"""Called by Server after registration to create the player"""
 	if Global.isClient:
 		return null
 	
@@ -154,10 +148,10 @@ func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dicti
 				new_player.rebirthsVal.Value = saved_rebirths
 			print("Set new player stats - Money: $", saved_money, " Rebirths: ", saved_rebirths)
 		
-		# Tell the client to create their local player
+		await get_tree().process_frame
+		
 		rpc_id(peer_id, "createPlayer", str(peer_id), spawn_pos, true, avatar_data)
 		
-		# Tell all other peers about the new player
 		for other_peer_id in get_tree().get_multiplayer().get_peers():
 			if other_peer_id != peer_id:
 				rpc_id(other_peer_id, "createPlayer", str(peer_id), spawn_pos, false, avatar_data)

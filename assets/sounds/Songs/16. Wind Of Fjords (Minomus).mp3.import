@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://tnhvsfvo5cee"
+path="res://.godot/imported/16. Wind Of Fjords (Minomus).mp3-40f664c53451547a8428807389bff0ee.mp3str"
+
+[deps]
+
+source_file="res://assets/sounds/Songs/16. Wind Of Fjords (Minomus).mp3"
+dest_files=["res://.godot/imported/16. Wind Of Fjords (Minomus).mp3-40f664c53451547a8428807389bff0ee.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

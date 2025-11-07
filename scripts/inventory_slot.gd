@@ -8,10 +8,16 @@ extends Button
 
 var oldItemId = -1
 
+var actualInv = null
+
 func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 
 func _process(delta: float) -> void:
+	if itemId == -1:
+		visible = false
+	else:
+		visible = true
 	if itemId != oldItemId:
 		oldItemId = itemId
 		if itemId == -1:

@@ -13,6 +13,8 @@ var graphics = 9
 
 var currentInventory = {}
 
+var allPlayers = {}
+
 var brainrotTypes = [
 	"noobini pizzanini",  
 	"lirilì larilà",
@@ -58,10 +60,6 @@ var rebirths = {
 				"what": 3,
 				"type": "tool",
 			},
-			#{
-			#	"what": "Bee Launcher",
-			#	"type": "tool"
-			#},
 		]
 	},
 	2: {
@@ -138,10 +136,6 @@ var rebirths = {
 				"what": "Diamond Slap",
 				"type": "tool"
 			},
-			#{
-			#	"what": "Taser Gun",
-			#	"type": "tool"
-			#}
 		]
 	},
 }
@@ -185,6 +179,7 @@ var currentInvSelect = -1
 var myPlrData = {}
 
 signal myPlrDataUpdate
+signal allPlayersUpdate
 
 var ERROR_CODES = {
 	MAINTENANCE = 49,
@@ -253,6 +248,8 @@ func saveLocal():
 		"user_id": user_id,
 		"token": token,
 		"username": username,
+		"volume" : volume,
+		"graphics": graphics,
 	}
 	LocalData.saveData("data.dat",data)
 
@@ -590,7 +587,7 @@ func errorMessage(
 		box.leavePressed.connect(leavePressed)
 		box.leavePressed.connect(func():
 			var snd = AudioStreamPlayer.new()
-			snd.stream = load("uid://vwx7j0muuk3a") ## ButtonPress.wav
+			snd.stream = load("uid://vwx7j0muuk3a")
 			snd.volume_db = -12.5
 			add_child(snd)
 			snd.play()
@@ -604,13 +601,10 @@ func getAllServers():
 	var json_string = JSON.stringify(json_data)
 	var headers = ["Content-Type: application/json"]
 	
-	#print("Updating servers...")
-	
 	var sHttp = HTTPRequest.new()
 	add_child(sHttp)
 	sHttp.request_completed.connect(func(result, code, headers, body):
 		var response_text = body.get_string_from_utf8()
-		#print("Response code: ", code, " Body: ", response_text)
 		
 		if code != 200:
 			print("Failed to get server info, code: ", code)
@@ -682,7 +676,6 @@ func collectMoney(pUID, index):
 				var plr = getPlayer(pUID)
 				if plr:
 					plr.moneyValue.Value += money_collected
-					#print("Player ", pUID, " collected $", money_collected, " - New total: $", plr.moneyValue.Value)
 					
 					phouse.brainrots = updated_brainrots
 					houses[phouse_data.id]["brainrots"] = updated_brainrots
@@ -767,22 +760,22 @@ func sendChatMessage(message: String, senderUID: String, senderToken: String):
 				return
 			
 			var plr = getPlayer(senderUID)
-			if plr:
-				pass
+			if not plr:
+				print("Chat message rejected: Player not found")
+				return
 			
 			if get_parent().has_node("Server"):
 				var server = get_parent().get_node("Server")
 				var moderated = await server.moderation(message)
-				var data = moderated#.get("data",{})
+				var data = moderated
 				print("moderated ",moderated)
 				print(data)
 				
-				## MODERATION SHIT ##
-				if not data.is_empty(): # and moderated.get("success",false):
+				if not data.is_empty():
 					var flagged = false
 					for v in data:
 						var howMuch = data[v]
-						if float(howMuch) > .6: # I think .6 is enough
+						if float(howMuch) > .6:
 							flagged = true
 					if flagged:
 						var msgLength =  message.length()
@@ -808,10 +801,12 @@ func sendChatMessage(message: String, senderUID: String, senderToken: String):
 func receiveChatMessage(message: String, senderUID: String):
 	if isClient:
 		var player = getPlayer(senderUID)
-		var username = "Player"
-		if player:
+		var username = "Unknown"
+		if player and player.username:
 			username = player.username
 			player.addBubbleBox(message)
+		elif senderUID in allPlayers:
+			username = allPlayers[senderUID].get("username", "Unknown")
 		
 		CoreGui.addChatMessage(username, message)
 		
@@ -828,7 +823,18 @@ func changeHoldingItem(invId, itemId, myId, mytoken):
 			if user_id and server.playerData.has(user_id):
 				var player_inventory = server.playerData[user_id].get("inventory", {})
 				
-				if invId >= -1 and invId < 9:
+				if invId == -1:
+					server.playerData[user_id]["holdingItem"] = -1
+					rpc("syncHoldingItem", str(sender), -1, -1)
+					syncHoldingItem(str(sender), -1, -1)
+					
+					var plr = getPlayer(str(sender))
+					if plr:
+						plr.toolHolding = -1
+						plr.currentSlot = -1
+					return
+				
+				if invId >= 0 and invId < 9:
 					var slot_item_id = player_inventory.get(invId, -1)
 					
 					if slot_item_id == itemId or itemId == -1:
@@ -1053,6 +1059,11 @@ func server_give_item(pUID: String, itemId: int, quantity: int = 1):
 func updateMyPlrData(npdata):
 	myPlrDataUpdate.emit()
 	myPlrData = npdata
+
+@rpc("authority", "call_remote", "reliable")
+func updateAllPlayers(players_data):
+	allPlayers = players_data
+	allPlayersUpdate.emit()
 
 @rpc("authority", "call_remote", "reliable")
 func register_sound(path_to_node: NodePath, stream_sound_path: String, volume: float, playing: bool, position: Vector3):

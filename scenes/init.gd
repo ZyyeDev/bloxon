@@ -50,8 +50,12 @@ func _ready():
 	infoLabel.text = "Connecting to server..."
 	if LocalData.fileExists("data.dat"):
 		var data = LocalData.loadData("data.dat")
-		Global.user_id = data["user_id"]
-		Global.token = data["token"]
+		Global.user_id = data.get("user_id", -1)
+		Global.token = data.get("token", "")
+		Global.volume = data.get("volume", 9)
+		Global.graphics = data.get("graphics", 9)
+		CoreGui.updateVolume()
+		CoreGui.updateGraphics()
 		print(data)
 	checkAuth()
 

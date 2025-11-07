@@ -1,4 +1,4 @@
-[gd_scene load_steps=82 format=4 uid="uid://bku4uu237na02"]
+[gd_scene load_steps=83 format=4 uid="uid://bku4uu237na02"]
 
 [ext_resource type="Script" uid="uid://c46h1hory72we" path="res://scenes/menus/main_menu.gd" id="1_rb2ri"]
 [ext_resource type="Texture2D" uid="uid://bl52d4jl405ix" path="res://assets/images/UI/Menu/icon_home.png" id="3_5grun"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://d3eyqugtbhvmg" path="res://assets/images/UI/Menu/cogVector.png" id="5_xxwsn"]
 [ext_resource type="PackedScene" uid="uid://cpl6mmwxarbov" path="res://scenes/menus/addFriendsButton.tscn" id="6_5grun"]
 [ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="6_bemoo"]
+[ext_resource type="PackedScene" uid="uid://c68wutjgvpa1s" path="res://scenes/slider_bar.tscn" id="7_lgdhf"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="7_wxjkf"]
 [ext_resource type="Texture2D" uid="uid://dxmct6paew4e6" path="res://assets/models/player/parts/Rig1_diff.png" id="8_2yjtc"]
 [ext_resource type="PackedScene" uid="uid://c5bpgg6ji8m2i" path="res://scenes/menus/currency/currency_button_small.tscn" id="8_xxwsn"]
@@ -882,6 +883,29 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_nwx3a")
 theme_override_styles/normal = SubResource("StyleBoxFlat_lj2uh")
 text = "Change username"
 
+[node name="SEPARATION" type="Label" parent="Control/ConfigPage/VBoxContainer"]
+layout_mode = 2
+text = "    "
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioLabel" type="Label" parent="Control/ConfigPage/VBoxContainer"]
+layout_mode = 2
+text = "Audio Volume"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioBar" parent="Control/ConfigPage/VBoxContainer" instance=ExtResource("7_lgdhf")]
+layout_mode = 2
+alignment = 1
+canBeZero = true
+
+[node name="SEPARATION2" type="Label" parent="Control/ConfigPage/VBoxContainer"]
+layout_mode = 2
+text = "    "
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="LogOut" type="Button" parent="Control/ConfigPage/VBoxContainer"]
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
@@ -1259,6 +1283,11 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "Report User"
 
+[node name="AvatarViewport2" type="Sprite2D" parent="Control/ProfilePage"]
+position = Vector2(779, 392)
+scale = Vector2(0.832031, 0.832031)
+texture = SubResource("ViewportTexture_2yjtc")
+
 [node name="FriendsPage" type="Panel" parent="Control"]
 visible = false
 layout_mode = 1
@@ -1533,6 +1562,7 @@ autostart = true
 [connection signal="Pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall/AddFriends" to="." method="_on_addFriends_pressed"]
 [connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/Join Game" to="." method="_on_join_game_pressed"]
 [connection signal="pressed" from="Control/ConfigPage/VBoxContainer/HBoxContainer/ChangeUsername" to="." method="_on_change_username_pressed"]
+[connection signal="changed" from="Control/ConfigPage/VBoxContainer/AudioBar" to="." method="_on_audio_bar_changed"]
 [connection signal="pressed" from="Control/ConfigPage/VBoxContainer/LogOut" to="." method="_on_log_out_pressed"]
 [connection signal="color_changed" from="Control/AvatarPage/AvatarEditor/AvatarColors/ColorPicker" to="." method="_on_color_picker_color_changed"]
 [connection signal="pressed" from="Control/AvatarPage/AvatarEditor/AvatarColors/ApplyAvatar" to="." method="_on_apply_avatar_pressed"]

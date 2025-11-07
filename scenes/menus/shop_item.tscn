@@ -1,7 +1,7 @@
 [gd_scene load_steps=17 format=3 uid="uid://di8uhww6hxht0"]
 
-[ext_resource type="Texture2D" uid="uid://dhn2xdg68sda7" path="res://icon.svg" id="1_6pj7h"]
 [ext_resource type="Script" uid="uid://cwey6s7uflpa" path="res://scripts/shop_item.gd" id="1_gaggj"]
+[ext_resource type="Texture2D" uid="uid://bwi50liih46v3" path="res://assets/images/fallbackPfp.png" id="2_gaggj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuba"]
 bg_color = Color(0.224304, 0.224304, 0.224304, 1)
@@ -125,8 +125,8 @@ sprite2d = NodePath("Sprite2D")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(65, 48)
-scale = Vector2(0.71875, 0.71875)
-texture = ExtResource("1_6pj7h")
+scale = Vector2(0.092, 0.092)
+texture = ExtResource("2_gaggj")
 script = SubResource("GDScript_l2vun")
 targetSize = Vector2(92, 92)
 

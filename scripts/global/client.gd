@@ -16,6 +16,7 @@ var payment
 var recent_product_id
 var recent_purchase_type
 var purchased_products_ids = []
+var queried_product_details = {}
 
 var ws: WebSocketPeer
 var message_callbacks = []
@@ -31,6 +32,8 @@ signal server_disconnected
 signal kicked_from_server
 signal serverlist_update
 signal bought_product(product_id: String)
+signal purchase_completed(success: bool, product_id: String, message: String)
+signal purchase_failed(error_message: String)
 
 func _ready():
 	var args = OS.get_cmdline_args()
@@ -42,6 +45,100 @@ func _ready():
 		add_child(http)
 		http.request_completed.connect(_on_request_completed)
 		Client.subscribeToGlobalMessages(_on_global_message)
+		
+		if OS.get_name() == "Android":
+			_setup_payment_system()
+
+func _setup_payment_system():
+	if Engine.has_singleton("GodotGooglePlayBilling"):
+		payment = Engine.get_singleton("GodotGooglePlayBilling")
+		
+		payment.connected.connect(_on_payment_connected)
+		payment.disconnected.connect(_on_payment_disconnected)
+		payment.connect_error.connect(_on_payment_connect_error)
+		payment.purchases_updated.connect(_on_purchases_updated)
+		payment.query_purchases_response.connect(_on_query_purchases_response)
+		payment.purchase_error.connect(_on_purchase_error)
+		payment.product_details_query_completed.connect(_on_product_details_query_completed)
+		payment.product_details_query_error.connect(_on_product_details_query_error)
+		
+		payment.startConnection()
+	else:
+		print("Google Play Billing plugin not available")
+		paymentConnected = false
+
+func _on_payment_connected():
+	print("Billing connected!")
+	paymentConnected = true
+	payment.queryPurchasesAsync("inapp")
+
+func _on_payment_disconnected():
+	print("Billing disconnected")
+	paymentConnected = false
+
+func _on_payment_connect_error(error_code: int, error_message: String):
+	printerr("BILLING CONNECTION ERROR: ", error_message, " (", error_code, ")")
+	paymentConnected = false
+	purchase_failed.emit("Failed to connect to payment system: " + error_message)
+
+func _on_product_details_query_completed(products: Array):
+	print("Product details query completed: ", products)
+	for product in products:
+		var product_id = product.get("productId", "")
+		if product_id != "":
+			queried_product_details[product_id] = product
+
+func _on_product_details_query_error(error_code: int, error_message: String, product_ids: Array):
+	printerr("Product details query error: ", error_message, " (", error_code, ")")
+	purchase_failed.emit("Failed to query product details: " + error_message)
+
+func _on_purchases_updated(purchases: Array):
+	print("Purchases updated: ", purchases)
+	for purchase in purchases:
+		if purchase.purchase_state == 1:
+			var product_id = purchase.products[0]
+			if product_id not in purchased_products_ids:
+				_verify_and_consume_purchase(purchase)
+
+func _on_query_purchases_response(query_result: Dictionary):
+	print("Query purchases response: ", query_result)
+	var status = query_result.get("status", -1)
+	var response_code = query_result.get("response_code", -1)
+	
+	if status == OK and response_code == 0:
+		var purchases = query_result.get("purchases", [])
+		for purchase in purchases:
+			if purchase.purchase_state == 1:
+				var product_id = purchase.products[0]
+				if product_id not in purchased_products_ids:
+					_verify_and_consume_purchase(purchase)
+
+func _on_purchase_error(error_code: int, error_message: String):
+	printerr("Purchase error: ", error_message, " (", error_code, ")")
+	purchase_failed.emit(error_message)
+
+func _verify_and_consume_purchase(purchase: Dictionary):
+	var product_id = purchase.products[0]
+	var purchase_token = purchase.purchase_token
+	
+	print("Verifying purchase: ", product_id)
+	
+	var result = await processPurchase(Global.token, product_id, purchase_token)
+	
+	if result.get("success", false):
+		purchased_products_ids.append(product_id)
+		
+		if payment and paymentConnected:
+			payment.consumePurchase(purchase_token)
+		
+		var currency_granted = result.get("data", {}).get("currency_granted", 0)
+		print("Purchase verified and consumed! Currency granted: ", currency_granted)
+		bought_product.emit(product_id)
+		purchase_completed.emit(true, product_id, "Purchase successful! Granted " + str(currency_granted) + " currency")
+	else:
+		var error_msg = result.get("error", {}).get("message", "Unknown error")
+		printerr("Failed to verify purchase: ", error_msg)
+		purchase_failed.emit(error_msg)
 
 func _on_global_message(message: Dictionary):
 	var msg_type = message.get("type")
@@ -68,8 +165,6 @@ func _on_global_message(message: Dictionary):
 
 func requestServer():
 	CoreGui.showConnect("Searching for servers...")
-	## so uhm this is just to show the game is actually reserving a server so people wont leave
-	## it is actually reserving/searching server, but this thing is just not necessary at all
 	var thread = Thread.new()
 	thread.start(func():
 		await Global.wait(randi_range(1,4))
@@ -134,12 +229,20 @@ func _on_request_completed(result, code, headers, body):
 	if data.has("ip") and data["ip"] != null and data.has("uid"):
 		data["port"] = int(data["port"])
 		print("Connecting to server: ", data["ip"], ":", data["port"])
-		## show ip in debug mode, for production we dont want that!
-		#CoreGui.showConnect("Connecting to " + data["ip"] + ":" + str(data["port"]))
 		CoreGui.showConnect("Connecting to server...")
 		await get_tree().create_timer(2.0).timeout
 		connectToServer(data["ip"], int(data["port"]))
 		startHeartbeat()
+	else:
+		Global.errorMessage(
+			"Server error",
+			Global.ERROR_CODES.CORRUPTED_FILES,
+			"Disconnected",
+			"Leave",
+			func():
+				CoreGui.hideConnect()
+				get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+		)
 
 func connectToServerID(serverId: String):
 	CoreGui.showConnect("Connecting to server...")
@@ -346,7 +449,6 @@ func getPlayerPfpById(userId: int, token: String) -> String:
 
 func getCurrency(userId: int, token: String) -> int:
 	var playerData = await getPlayerDataById(userId, token)
-	#print("playerData ",playerData)
 	if playerData.has("success") and playerData.success:
 		var data = playerData.get("data", {})
 		return data.get("currency", 0)
@@ -620,7 +722,6 @@ func getAccessoryData(accessoryId: int) -> Dictionary:
 	add_child(httpRequest)
 	
 	var requestData = {
-		#"token": token,
 		"accessoryId": accessoryId
 	}
 	
@@ -628,6 +729,30 @@ func getAccessoryData(accessoryId: int) -> Dictionary:
 	var jsonString = JSON.stringify(requestData)
 	
 	httpRequest.request(Global.masterIp + "/avatar/get_accessory", headers, HTTPClient.METHOD_POST, jsonString)
+	
+	var response = await httpRequest.request_completed
+	httpRequest.queue_free()
+	
+	if response[1] == 200:
+		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		return jsonResponse if jsonResponse != null else {}
+	
+	return {}
+
+# TODO: it should auto connect if backend respondes with a correct code
+func joinFriend(friendId:int) -> Dictionary:
+	var httpRequest = HTTPRequest.new()
+	add_child(httpRequest)
+	
+	var requestData = {
+		"token": Global.token,
+		"friendId":friendId
+	}
+	
+	var headers = ["Content-Type: application/json"]
+	var jsonString = JSON.stringify(requestData)
+	
+	httpRequest.request(Global.masterIp + "/friend/joinFriendServer", headers, HTTPClient.METHOD_POST, jsonString)
 	
 	var response = await httpRequest.request_completed
 	httpRequest.queue_free()
@@ -732,6 +857,18 @@ func buyAccessory(itemId: int, token: String) -> Dictionary:
 		}
 	}
 
+func alrCached(downloadUrl: String):
+	var cacheDir = "user://cache/accessories/"
+	var fileName = downloadUrl.get_file()
+	var cachePath = cacheDir + fileName
+	if not DirAccess.dir_exists_absolute(cacheDir):
+		return false
+	
+	if FileAccess.file_exists(cachePath):
+		return true
+	else:
+		return false
+
 func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> Dictionary:
 	var cacheDir = "user://cache/accessories/"
 	var fileName = downloadUrl.get_file()
@@ -757,7 +894,6 @@ func downloadAccessoryModel(downloadUrl: String, accessoryId: int) -> Dictionary
 	
 	returnData["model"] = await downloadFile(downloadUrl,cachePath)
 	
-	## TODO: For now on the backend all accessories are .obj, but they wont be .obj forever!!!!!
 	if ".obj" in downloadUrl:
 		var textureDownload = downloadUrl.replace("_model.obj","_texture.png")
 		returnData["texture"] = await downloadFile(textureDownload,cachePath.replace("_model.obj","_texture.png"))
@@ -1036,7 +1172,9 @@ func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
 	var type = myData["type"]
 	var price = myData["price"]
 	var downloadUrl = myData["downloadUrl"]
-	var textureUrl = myData["textureUrl"]
+	var textureUrl = ""
+	if myData.has("textureUrl"):
+		textureUrl = myData["textureUrl"]
 	var iconUrl = myData["iconUrl"]
 	var createdAt = myData["createdAt"]
 	var equipSlot = myData["equipSlot"]
@@ -1106,7 +1244,6 @@ func verifyCaptcha(captcha_id: String, answer: int) -> Dictionary:
 		"message": "Request failed"
 	}
 
-## This should be the normal register function, also change on server backend for release!!!
 func registerWithCaptcha(username: String, password: String, gender: String, captcha_id: String, captcha_answer: int) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
@@ -1180,7 +1317,6 @@ func _poll_messages():
 					callback.call(message)
 	
 	elif state == WebSocketPeer.STATE_CLOSED:
-		#print("WS Message stream closed, reconnecting...")
 		await get_tree().create_timer(5.0).timeout
 		connectToMessageStream()
 		return
@@ -1346,21 +1482,12 @@ func getCurrencyPackages(justReturn:bool=false) -> Dictionary:
 			if !packData.is_empty():
 				for i in packData:
 					var product_id = i["product_id"]
-					var amount = i["amount"]
-					var price_usd = i["price_usd"]
 					products.append(product_id)
-				payment = BillingClient.new()
-				payment.connected.connect(func():
-					print("Billing connected! :3")
-					payment.query_product_details(products,BillingClient.ProductType.INAPP)
-					payment.query_purchases(BillingClient.ProductType.INAPP)
-					paymentConnected = true
-					)
-				payment.connect_error.connect(func():
-					printerr("BILLING CONNECTION ERROR!!")
-					paymentConnected = false
-					return {"error":"billing_connection"}
-					)
+				
+				if OS.get_name() == "Android" and payment and paymentConnected:
+					payment.queryProductDetails(products, "inapp")
+					await get_tree().create_timer(1.0).timeout
+					payment.queryPurchasesAsync("inapp")
 		return jsonResponse if jsonResponse != null else {}
 	
 	return {"error":"no_data"}
@@ -1387,10 +1514,28 @@ func getPaymentHistory(token: String) -> Dictionary:
 	
 	return {}
 
-#BUY FUNCTION (payment shit)
-func buy(product_id, purchase_type):
-	if !paymentConnected: return false
+func buy(product_id, purchase_type = ""):
+	if !paymentConnected or !payment:
+		purchase_failed.emit("Payment system not initialized")
+		return false
+	
+	if !queried_product_details.has(product_id):
+		print("Product details not loaded, attempting to reload...")
+		await getCurrencyPackages()
+		await get_tree().create_timer(2.0).timeout
+		
+		if !queried_product_details.has(product_id):
+			purchase_failed.emit("Product details not loaded. Please try again.")
+			return false
+	
 	recent_product_id = product_id
 	recent_purchase_type = purchase_type
-	payment.purchase(product_id) # This purchases the item
-###
+	
+	var product_details = queried_product_details[product_id]
+	var result = payment.purchase(product_details)
+	
+	if result.status != OK:
+		purchase_failed.emit("Failed to initiate purchase: " + str(result))
+		return false
+	
+	return true

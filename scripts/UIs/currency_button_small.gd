@@ -10,3 +10,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	$Blips.text = "𝔹 " + str(blips)
 	$Cost.text = currency + str(cost)
+
+func _on_pressed() -> void:
+	$AudioStreamPlayer.play()

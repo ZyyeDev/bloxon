@@ -396,6 +396,7 @@ offset_top = -49.0
 offset_right = 236.5
 grow_horizontal = 2
 grow_vertical = 0
+alignment = 1
 
 [node name="Button" parent="Game/Inventory" instance=ExtResource("8_8tb8h")]
 layout_mode = 2
