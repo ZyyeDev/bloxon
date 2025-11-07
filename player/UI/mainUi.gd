@@ -70,6 +70,8 @@ func createIndexBrainrots():
 	await get_tree().process_frame
 	
 	print("creating index things")
+	if !Global.myPlrData: return
+	if !Global.myPlrData.find_key("indexBrainrots"): return
 	for i in Global.myPlrData["indexBrainrots"]:
 		print("index: ",i)
 		var ins = load("res://scenes/indexThing.tscn").instantiate()
