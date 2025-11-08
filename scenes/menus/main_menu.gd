@@ -679,9 +679,11 @@ func getAvatar(getAvatarFromServer:bool):
 func getOffers():
 	var data = await Client.getCurrencyPackages()
 	var packData = data.get("data",{}).get("packages",[])
+	
 	if !packData.is_empty():
 		for v in CurrencyPurchase.get_node("GridContainer").get_children():
 			v.queue_free()
+		
 		for i in packData:
 			var product_id = i["product_id"]
 			var amount = i["amount"]
@@ -734,3 +736,23 @@ func _on_change_username_pressed() -> void:
 
 func _on_audio_bar_changed(new_value: Variant) -> void:
 	CoreGui._on_audio_bar_changed(new_value)
+
+func _on_history_button_pressed():
+	var history = await Client.getPaymentHistory(Global.token)
+	
+	if history.is_empty():
+		return
+	
+	var history_text = "Payment History:\n\n"
+	for payment in history:
+		var date = Time.get_datetime_string_from_unix_time(payment.created)
+		history_text += date + " - " + payment.product_id + "\n"
+		history_text += "Amount: $" + str(payment.amount / 100.0) + "\n"
+		history_text += "Currency: " + str(payment.currency_awarded) + "\n"
+		history_text += "Verified: " + ("Yes" if payment.verified else "No") + "\n\n"
+
+func _on_ad_button_small_pressed() -> void:
+	Client.show_rewarded_ad(func():
+		var ad_unit_id = "test"
+		var response = await Client.processAdReward(Global.token, "admob", ad_unit_id, 10)
+		print(response))

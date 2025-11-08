@@ -494,6 +494,8 @@ func server_try_grab(brUID, pUID):
 				var user_id = int(server.uidToUserId.get(pUID))
 				if user_id:
 					server.updatePlayerStatistic(user_id, "brainrots_grabbed", server.playerData[user_id].get("statistics", {}).get("brainrots_grabbed", 0) + 1)
+			
+			plr.rpc("syncMoney", plr.moneyValue.Value)
 		else:
 			if !plr:
 				print("Player not found for UID: ", pUID)
@@ -704,6 +706,8 @@ func collectMoney(pUID, index):
 						var user_id = int(server.uidToUserId.get(pUID))
 						if user_id:
 							server.updatePlayerActivity(user_id)
+					
+					plr.rpc("syncMoney", plr.moneyValue.Value)
 				else:
 					print("Player not found for UID: ", pUID)
 			break
@@ -899,16 +903,16 @@ func giveRebirthTools(pUID: String, rebirthLevel: int):
 			for i in 9:
 				new_inventory[i] = -1
 			
-			for i in range(tools.size()):
-				if i < 9:
-					new_inventory[i] = tools[i]
+			for i in range(min(tools.size(), 9)):
+				new_inventory[i] = tools[i]
 			
 			server.playerData[user_id]["inventory"] = new_inventory
 			
 			var player = getPlayer(pUID)
 			if player:
 				player.rpc("syncInventory", new_inventory)
-	
+				print("Gave rebirth tools to player ", pUID, ": ", new_inventory)
+
 @rpc("authority", "call_remote", "reliable")
 func syncHoldingItem(pUID: String, invId, itemId: int):
 	var plr = getPlayer(pUID)
@@ -972,10 +976,16 @@ func rebirth(token):
 		giveRebirthTools(str(sender), plr.rebirthsVal.Value)
 
 func getToolsForRebirth(rebirthLevel: int) -> Array:
-	if rebirthLevel == -1:
+	if rebirthLevel < 0:
 		return [1]
+	elif rebirthLevel == 0:
+		return [1]
+	elif rebirthLevel == 1:
+		return [1, 2, 3]
+	elif rebirthLevel == 2:
+		return [1, 2, 3, 4, 5, 6]
 	else:
-		return [2,3]
+		return [1, 2, 3, 4, 5, 6, 7]
 
 @rpc("any_peer")
 func trySteal(slot_name, plruid):

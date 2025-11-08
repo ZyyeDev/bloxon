@@ -12,11 +12,15 @@ var lastTimerheartbeatCompleted = null
 
 var paymentConnected = false
 
+var admob :Admob
+
 var payment
 var recent_product_id
 var recent_purchase_type
 var purchased_products_ids = []
 var queried_product_details = {}
+
+var admobInit = false
 
 var ws: WebSocketPeer
 var message_callbacks = []
@@ -46,76 +50,114 @@ func _ready():
 		http.request_completed.connect(_on_request_completed)
 		Client.subscribeToGlobalMessages(_on_global_message)
 		
-		if OS.get_name() == "Android":
+		if OS.has_feature("android"):
+			create_admob_thing()
 			_setup_payment_system()
+
+func create_admob_thing():
+	admob = Admob.new()
+	add_child(admob)
+	
+	admob.initialization_completed.connect(func():
+		admobInit = true
+	)
+	
+	admob.is_real = true
+	admob.real_application_id = "ca-app-pub-8077268692996357~4953087583"
+	admob.real_interstitial_id = "ca-app-pub-8077268692996357/2595776736"
+	admob.real_rewarded_interstitial_id = "ca-app-pub-8077268692996357/2546416093"
+	
+	admob.initialize()
+
+func show_interstitial():
+	if !admobInit: return
+	admob.load_interstitial_ad()
+	await admob.interstitial_ad_loaded
+	admob.show_interstitial_ad()
+
+func show_rewarded_ad(reward:Callable):
+	if !admobInit: return
+	admob.load_rewarded_ad()
+	admob.rewarded_ad_user_earned_reward.connect(reward)
+	await admob.rewarded_ad_loaded
+	admob.show_rewarded_ad()
 
 func _setup_payment_system():
 	if Engine.has_singleton("GodotGooglePlayBilling"):
+		print("Google Play Billing singleton found!!!")
 		payment = Engine.get_singleton("GodotGooglePlayBilling")
 		
+		if not payment:
+			print("ERROR: Failed to get GodotGooglePlayBilling singleton")
+			paymentConnected = false
+			return
+		
+		print("loading billing")
 		payment.connected.connect(_on_payment_connected)
 		payment.disconnected.connect(_on_payment_disconnected)
 		payment.connect_error.connect(_on_payment_connect_error)
-		payment.purchases_updated.connect(_on_purchases_updated)
 		payment.query_purchases_response.connect(_on_query_purchases_response)
-		payment.purchase_error.connect(_on_purchase_error)
-		payment.product_details_query_completed.connect(_on_product_details_query_completed)
-		payment.product_details_query_error.connect(_on_product_details_query_error)
+		payment.on_purchase_updated.connect(_on_purchase_updated)
+		payment.query_product_details_response.connect(_on_product_details_query_completed)
 		
+		print("starting billing")
 		payment.startConnection()
 	else:
 		print("Google Play Billing plugin not available")
 		paymentConnected = false
 
 func _on_payment_connected():
-	print("Billing connected!")
 	paymentConnected = true
-	payment.queryPurchasesAsync("inapp")
+	
+	var query_result = payment.queryPurchasesAsync("inapp")
 
 func _on_payment_disconnected():
 	print("Billing disconnected")
 	paymentConnected = false
 
 func _on_payment_connect_error(error_code: int, error_message: String):
-	printerr("BILLING CONNECTION ERROR: ", error_message, " (", error_code, ")")
+	printerr("BILLING CONNECTION ERROR: ", error_message, " (Code: ", error_code, ")")
 	paymentConnected = false
 	purchase_failed.emit("Failed to connect to payment system: " + error_message)
 
 func _on_product_details_query_completed(products: Array):
-	print("Product details query completed: ", products)
+	print("Product details query completed: ", products.size(), " products")
 	for product in products:
 		var product_id = product.get("productId", "")
 		if product_id != "":
 			queried_product_details[product_id] = product
+			print("Added product: ", product_id)
 
-func _on_product_details_query_error(error_code: int, error_message: String, product_ids: Array):
-	printerr("Product details query error: ", error_message, " (", error_code, ")")
-	purchase_failed.emit("Failed to query product details: " + error_message)
-
-func _on_purchases_updated(purchases: Array):
-	print("Purchases updated: ", purchases)
+func _on_purchase_updated(response: Dictionary):
+	var purchases = response.get("purchases", [])
+	print("Processing ", purchases.size(), " purchases")
 	for purchase in purchases:
 		if purchase.purchase_state == 1:
 			var product_id = purchase.products[0]
 			if product_id not in purchased_products_ids:
+				print("purchase detected")
 				_verify_and_consume_purchase(purchase)
+			else:
+				print("Purchase already processed")
 
 func _on_query_purchases_response(query_result: Dictionary):
 	print("Query purchases response: ", query_result)
 	var status = query_result.get("status", -1)
 	var response_code = query_result.get("response_code", -1)
 	
+	print("Status: ", status, " Response code: ", response_code)
+	
 	if status == OK and response_code == 0:
 		var purchases = query_result.get("purchases", [])
+		print("Found ", purchases.size(), " existing purchases")
 		for purchase in purchases:
 			if purchase.purchase_state == 1:
 				var product_id = purchase.products[0]
+				print("Unprocessed purchase found: ", product_id)
 				if product_id not in purchased_products_ids:
 					_verify_and_consume_purchase(purchase)
-
-func _on_purchase_error(error_code: int, error_message: String):
-	printerr("Purchase error: ", error_message, " (", error_code, ")")
-	purchase_failed.emit(error_message)
+	else:
+		print("Query failed or no purchases found")
 
 func _verify_and_consume_purchase(purchase: Dictionary):
 	var product_id = purchase.products[0]
@@ -1189,6 +1231,8 @@ func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
 	var mesh_instance = MeshInstance3D.new()
 	mesh_instance.mesh = mesh
 	var possibleLimbs = {}
+	if !is_instance_valid(charRef):
+		printerr("charRef is not valid!!!!")
 	for v in charRef.get_children():
 		possibleLimbs[v.name.to_lower()] = v
 	print(equipSlot.to_lower())
@@ -1429,7 +1473,7 @@ func processPurchase(token: String, product_id: String, purchase_token: String) 
 		}
 	}
 
-func processAdReward(token: String, ad_network: String, ad_unit_id: String, reward_amount: int, verification_data: Dictionary) -> Dictionary:
+func processAdReward(token: String, ad_network: String, ad_unit_id: String, reward_amount: int) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
@@ -1437,8 +1481,7 @@ func processAdReward(token: String, ad_network: String, ad_unit_id: String, rewa
 		"token": token,
 		"ad_network": ad_network,
 		"ad_unit_id": ad_unit_id,
-		"reward_amount": reward_amount,
-		"verification_data": verification_data
+		"reward_amount": reward_amount
 	}
 	
 	var headers = ["Content-Type: application/json"]

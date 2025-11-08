@@ -406,15 +406,15 @@ func savePlayerData(user_id: int):
 				"brainrots": serialized_brainrots
 			}
 			
-			print("  Saved brainrots with ", serialized_brainrots.size(), " slots")
+			print("Saved brainrots with ", serialized_brainrots.size(), " slots")
 			for slot_name in serialized_brainrots:
 				var slot = serialized_brainrots[slot_name]
 				if slot["brainrot"]["id"] != "":
-					print("    Slot ", slot_name, ": ", slot["brainrot"]["id"], " ($", slot["money"], ", gen: ", slot["brainrot"]["generate"], ")")
+					print("Slot ", slot_name, ": ", slot["brainrot"]["id"], " ($", slot["money"], ", gen: ", slot["brainrot"]["generate"], ")")
 		else:
-			print("  ERROR: House node not found for house_id: ", house_id)
+			print("ERROR: House node not found for house_id: ", house_id)
 	else:
-		print("  No house assigned or house_id not in houses")
+		print("No house assigned or house_id not in houses")
 	
 	current_data["last_save"] = Time.get_unix_time_from_system()
 	
@@ -432,9 +432,9 @@ func savePlayerData(user_id: int):
 	})
 	
 	var key = "brainrotsplayer_" + str(user_id)
-	print("  Calling SetAsync with key: ", key)
+	print("Calling SetAsync with key: ", key)
 	var success = await SetAsync(key, current_data)
-	print("  SetAsync result: ", success)
+	print("SetAsync result: ", success)
 	
 	if success:
 		print("Successfully saved data for user_id: ", user_id, " with money: $", current_data["money"])
@@ -521,7 +521,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 	var data = await GetAsync(key)
 	
 	var load_time = Time.get_ticks_msec() - load_start
-	print("  Data fetch took ", load_time, "ms")
+	print("Data fetch took ", load_time, "ms")
 	
 	var plr = Global.getPlayer(str(peer_id))
 	var wait_count = 0
@@ -530,14 +530,14 @@ func loadPlayerData(user_id: int, peer_id: int):
 		plr = Global.getPlayer(str(peer_id))
 		wait_count += 1
 		if wait_count % 10 == 0:
-			print("  Still waiting for player... (", wait_count, "/100)")
+			print("Still waiting for player... (", wait_count, "/100)")
 	
 	if not plr or not is_instance_valid(plr):
-		print("  ERROR: Player ", peer_id, " not found after waiting ", wait_count * 0.1, " seconds")
+		print("ERROR: Player ", peer_id, " not found after waiting ", wait_count * 0.1, " seconds")
 		return
 	
 	if not plr.is_inside_tree():
-		print("  ERROR: Player ", peer_id, " exists but not in tree!")
+		print("ERROR: Player ", peer_id, " exists but not in tree!")
 		return
 	
 	if data != null:
@@ -554,30 +554,32 @@ func loadPlayerData(user_id: int, peer_id: int):
 		data["money"] = loaded_money
 		
 		var inventory = createDefaultInventory()
-		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths-1)
+		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths)
 		
-		for i in range(tools_for_rebirth.size()):
-			if i < 9:
-				inventory[i] = tools_for_rebirth[i]
+		for i in range(min(tools_for_rebirth.size(), 9)):
+			inventory[i] = tools_for_rebirth[i]
 		
 		data["inventory"] = inventory
 		
 		playerData[user_id] = data.duplicate(true)
 		
-		print("  Loaded data for user_id: ", user_id)
-		print("  Money: $", loaded_money)
+		print("Loaded data for user_id: ", user_id)
+		print("Money: $", loaded_money)
+		print("Rebirths: ", loaded_rebirths)
+		print("Inventory: ", inventory)
 		
 		if plr.moneyValue:
 			plr.moneyValue.Value = loaded_money
-			print("  Set player money to: $", loaded_money)
+			print("Set player money to: $", loaded_money)
+			plr.rpc("syncMoney", loaded_money)
 		
 		if plr.rebirthsVal:
 			plr.rebirthsVal.Value = loaded_rebirths
-			print("  Set player rebirths to: ", loaded_rebirths)
+			print("Set player rebirths to: ", loaded_rebirths)
 		
 		if plr.has_method("rpc"):
 			plr.rpc("syncInventory", inventory)
-			print("  Synced inventory to player: ", inventory)
+			print("Synced inventory to player: ", inventory)
 		
 		var house_id = data.get("house_id")
 		
@@ -585,7 +587,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 		if current_house:
 			house_id = current_house.id
 			playerData[user_id]["house_id"] = house_id
-			print("  Player has house ", house_id)
+			print("Player has house ", house_id)
 		
 		await get_tree().create_timer(0.5).timeout
 		
@@ -601,7 +603,7 @@ func loadPlayerData(user_id: int, peer_id: int):
 			var house_node = Global.getHouse(house_id)
 			
 			if house_node:
-				print("  Loading brainrots into house ", house_id)
+				print("Loading brainrots into house ", house_id)
 				
 				for slot_name in saved_brainrots:
 					if house_node.brainrots.has(slot_name):
@@ -611,9 +613,9 @@ func loadPlayerData(user_id: int, peer_id: int):
 						
 						var brainrot_id = slot_data["brainrot"]["id"]
 						if brainrot_id != "":
-							print("    Slot ", slot_name, ": ", brainrot_id, " ($", slot_data["money"], ")")
+							print("Slot ", slot_name, ": ", brainrot_id, " ($", slot_data["money"], ")")
 					else:
-						printerr("  house node has no brainrots key ",slot_name)
+						printerr("house node has no brainrots key ",slot_name)
 				
 				Global.houses[house_id]["brainrots"] = house_node.brainrots.duplicate(true)
 				
@@ -621,12 +623,16 @@ func loadPlayerData(user_id: int, peer_id: int):
 					house_node.updateBrainrots(house_node.brainrots)
 					house_node.rpc("updateBrainrots", house_node.brainrots)
 				
-				print("  Brainrots loaded and synced")
+				print("Brainrots loaded and synced")
 			else:
-				print("  ERROR: House node not found for house_id: ", house_id)
+				print("ERROR: House node not found for house_id: ", house_id)
 	else:
-		print("  No saved data for user_id: ", user_id, ", creating new")
+		print("No saved data for user_id: ", user_id, ", creating new")
 		var new_inventory = createDefaultInventory()
+		var tools = Global.getToolsForRebirth(0)
+		
+		for i in range(min(tools.size(), 9)):
+			new_inventory[i] = tools[i]
 		
 		playerData[user_id] = {
 			"money": 100,
@@ -648,33 +654,21 @@ func loadPlayerData(user_id: int, peer_id: int):
 		
 		if plr.moneyValue:
 			plr.moneyValue.Value = 100
+			plr.rpc("syncMoney", 100)
 		
 		var current_house = Global.whatHousePlr(str(peer_id))
 		if current_house:
 			playerData[user_id]["house_id"] = current_house.id
-			print("  New player assigned to house ", current_house.id)
+			print("New player assigned to house ", current_house.id)
 		
 		if plr.has_method("rpc"):
 			plr.rpc("syncInventory", new_inventory)
-			print("  New player, gave bat and synced inventory: ", new_inventory)
+			print("New player, synced inventory: ", new_inventory)
 	
 	Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
 	
 	var total_time = Time.get_ticks_msec() - load_start
-	print("  Total load time: ", total_time, "ms")
-
-func saveAllPlayerData():
-	print("Saving all player data - ", playerData.size(), " players")
-	
-	for peer_id in uidToUserId:
-		var user_id = uidToUserId[peer_id]
-		var plr = Global.getPlayer(peer_id)
-		if plr and plr.moneyValue and user_id in playerData:
-			playerData[user_id]["money"] = plr.moneyValue.Value
-	
-	for user_id in playerData:
-		await savePlayerData(user_id)
-	print("All player data saved")
+	print("Total load time: ", total_time, "ms")
 
 func updatePlayerMoney(peer_uid: String, amount: int, modify = true):
 	var user_id = uidToUserId.get(peer_uid)
@@ -691,10 +685,26 @@ func updatePlayerMoney(peer_uid: String, amount: int, modify = true):
 		
 		var actual_peer_id = getUserPeerId(user_id)
 		
-		if actual_peer_id != -1 and modify:
+		if actual_peer_id != -1:
 			var plr = Global.getPlayer(str(actual_peer_id))
-			if plr and plr.moneyValue:
-				plr.moneyValue.Value = amount
+			if plr:
+				if modify and plr.moneyValue:
+					plr.moneyValue.Value = amount
+				plr.rpc("syncMoney", amount)
+				print("Synced money $", amount, " to peer ", actual_peer_id)
+
+func saveAllPlayerData():
+	print("Saving all player data - ", playerData.size(), " players")
+	
+	for peer_id in uidToUserId:
+		var user_id = uidToUserId[peer_id]
+		var plr = Global.getPlayer(peer_id)
+		if plr and plr.moneyValue and user_id in playerData:
+			playerData[user_id]["money"] = plr.moneyValue.Value
+	
+	for user_id in playerData:
+		await savePlayerData(user_id)
+	print("All player data saved")
 
 func getPlayerMoney(peer_uid: String) -> int:
 	var user_id = uidToUserId.get(peer_uid)

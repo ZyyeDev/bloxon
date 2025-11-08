@@ -34,6 +34,7 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 		
 		if isLocal and UID in players:
 			print("Local player already exists, removing old instance")
+			players_being_created.erase(UID)
 			if players[UID]:
 				players[UID].queue_free()
 			players.erase(UID)
@@ -45,16 +46,10 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 		else:
 			print("Player ", UID, " exists but invalid, removing")
 			players.erase(UID)
+			players_being_created.erase(UID)
 	
 	if UID in players_being_created:
-		print("Player ", UID, " is already being created, waiting...")
-		var wait_count = 0
-		while UID in players_being_created and wait_count < 50:
-			await get_tree().process_frame
-			wait_count += 1
-		if UID in players:
-			return players[UID]
-		print("WARNING: Player creation timeout for ", UID)
+		print("Player ", UID, " is already being created, returning null immediately")
 		return null
 	
 	players_being_created[UID] = true
@@ -81,6 +76,12 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	
 	await get_tree().process_frame
 	
+	if not is_instance_valid(playerClone):
+		print("ERROR: Player became invalid after adding to tree")
+		players_being_created.erase(UID)
+		players.erase(UID)
+		return null
+	
 	if not avatar_data.is_empty():
 		playerClone.changeColors(avatar_data)
 	else:
@@ -93,7 +94,7 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 				if !Global.isClient:
 					players[UID].rpc("changeColors", avatarData)
 			pending_avatar_data.erase(UID)
-	 
+	
 	playerClone.init()
 	
 	players_being_created.erase(UID)
@@ -190,7 +191,20 @@ func createLocalPlayer():
 		var my_id = get_tree().get_multiplayer().get_unique_id()
 		Global.UID = str(my_id)
 		await get_tree().process_frame
-		await createPlayer(str(my_id), Vector3.ZERO, true)
+		
+		var max_retries = 3
+		var retry_count = 0
+		var player = null
+		
+		while retry_count < max_retries and player == null:
+			player = await createPlayer(str(my_id), Vector3.ZERO, true)
+			if player == null:
+				retry_count += 1
+				print("Retry ", retry_count, " for local player creation")
+				await get_tree().create_timer(0.5).timeout
+		
+		if player == null:
+			print("CRITICAL: Failed to create local player after ", max_retries, " attempts")
 
 func get_user_id_for_uid(uid: String) -> int:
 	if Global.isClient:
