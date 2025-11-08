@@ -95,7 +95,8 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 					players[UID].rpc("changeColors", avatarData)
 			pending_avatar_data.erase(UID)
 	
-	playerClone.init()
+	if is_instance_valid(playerClone):
+		playerClone.init()
 	
 	players_being_created.erase(UID)
 	print("Player ", UID, " successfully created and added to tree")
