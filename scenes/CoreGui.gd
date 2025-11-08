@@ -15,7 +15,7 @@ class_name core_gui
 @export var chatLineEdit:LineEdit
 @export_subgroup("Mobile")
 @export var joystick:Control
-@export var JumpButton:Button
+@export var JumpButton:TouchScreenButton
 
 var paused = false
 var chatOpen = false
