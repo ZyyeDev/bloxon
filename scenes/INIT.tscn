@@ -227,6 +227,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.158931, 0, 1.73056)
 
 [node name="Admob" type="Node" parent="."]
 script = ExtResource("8_nqtka")
+is_real = true
 banner_position = 1
 debug_application_id = "ca-app-pub-3940256099942544~3347511713"
 debug_banner_id = "ca-app-pub-3940256099942544/9214589741"
