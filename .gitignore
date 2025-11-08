@@ -21,3 +21,4 @@ mono_crash.*.json
 
 __pycache__/
 *.exe
+export_presets.cfg
