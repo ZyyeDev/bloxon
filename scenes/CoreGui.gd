@@ -44,8 +44,6 @@ func _ready() -> void:
 	else:
 		print("DESTROYING COREGUI CUZ SERVER!")
 		queue_free()
-	
-	JumpButton.focus_mode = FOCUS_NONE
 
 func _process(delta: float) -> void:
 	if !Global.isClient: return
