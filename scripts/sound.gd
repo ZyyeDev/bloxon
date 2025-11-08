@@ -16,6 +16,8 @@ func _ready():
 		Global.rpc("register_sound", get_parent().get_path(),stream.resource_path,volume_db,playing,position)
 
 func _process(delta):
+	if !multiplayer: return
+	if !get_tree().get_multiplayer(): return
 	if multiplayer.is_server():
 		if playing != _last_playing:
 			_last_playing = playing
