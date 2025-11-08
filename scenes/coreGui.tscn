@@ -281,7 +281,7 @@ chatScrollContainer = NodePath("Game/Chat/ScrollContainer")
 chatVBContainer = NodePath("Game/Chat/ScrollContainer/VBoxContainer")
 chatLineEdit = NodePath("Game/Chat/LineEdit")
 joystick = NodePath("Game/Virtual joystick left")
-JumpButton = NodePath("Game/JumpButton")
+JumpButton = NodePath("Game/JumpButtonControl/JumpButton")
 
 [node name="Game" type="Control" parent="."]
 layout_mode = 1
@@ -323,12 +323,6 @@ position = Vector2(26, 27)
 scale = Vector2(0.726415, 0.726415)
 texture = ExtResource("3_ouet7")
 
-[node name="JumpButton" type="TouchScreenButton" parent="Game"]
-position = Vector2(961, 475)
-scale = Vector2(0.883562, 0.883562)
-texture_normal = ExtResource("4_itj3c")
-texture_pressed = ExtResource("5_cntf6")
-
 [node name="Virtual joystick left" parent="Game" instance=ExtResource("7_os41l")]
 layout_mode = 1
 offset_left = 73.0
@@ -340,6 +334,26 @@ action_left = "move_left"
 action_right = "move_right"
 action_up = "move_forward"
 action_down = "move_backwards"
+
+[node name="JumpButtonControl" type="Control" parent="Game"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="JumpButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
+position = Vector2(405, 171)
+scale = Vector2(0.883562, 0.883562)
+texture_normal = ExtResource("4_itj3c")
+texture_pressed = ExtResource("5_cntf6")
 
 [node name="Inventory" type="HBoxContainer" parent="Game"]
 layout_mode = 1
@@ -635,8 +649,8 @@ grow_horizontal = 2
 
 [connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
 [connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
-[connection signal="pressed" from="Game/JumpButton" to="." method="_on_jump_pressed"]
-[connection signal="released" from="Game/JumpButton" to="." method="_on_jump_button_button_up"]
+[connection signal="pressed" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_pressed"]
+[connection signal="released" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_button_button_up"]
 [connection signal="editing_toggled" from="Game/Chat/LineEdit" to="." method="_on_line_edit_editing_toggled"]
 [connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
 [connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]

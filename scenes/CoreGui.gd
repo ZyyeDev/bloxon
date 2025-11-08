@@ -175,7 +175,7 @@ func _on_jump_pressed() -> void:
 	JumpButton.icon = load("res://assets/images/UI/Mobile/jumpPressed.png")
 
 func _on_jump_button_button_up() -> void:
-	JumpButton.icon = load("res://assets/images/UI/Mobile/jump.png")
+	pass #JumpButton.icon = load("res://assets/images/UI/Mobile/jump.png")
 
 func updateInv():
 	var id = 0
