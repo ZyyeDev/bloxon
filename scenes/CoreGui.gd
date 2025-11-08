@@ -16,6 +16,7 @@ class_name core_gui
 @export_subgroup("Mobile")
 @export var joystick:Control
 @export var JumpButton:TouchScreenButton
+@export var interactButton:TouchScreenButton
 
 var paused = false
 var chatOpen = false
@@ -47,6 +48,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if !Global.isClient: return
+	if !is_instance_valid(Global.currentProximityPrompt):
+		Global.currentProximityPrompt = null
+	interactButton.visible = Global.currentProximityPrompt != null
 	if Global.localPlayer and Client.is_connected:
 		if Global.localPlayer.whoImStealing.Value == -1:
 			inventoryBox.visible = true
@@ -283,10 +287,10 @@ func addAnnouncement(text:String,duration:float):
 	$Announcements.add_child(textL)
 	Debris.addItem(textL,duration)
 
-
 func _on_interact_button_pressed() -> void:
-	pass # Replace with function body.
-
+	if Global.currentProximityPrompt:
+		Global.currentProximityPrompt._on_touch_start
 
 func _on_interact_button_released() -> void:
-	pass # Replace with function body.
+	if Global.currentProximityPrompt:
+		Global.currentProximityPrompt._on_touch_end

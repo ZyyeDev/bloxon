@@ -8,6 +8,8 @@ var user_id = 0
 var token = ""
 var username = ""
 
+var currentProximityPrompt = null
+
 var volume = 9
 var graphics = 9
 

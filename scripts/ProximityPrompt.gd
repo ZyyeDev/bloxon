@@ -28,12 +28,10 @@ var label: Label
 var touch_button: Button
 var panel: PanelContainer
 
-var is_mobile: bool = false
 var ui_scale: float = 1.0
 
 func _init():
-	is_mobile = OS.get_name() in ["Android", "iOS"]
-	ui_scale = 1.5 if is_mobile else 1.0
+	ui_scale = 1.0 # 1.5 if is_mobile else 1.0
 	setup_3d_components()
 
 func _ready():
@@ -56,7 +54,7 @@ func setup_ui_components():
 	prompt_ui.z_index = 100
 	
 	panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(240, 100) * ui_scale if is_mobile else Vector2(200, 80)
+	panel.custom_minimum_size = Vector2(200, 80) * ui_scale
 	
 	var style = StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.1, 0.9)
@@ -92,7 +90,7 @@ func setup_ui_components():
 	progress_bar.min_value = 0
 	progress_bar.max_value = hold_duration
 	progress_bar.value = 0
-	progress_bar.custom_minimum_size = Vector2(200, 24) * ui_scale if is_mobile else Vector2(180, 20)
+	progress_bar.custom_minimum_size = Vector2(180, 20) * ui_scale
 	progress_bar.show_percentage = false
 	
 	var progress_style = StyleBoxFlat.new()
@@ -112,35 +110,6 @@ func setup_ui_components():
 	progress_bar.add_theme_stylebox_override("fill", fill_style)
 	
 	vbox.add_child(progress_bar)
-	
-	if is_mobile:
-		touch_button = Button.new()
-		touch_button.text = "HOLD TO INTERACT"
-		touch_button.custom_minimum_size = Vector2(200, 50) * ui_scale
-		touch_button.add_theme_font_size_override("font_size", int(14 * ui_scale))
-		touch_button.mouse_filter = Control.MOUSE_FILTER_STOP
-		
-		var button_style = StyleBoxFlat.new()
-		button_style.bg_color = Color(0.2, 0.5, 1.0, 0.9)
-		button_style.corner_radius_top_left = 6
-		button_style.corner_radius_top_right = 6
-		button_style.corner_radius_bottom_left = 6
-		button_style.corner_radius_bottom_right = 6
-		touch_button.add_theme_stylebox_override("normal", button_style)
-		
-		var button_pressed = StyleBoxFlat.new()
-		button_pressed.bg_color = Color(0.3, 0.7, 1.0, 1.0)
-		button_pressed.corner_radius_top_left = 6
-		button_pressed.corner_radius_top_right = 6
-		button_pressed.corner_radius_bottom_left = 6
-		button_pressed.corner_radius_bottom_right = 6
-		touch_button.add_theme_stylebox_override("pressed", button_pressed)
-		
-		touch_button.button_down.connect(_on_touch_start)
-		touch_button.button_up.connect(_on_touch_end)
-		vbox.add_child(touch_button)
-		
-		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	prompt_ui.visible = false
 	get_viewport().add_child(prompt_ui)
@@ -163,11 +132,15 @@ func _on_body_exited(body):
 func show_prompt():
 	if not enabled:
 		return
+	Global.currentProximityPrompt = self
 	sphere_shape.radius = detection_radius
 	showing.emit()
 	prompt_ui.visible = true
 
 func hide_prompt():
+	if Global.currentProximityPrompt == self:
+		_on_touch_end()
+		Global.currentProximityPrompt = null
 	sphere_shape.radius = detection_radius
 	hiding.emit()
 	prompt_ui.visible = false
@@ -198,8 +171,7 @@ func _process(delta):
 	
 	if player_in_range and prompt_ui.visible:
 		update_prompt_position()
-		if not is_mobile:
-			handle_input(delta)
+		handle_input(delta)
 	
 	if is_holding:
 		hold_progress += delta

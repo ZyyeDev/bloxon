@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://b6icgh6hd8axd"]
+[gd_scene load_steps=37 format=3 uid="uid://b6icgh6hd8axd"]
 
 [ext_resource type="Script" uid="uid://bcm7e0dtqdx2c" path="res://scenes/CoreGui.gd" id="1_mxl2n"]
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="2_4msbc"]
@@ -8,8 +8,10 @@
 [ext_resource type="Texture2D" uid="uid://bl6ap6u6erips" path="res://assets/images/UI/Menu/icon_leave.png" id="4_ouet7"]
 [ext_resource type="Texture2D" uid="uid://chwwvmp2xk8sb" path="res://assets/images/UI/Mobile/jumpPressed.png" id="5_cntf6"]
 [ext_resource type="Texture2D" uid="uid://bl0mtuxkvhe8y" path="res://assets/images/UI/WhiteOverlayAsset.png" id="6_4igou"]
+[ext_resource type="Texture2D" uid="uid://ckncdqqt25j18" path="res://assets/images/UI/Mobile/eButton.png" id="7_f5ddc"]
 [ext_resource type="PackedScene" uid="uid://dmr0fcamx7t56" path="res://addons/virtual_joystick/virtual_joystick_scene.tscn" id="7_os41l"]
 [ext_resource type="PackedScene" uid="uid://bndfai4y54u78" path="res://scenes/inventorySlot.tscn" id="8_8tb8h"]
+[ext_resource type="Texture2D" uid="uid://px0ftvp81od6" path="res://assets/images/UI/Mobile/eButtonPressed.png" id="8_mkt1p"]
 [ext_resource type="PackedScene" uid="uid://c68wutjgvpa1s" path="res://scenes/slider_bar.tscn" id="8_tnugu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4igou"]
@@ -262,7 +264,7 @@ func _process(delta: float) -> void:
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mxl2n"]
 
-[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "joystick", "JumpButton")]
+[node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "joystick", "JumpButton", "interactButton")]
 z_index = 100
 layout_mode = 3
 anchors_preset = 15
@@ -282,6 +284,7 @@ chatVBContainer = NodePath("Game/Chat/ScrollContainer/VBoxContainer")
 chatLineEdit = NodePath("Game/Chat/LineEdit")
 joystick = NodePath("Game/Virtual joystick left")
 JumpButton = NodePath("Game/JumpButtonControl/JumpButton")
+interactButton = NodePath("Game/JumpButtonControl/interactButton")
 
 [node name="Game" type="Control" parent="."]
 layout_mode = 1
@@ -348,6 +351,12 @@ position = Vector2(959.99994, 447.99997)
 scale = Vector2(0.883562, 0.883562)
 texture_normal = ExtResource("4_itj3c")
 texture_pressed = ExtResource("5_cntf6")
+
+[node name="interactButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
+position = Vector2(875.00006, 388)
+scale = Vector2(0.60958916, 0.60958916)
+texture_normal = ExtResource("7_f5ddc")
+texture_pressed = ExtResource("8_mkt1p")
 
 [node name="Inventory" type="HBoxContainer" parent="Game"]
 layout_mode = 1
@@ -645,6 +654,8 @@ grow_horizontal = 2
 [connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
 [connection signal="pressed" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_pressed"]
 [connection signal="released" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_button_button_up"]
+[connection signal="pressed" from="Game/JumpButtonControl/interactButton" to="." method="_on_interact_button_pressed"]
+[connection signal="released" from="Game/JumpButtonControl/interactButton" to="." method="_on_interact_button_released"]
 [connection signal="editing_toggled" from="Game/Chat/LineEdit" to="." method="_on_line_edit_editing_toggled"]
 [connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
 [connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]
