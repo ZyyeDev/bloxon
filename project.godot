@@ -42,7 +42,7 @@ mouse_cursor/custom_image="uid://bws3ourj3f7pp"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/admob/plugin.cfg", "res://addons/godotgoogleplaybilling/plugin.cfg", "res://addons/uuid/plugin.cfg", "res://addons/virtual_joystick/plugin.cfg")
+enabled=PackedStringArray("res://addons/AdmobPlugin/plugin.cfg", "res://addons/GodotGooglePlayBilling/plugin.cfg", "res://addons/admob/plugin.cfg", "res://addons/godotgoogleplaybilling/plugin.cfg", "res://addons/uuid/plugin.cfg", "res://addons/virtual_joystick/plugin.cfg")
 
 [file_customization]
 

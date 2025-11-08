@@ -18,8 +18,6 @@ func _ready():
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args: return
 	
-	MobileAds.initialize()
-	
 	var maintenanceRq = await Client.checkMaintenance()
 	maintenance = maintenanceRq.get("maintenance",false)
 	print("maintenance ",maintenance)

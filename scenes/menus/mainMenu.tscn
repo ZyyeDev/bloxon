@@ -1,4 +1,4 @@
-[gd_scene load_steps=83 format=4 uid="uid://bku4uu237na02"]
+[gd_scene load_steps=84 format=4 uid="uid://bku4uu237na02"]
 
 [ext_resource type="Script" uid="uid://c46h1hory72we" path="res://scenes/menus/main_menu.gd" id="1_rb2ri"]
 [ext_resource type="Texture2D" uid="uid://bl52d4jl405ix" path="res://assets/images/UI/Menu/icon_home.png" id="3_5grun"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="7_wxjkf"]
 [ext_resource type="Texture2D" uid="uid://dxmct6paew4e6" path="res://assets/models/player/parts/Rig1_diff.png" id="8_2yjtc"]
 [ext_resource type="PackedScene" uid="uid://c5bpgg6ji8m2i" path="res://scenes/menus/currency/currency_button_small.tscn" id="8_xxwsn"]
+[ext_resource type="PackedScene" uid="uid://08oxtm6u7f3g" path="res://scenes/menus/currency/ad_currency_button.tscn" id="12_k7u30"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ie7uq"]
 bg_color = Color(0.0784314, 0.0784314, 0.0784314, 1)
@@ -712,6 +713,7 @@ text = "𝔹"
 flat = true
 
 [node name="HomePage" type="Panel" parent="Control"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1383,7 +1385,6 @@ theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
 text = "  No friends :("
 
 [node name="CurrencyPurchase" type="Panel" parent="Control"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1414,16 +1415,34 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -524.0
+offset_left = -205.0
 offset_top = -244.0
 offset_right = 527.0
 offset_bottom = 245.0
 grow_horizontal = 2
 grow_vertical = 2
-columns = 3
+columns = 2
 
 [node name="currencyButtonSmall" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
 layout_mode = 2
+
+[node name="currencyButtonSmall2" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
+layout_mode = 2
+
+[node name="currencyButtonSmall3" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
+layout_mode = 2
+
+[node name="currencyButtonSmall" parent="Control/CurrencyPurchase" instance=ExtResource("12_k7u30")]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -243.0
+offset_right = 321.0
+offset_bottom = 91.0
+grow_vertical = 2
+blips = 10
 
 [node name="FriendInfo" type="Panel" parent="Control"]
 visible = false
@@ -1576,6 +1595,7 @@ autostart = true
 [connection signal="pressed" from="Control/FriendsPage/FriendList" to="." method="_on_friend_list_pressed"]
 [connection signal="pressed" from="Control/FriendsPage/FriendRequests" to="." method="_on_friend_requests_pressed"]
 [connection signal="pressed" from="Control/FriendsPage/Control/backFriendList" to="." method="_on_back_friend_list_pressed"]
+[connection signal="pressed" from="Control/CurrencyPurchase/currencyButtonSmall" to="." method="_on_ad_button_small_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Join Friend" to="." method="_on_join_friend_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Cancel" to="." method="hideFriendInfo"]

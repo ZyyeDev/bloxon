@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://cvrksydjwh6d5"]
+[gd_scene load_steps=13 format=3 uid="uid://cvrksydjwh6d5"]
 
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="1_cw3mg"]
 [ext_resource type="Script" uid="uid://b68l3qd2uv0ev" path="res://scenes/init.gd" id="1_y3eay"]
@@ -6,6 +6,7 @@
 [ext_resource type="AudioStream" uid="uid://vwx7j0muuk3a" path="res://assets/sounds/UI/ButtonPress.wav" id="5_47vhm"]
 [ext_resource type="PackedScene" uid="uid://ce5bdp5lcqap1" path="res://scenes/menuBg.tscn" id="5_dbdea"]
 [ext_resource type="AudioStream" uid="uid://bao48otjieog7" path="res://assets/sounds/UI/PopUp2.wav" id="6_nqtka"]
+[ext_resource type="Script" uid="uid://b15ctmye1du28" path="res://addons/AdmobPlugin/Admob.gd" id="8_nqtka"]
 
 [sub_resource type="Shader" id="Shader_dbdea"]
 code = "shader_type canvas_item;
@@ -211,6 +212,18 @@ size = Vector2i(1152, 648)
 
 [node name="menuBg" parent="SubViewport" instance=ExtResource("5_dbdea")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.158931, 0, 1.73056)
+
+[node name="Admob" type="Node" parent="."]
+script = ExtResource("8_nqtka")
+debug_application_id = "ca-app-pub-8077268692996357~4953087583"
+debug_banner_id = "ca-app-pub-3940256099942544/5354046379"
+debug_interstitial_id = "ca-app-pub-8077268692996357/2595776736"
+debug_rewarded_id = "ca-app-pub-8077268692996357/2546416093"
+debug_rewarded_interstitial_id = "ca-app-pub-3940256099942544/5354046379"
+real_application_id = "ca-app-pub-8077268692996357~4953087583"
+real_interstitial_id = "ca-app-pub-8077268692996357/2595776736"
+real_rewarded_id = "ca-app-pub-8077268692996357/2546416093"
+metadata/_custom_type_script = "uid://b15ctmye1du28"
 
 [connection signal="timeout" from="scene/Timer" to="." method="_on_timer_timeout"]
 [connection signal="finished" from="Music" to="." method="_on_music_finished"]
