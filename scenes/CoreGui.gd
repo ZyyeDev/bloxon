@@ -259,6 +259,7 @@ func _on_graphics_bar_changed(new_value: Variant) -> void:
 
 func updateGraphics():
 	var viewport = get_viewport()
+	Global.saveLocal()
 	if Global.graphics >= 5:
 		viewport.msaa_3d = Viewport.MSAA_2X
 		RenderingServer.viewport_set_screen_space_aa(viewport,RenderingServer.VIEWPORT_SCREEN_SPACE_AA_FXAA)
@@ -268,6 +269,7 @@ func updateGraphics():
 
 func updateVolume():
 	print("updateVolume ",Global.volume)
+	Global.saveLocal()
 	set_master_volume(float((Global.volume+1)*10))
 
 func addAnnouncement(text:String,duration:float):
