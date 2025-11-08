@@ -58,7 +58,7 @@ func _ready():
 		peer = ENetMultiplayerPeer.new()
 		var ok = peer.create_server(port, maxPlayers)
 		if ok != OK:
-			print("Failed to create server on port ", port, " Error: ", ok)
+			push_error("Failed to create server on port ", port, " Error: ", ok)
 			get_tree().quit()
 			return
 		print("done!!")
@@ -322,13 +322,18 @@ func _on_peer_disconnected(id):
 		Global.avatarData.erase(str(id))
 		broadcastAllPlayers()
 		
-		if connectedPlayers.size() == 0:
-			print("No players left, shutting down in 30 seconds...")
-			await get_tree().create_timer(30.0).timeout
-			if connectedPlayers.size() == 0:
-				print("Still no players, shutting down now")
-				await cleanup_server()
-				get_tree().quit()
+		## We don’t want to close the server!
+		## Closing it will completely break the backend.
+		## The server still exists for the main server, so it will return this server,
+		## even though it no longer exists because it was closed.
+		## now master server handles all of this
+		#if connectedPlayers.size() == 0:
+		#	print("No players left, shutting down in 30 seconds...")
+		#	await get_tree().create_timer(30.0).timeout
+		#	if connectedPlayers.size() == 0:
+		#		print("Still no players, shutting down now")
+		#		await cleanup_server()
+		#		get_tree().quit()
 	
 	if str(id) in PlayerManager.players:
 		PlayerManager.removePlayer(str(id))
