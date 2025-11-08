@@ -133,7 +133,7 @@ func _ready():
 		print("original_mesh_positions ",original_mesh_positions)
 		print("original_mesh_rotations ",original_mesh_rotations)
 	
-	is_mobile = OS.get_name() == "Android" or OS.get_name() == "iOS"
+	is_mobile = OS.has_feature("android")
 	
 	var screen_size = get_viewport().get_visible_rect().size
 	joystick_area = Rect2(0, 0, screen_size.x * 0.3, screen_size.y) 
@@ -638,12 +638,13 @@ func handle_mobile_input(event):
 			if distance > touch_deadzone:
 				is_dragging = true
 		
-		if is_dragging and cameraMiddle: 
+		if is_dragging and spring_arm_pivot: 
 			spring_arm_pivot.rotation.y -= touch_delta.x * mobile_sensitivity * 0.01
 			 
-			if spring_arm_pivot.has_method("rotate_x"):
-				spring_arm_pivot.rotation.x -= touch_delta.y * mobile_sensitivity * 0.01
-				spring_arm_pivot.rotation.x = clamp(spring_arm_pivot.rotation.x, -PI/3, PI/3)
+			var spring_arm = spring_arm_pivot.get_node_or_null("SpringArm3D")
+			if spring_arm:
+				spring_arm.rotation.x -= touch_delta.y * mobile_sensitivity * 0.01
+				spring_arm.rotation.x = clamp(spring_arm.rotation.x, -PI/2 + 0.1, PI/3)
 		
 		last_touch_pos = event.position
 

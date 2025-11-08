@@ -1038,7 +1038,7 @@ mesh = SubResource("ArrayMesh_8t03j")
 skeleton = NodePath("../..")
 
 [node name="Head" type="MeshInstance3D" parent="Node3D"]
-transform = Transform3D(-1.095, 0, -2.77602e-06, 0, 1.095, 0, 2.77602e-06, 0, -1.095, 0, 2.72624, 0)
+transform = Transform3D(-1.095, 0, -2.776024e-06, 0, 1.095, 0, 2.776024e-06, 0, -1.095, 0, 2.72624, 0)
 mesh = SubResource("ArrayMesh_yllr7")
 skeleton = NodePath("../..")
 
