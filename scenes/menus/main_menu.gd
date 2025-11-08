@@ -14,6 +14,7 @@ extends Control
 @export var FriendInfo :Panel
 @export var ItemPage :Panel
 @export var CurrencyPurchase :Panel
+@export var CurrencyGridContainer :GridContainer
 
 @export var friendContainterSmall:GridContainer
 @export var friendsContainer:GridContainer
@@ -685,7 +686,7 @@ func getOffers():
 	var packData = data.get("data",{}).get("packages",[])
 	
 	if !packData.is_empty():
-		for v in CurrencyPurchase.get_node("GridContainer").get_children():
+		for v in CurrencyGridContainer.get_children():
 			v.queue_free()
 		
 		for i in packData:
@@ -698,7 +699,7 @@ func getOffers():
 			currencyButton.z_index = amount
 			currencyButton.pressed.connect(func():
 				Client.buy(product_id))
-			CurrencyPurchase.get_node("GridContainer").add_child(currencyButton)
+			CurrencyGridContainer.add_child(currencyButton)
 
 func _on_change_username_pressed() -> void:
 	var usernameInput:InputPromptWindow = load("res://scenes/input_prompt_window.tscn").instantiate()

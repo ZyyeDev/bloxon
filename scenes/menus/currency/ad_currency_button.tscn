@@ -29,17 +29,26 @@ material = SubResource("ShaderMaterial_6jo6w")
 custom_minimum_size = Vector2(317, 334)
 offset_right = 317.0
 offset_bottom = 334.0
-theme_override_styles/hover = SubResource("StyleBoxFlat_23mai")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_23mai")
 theme_override_styles/normal = SubResource("StyleBoxFlat_23mai")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_23mai")
+theme_override_styles/hover = SubResource("StyleBoxFlat_23mai")
 script = ExtResource("2_6jo6w")
 
-[node name="Blips" type="Label" parent="."]
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_75bcm")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Blips" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(317, 69)
 layout_mode = 2
-offset_left = 77.0
-offset_top = 83.0
-offset_right = 235.0
-offset_bottom = 152.0
 size_flags_horizontal = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 50
@@ -47,18 +56,21 @@ text = "𝔹 400"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Cost" type="Label" parent="."]
+[node name="SEPARATOR" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(275, 42)
 layout_mode = 2
-offset_left = 23.0
-offset_top = 202.0
-offset_right = 296.0
-offset_bottom = 244.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 30
+text = "
+"
+horizontal_alignment = 1
+
+[node name="Cost" type="Label" parent="VBoxContainer"]
+custom_minimum_size = Vector2(275, 42)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 30
 text = "1 UNSKIPPABLE AD"
 horizontal_alignment = 1
-
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("2_75bcm")
 
 [connection signal="pressed" from="." to="." method="_on_pressed"]

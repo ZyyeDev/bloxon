@@ -593,7 +593,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "CurrencyPurchase", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "buyAccessoryButton", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
+[node name="MainMenu" type="Control" node_paths=PackedStringArray("serverListContainter", "nameLabel", "currencyLabel", "selfPfp", "homePage", "avatarPage", "configPage", "profilePage", "friendsPage", "FriendInfo", "ItemPage", "CurrencyPurchase", "CurrencyGridContainer", "friendContainterSmall", "friendsContainer", "marketplaceContainer", "inventoryContainer", "homePageButton", "profilePageButton", "configPageButton", "avatarLoadingSpinner", "itemNameLabel", "itemCostLabel", "itemIcon", "buyAccessoryButton", "avatarPages", "avatarEditorTab", "avatarTabs", "avatarColorsPage", "avatarColorPicker")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -613,6 +613,7 @@ friendsPage = NodePath("Control/FriendsPage")
 FriendInfo = NodePath("Control/FriendInfo")
 ItemPage = NodePath("Control/ItemPage")
 CurrencyPurchase = NodePath("Control/CurrencyPurchase")
+CurrencyGridContainer = NodePath("Control/CurrencyPurchase/VBoxContainer/HBoxContainer/CurrencyGridContainer")
 friendContainterSmall = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall")
 friendsContainer = NodePath("Control/FriendsPage/GridContainer")
 marketplaceContainer = NodePath("Control/AvatarPage/MarketContainer")
@@ -1389,60 +1390,49 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 80.0
+offset_left = 82.0
+offset_top = -29.0
+offset_right = 2.0
+offset_bottom = -29.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
 
-[node name="_Label_10" type="Label" parent="Control/CurrencyPurchase"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -519.0
-offset_top = 40.0
-offset_right = 469.0
-offset_bottom = 63.0
-grow_horizontal = 2
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CurrencyPurchase"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 110.0
+offset_right = 1059.0
+offset_bottom = 626.0
+
+[node name="_Label_10" type="Label" parent="Control/CurrencyPurchase/VBoxContainer"]
+custom_minimum_size = Vector2(988, 23)
+layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 16
 text = "Get Blips to buy great new looks for your Avatar, plus perks and abilities in-game."
 
-[node name="GridContainer" type="GridContainer" parent="Control/CurrencyPurchase"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -205.0
-offset_top = -244.0
-offset_right = 527.0
-offset_bottom = 245.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/CurrencyPurchase/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="currencyButtonSmall" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer" instance=ExtResource("12_k7u30")]
+layout_mode = 2
+blips = 10
+
+[node name="CurrencyGridContainer" type="GridContainer" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(732, 489)
+layout_mode = 2
 columns = 2
 
-[node name="currencyButtonSmall" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
+[node name="currencyButtonSmall" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer/CurrencyGridContainer" instance=ExtResource("8_xxwsn")]
 layout_mode = 2
 
-[node name="currencyButtonSmall2" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
+[node name="currencyButtonSmall2" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer/CurrencyGridContainer" instance=ExtResource("8_xxwsn")]
 layout_mode = 2
 
-[node name="currencyButtonSmall3" parent="Control/CurrencyPurchase/GridContainer" instance=ExtResource("8_xxwsn")]
+[node name="currencyButtonSmall3" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer/CurrencyGridContainer" instance=ExtResource("8_xxwsn")]
 layout_mode = 2
-
-[node name="currencyButtonSmall" parent="Control/CurrencyPurchase" instance=ExtResource("12_k7u30")]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 4.0
-offset_top = -243.0
-offset_right = 321.0
-offset_bottom = 91.0
-grow_vertical = 2
-blips = 10
 
 [node name="FriendInfo" type="Panel" parent="Control"]
 visible = false
@@ -1595,7 +1585,7 @@ autostart = true
 [connection signal="pressed" from="Control/FriendsPage/FriendList" to="." method="_on_friend_list_pressed"]
 [connection signal="pressed" from="Control/FriendsPage/FriendRequests" to="." method="_on_friend_requests_pressed"]
 [connection signal="pressed" from="Control/FriendsPage/Control/backFriendList" to="." method="_on_back_friend_list_pressed"]
-[connection signal="pressed" from="Control/CurrencyPurchase/currencyButtonSmall" to="." method="_on_ad_button_small_pressed"]
+[connection signal="pressed" from="Control/CurrencyPurchase/VBoxContainer/HBoxContainer/currencyButtonSmall" to="." method="_on_ad_button_small_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Join Friend" to="." method="_on_join_friend_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
 [connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Cancel" to="." method="hideFriendInfo"]
