@@ -295,12 +295,35 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
+[node name="JumpButtonControl" type="Control" parent="Game"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="JumpButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
+position = Vector2(-177.00018, 169.99994)
+scale = Vector2(0.883562, 0.883562)
+texture_normal = ExtResource("4_itj3c")
+texture_pressed = ExtResource("5_cntf6")
+
+[node name="interactButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
+position = Vector2(-261.99994, 110)
+scale = Vector2(0.60958916, 0.60958916)
+texture_normal = ExtResource("7_f5ddc")
+texture_pressed = ExtResource("8_mkt1p")
+
 [node name="menu" type="Button" parent="Game"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 5.0
-offset_right = 60.0
-offset_bottom = 57.0
+offset_left = 40.0
+offset_top = 6.0
+offset_right = 92.0
+offset_bottom = 58.0
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_8tb8h")
@@ -311,10 +334,10 @@ expand_icon = true
 
 [node name="chat" type="Button" parent="Game"]
 layout_mode = 0
-offset_left = 64.0
-offset_top = 5.0
-offset_right = 116.0
-offset_bottom = 57.0
+offset_left = 96.0
+offset_top = 6.0
+offset_right = 148.0
+offset_bottom = 58.0
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
@@ -337,26 +360,6 @@ action_left = "move_left"
 action_right = "move_right"
 action_up = "move_forward"
 action_down = "move_backwards"
-
-[node name="JumpButtonControl" type="Control" parent="Game"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="JumpButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
-position = Vector2(959.99994, 447.99997)
-scale = Vector2(0.883562, 0.883562)
-texture_normal = ExtResource("4_itj3c")
-texture_pressed = ExtResource("5_cntf6")
-
-[node name="interactButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
-position = Vector2(875.00006, 388)
-scale = Vector2(0.60958916, 0.60958916)
-texture_normal = ExtResource("7_f5ddc")
-texture_pressed = ExtResource("8_mkt1p")
 
 [node name="Inventory" type="HBoxContainer" parent="Game"]
 layout_mode = 1
@@ -406,9 +409,9 @@ offset_bottom = 40.0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Game/Chat"]
 layout_mode = 0
-offset_left = 13.0
+offset_left = 40.0
 offset_top = 63.0
-offset_right = 373.0
+offset_right = 400.0
 offset_bottom = 230.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ouet7")
 horizontal_scroll_mode = 0
@@ -422,9 +425,9 @@ theme_override_constants/separation = 20
 [node name="LineEdit" type="LineEdit" parent="Game/Chat"]
 custom_minimum_size = Vector2(352, 40)
 layout_mode = 0
-offset_left = 13.0
+offset_left = 40.0
 offset_top = 234.0
-offset_right = 374.0
+offset_right = 401.0
 offset_bottom = 274.0
 size_flags_vertical = 10
 theme_override_styles/focus = SubResource("StyleBoxEmpty_os41l")
@@ -650,12 +653,12 @@ offset_right = 314.0
 offset_bottom = 135.0
 grow_horizontal = 2
 
-[connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
-[connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
 [connection signal="pressed" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_pressed"]
 [connection signal="released" from="Game/JumpButtonControl/JumpButton" to="." method="_on_jump_button_button_up"]
 [connection signal="pressed" from="Game/JumpButtonControl/interactButton" to="." method="_on_interact_button_pressed"]
 [connection signal="released" from="Game/JumpButtonControl/interactButton" to="." method="_on_interact_button_released"]
+[connection signal="pressed" from="Game/menu" to="." method="_on_menu_pressed"]
+[connection signal="pressed" from="Game/chat" to="." method="_on_chat_pressed"]
 [connection signal="editing_toggled" from="Game/Chat/LineEdit" to="." method="_on_line_edit_editing_toggled"]
 [connection signal="text_submitted" from="Game/Chat/LineEdit" to="." method="_on_line_edit_text_submitted"]
 [connection signal="pressed" from="Game/escape/leave" to="." method="_on_leave_pressed"]
