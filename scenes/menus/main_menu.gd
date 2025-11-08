@@ -758,6 +758,7 @@ func _on_history_button_pressed():
 
 func _on_ad_button_small_pressed() -> void:
 	var spinner = createLoadingSpinner()
+	spinner.z_index = 4096
 	var watched = false
 	await Client.show_rewarded_ad(func():
 		watched = true
@@ -766,9 +767,9 @@ func _on_ad_button_small_pressed() -> void:
 		print(response)
 		if response.get("success",false):
 			playSound(load("res://assets/sounds/UI/PurchaseSuccess.wav"))
-		spinner.queue_free()
+		if is_instance_valid(spinner):
+			spinner.queue_free()
 		)
 	await get_tree().create_timer(1)
-	if !watched:
-		spinner.queue_free()
+	spinner.queue_free()
 	
