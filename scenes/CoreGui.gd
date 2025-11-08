@@ -289,8 +289,8 @@ func addAnnouncement(text:String,duration:float):
 
 func _on_interact_button_pressed() -> void:
 	if Global.currentProximityPrompt:
-		Global.currentProximityPrompt._on_touch_start
+		Global.currentProximityPrompt._on_touch_start()
 
 func _on_interact_button_released() -> void:
 	if Global.currentProximityPrompt:
-		Global.currentProximityPrompt._on_touch_end
+		Global.currentProximityPrompt._on_touch_end()

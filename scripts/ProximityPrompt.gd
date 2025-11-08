@@ -28,9 +28,11 @@ var label: Label
 var touch_button: Button
 var panel: PanelContainer
 
+var is_mobile = false
 var ui_scale: float = 1.0
 
 func _init():
+	is_mobile = OS.has_feature("android")
 	ui_scale = 1.0 # 1.5 if is_mobile else 1.0
 	setup_3d_components()
 
@@ -118,13 +120,13 @@ func get_3d_node():
 	return self
 
 func _on_body_entered(body):
-	if body.is_in_group("plr") or body.name == "Player":
+	if body.is_in_group("plr") or body.name == "Player" and body.localPlayer:
 		player_in_range = true
 		if enabled:
 			show_prompt()
 
 func _on_body_exited(body):
-	if body.is_in_group("plr") or body.name == "Player":
+	if body.is_in_group("plr") or body.name == "Player" and body.localPlayer:
 		player_in_range = false
 		hide_prompt()
 		reset_progress()
@@ -182,7 +184,7 @@ func _process(delta):
 
 func handle_input(delta):
 	var should_hold = Input.is_action_pressed("ui_accept") or Input.is_key_pressed(KEY_E)
-	
+	if is_mobile: return
 	if should_hold and not is_holding:
 		start_hold()
 	elif not should_hold and is_holding:
