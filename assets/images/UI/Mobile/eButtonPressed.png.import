@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dsg2b82er57dn"
-path="res://.godot/imported/icon.png-928f79d906c5a286de384358dfb1ba26.ctex"
+uid="uid://px0ftvp81od6"
+path="res://.godot/imported/eButtonPressed.png-17c3d58a462e092c6ef04880038809e7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/AdmobPlugin/icon.png"
-dest_files=["res://.godot/imported/icon.png-928f79d906c5a286de384358dfb1ba26.ctex"]
+source_file="res://assets/images/UI/Mobile/eButtonPressed.png"
+dest_files=["res://.godot/imported/eButtonPressed.png-17c3d58a462e092c6ef04880038809e7.ctex"]
 
 [params]
 

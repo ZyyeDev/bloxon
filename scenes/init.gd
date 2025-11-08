@@ -18,6 +18,13 @@ func _ready():
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args: return
 	
+	if Client.admobInit:
+		if get_node("Admob"):
+			get_node("Admob").queue_free()
+	else:
+		if get_node("Admob"):
+			get_node("Admob").initialize()
+	
 	var maintenanceRq = await Client.checkMaintenance()
 	maintenance = maintenanceRq.get("maintenance",false)
 	print("maintenance ",maintenance)
@@ -141,3 +148,11 @@ func changeTo(path):
 
 func _on_music_finished() -> void:
 	$Music.play()
+
+func _on_admob_initialization_completed(status_data: InitializationStatus) -> void:
+	if Client.admobInit: return
+	Client.admobInit = true
+
+func _on_admob_rewarded_ad_user_earned_reward(ad_id: String, reward_data: RewardItem) -> void:
+	if Client.rewardAdCallable:
+		Client.rewardAdCallable.call()

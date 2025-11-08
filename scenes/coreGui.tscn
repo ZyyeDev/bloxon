@@ -12,10 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://bndfai4y54u78" path="res://scenes/inventorySlot.tscn" id="8_8tb8h"]
 [ext_resource type="PackedScene" uid="uid://c68wutjgvpa1s" path="res://scenes/slider_bar.tscn" id="8_tnugu"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4igou"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_os41l"]
-bg_color = Color(0.238744, 0.238744, 0.238744, 0.831373)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4igou"]
+bg_color = Color(0.0941176, 0.0941176, 0.0941176, 0.831373)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -28,8 +26,17 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4igou"]
-bg_color = Color(0.0941176, 0.0941176, 0.0941176, 0.831373)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_os41l"]
+bg_color = Color(0.238744, 0.238744, 0.238744, 0.831373)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4igou"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fngga"]
+bg_color = Color(0.0728426, 0.0728426, 0.0728426, 0.831373)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -37,13 +44,6 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_itj3c"]
 bg_color = Color(0.238744, 0.238744, 0.238744, 0.831373)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fngga"]
-bg_color = Color(0.0728426, 0.0728426, 0.0728426, 0.831373)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -254,13 +254,13 @@ func _process(delta: float) -> void:
 	rotation += delta * 5
 "
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mxl2n"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4msbc"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ouet7"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l1elt"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ouet7"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_4msbc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mxl2n"]
 
 [node name="CoreGui" type="Control" node_paths=PackedStringArray("connectGui", "gameGui", "connectingLabel", "inventoryBox", "chatContainer", "chatScrollContainer", "chatVBContainer", "chatLineEdit", "joystick", "JumpButton")]
 z_index = 100
@@ -299,10 +299,10 @@ offset_top = 5.0
 offset_right = 60.0
 offset_bottom = 57.0
 focus_mode = 0
-theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
-theme_override_styles/hover = SubResource("StyleBoxFlat_os41l")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_8tb8h")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_8tb8h")
+theme_override_styles/hover = SubResource("StyleBoxFlat_os41l")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
 icon = ExtResource("2_l1elt")
 expand_icon = true
 
@@ -313,10 +313,10 @@ offset_top = 5.0
 offset_right = 116.0
 offset_bottom = 57.0
 focus_mode = 0
-theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
-theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
 
 [node name="Chat" type="Sprite2D" parent="Game/chat"]
 position = Vector2(26, 27)
@@ -337,20 +337,14 @@ action_down = "move_backwards"
 
 [node name="JumpButtonControl" type="Control" parent="Game"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="JumpButton" type="TouchScreenButton" parent="Game/JumpButtonControl"]
-position = Vector2(405, 171)
+position = Vector2(959.99994, 447.99997)
 scale = Vector2(0.883562, 0.883562)
 texture_normal = ExtResource("4_itj3c")
 texture_pressed = ExtResource("5_cntf6")
@@ -418,7 +412,7 @@ theme_override_constants/separation = 20
 
 [node name="LineEdit" type="LineEdit" parent="Game/Chat"]
 custom_minimum_size = Vector2(352, 40)
-layout_mode = 2
+layout_mode = 0
 offset_left = 13.0
 offset_top = 234.0
 offset_right = 374.0
@@ -452,10 +446,10 @@ offset_top = 563.0
 offset_right = 849.0
 offset_bottom = 627.0
 focus_mode = 0
-theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
-theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
 
 [node name="IconLeave" type="Sprite2D" parent="Game/escape/leave"]
 position = Vector2(212, 33)
@@ -477,10 +471,10 @@ offset_top = 563.0
 offset_right = 584.0
 offset_bottom = 627.0
 focus_mode = 0
-theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
-theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
 theme_override_styles/normal = SubResource("StyleBoxFlat_4igou")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fngga")
+theme_override_styles/hover = SubResource("StyleBoxFlat_itj3c")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_4igou")
 
 [node name="Label" type="Label" parent="Game/escape/resume"]
 layout_mode = 0
@@ -622,10 +616,10 @@ offset_bottom = 78.0
 grow_horizontal = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 50
-theme_override_styles/focus = SubResource("StyleBoxEmpty_mxl2n")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_4msbc")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_l1elt")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_ouet7")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_l1elt")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_4msbc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mxl2n")
 text = "  X  "
 
 [node name="WhiteOverlayAsset" type="Sprite2D" parent="."]

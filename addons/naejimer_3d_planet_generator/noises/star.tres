@@ -11,6 +11,6 @@ fractal_weighted_strength = 0.15
 
 [resource]
 height = 128
+noise = SubResource("FastNoiseLite_gi827")
 seamless = true
 seamless_blend_skirt = 0.5
-noise = SubResource("FastNoiseLite_gi827")

@@ -31,6 +31,9 @@ var servers = []
 
 var inventory = {}
 
+# ik this is bad, idc, it works
+var rewardAdCallable:Callable
+
 signal server_connected
 signal server_disconnected
 signal kicked_from_server
@@ -55,19 +58,12 @@ func _ready():
 			_setup_payment_system()
 
 func create_admob_thing():
-	admob = Admob.new()
-	add_child(admob)
-	
-	admob.initialization_completed.connect(func():
-		admobInit = true
-	)
-	
-	admob.is_real = true
-	admob.real_application_id = "ca-app-pub-8077268692996357~4953087583"
-	admob.real_interstitial_id = "ca-app-pub-8077268692996357/2595776736"
-	admob.real_rewarded_interstitial_id = "ca-app-pub-8077268692996357/2546416093"
-	
-	admob.initialize()
+	while not get_tree().current_scene and not get_tree().current_scene.has_node("Admob"):
+		await get_tree().process_frame
+	while not admobInit:
+		await get_tree().process_frame
+	admob = get_tree().current_scene.get_node("Admob")
+	admob.reparent(self)
 
 func show_interstitial():
 	if !admobInit: return
@@ -78,7 +74,8 @@ func show_interstitial():
 func show_rewarded_ad(reward:Callable):
 	if !admobInit: return
 	admob.load_rewarded_ad()
-	admob.rewarded_ad_user_earned_reward.connect(reward)
+	if reward:
+		rewardAdCallable = reward
 	await admob.rewarded_ad_loaded
 	admob.show_rewarded_ad()
 
@@ -321,18 +318,22 @@ func _on_connected_to_server():
 	Global.on_player_connected()
 
 func _on_connection_failed():
-	Global.errorMessage(
-		"Error",
-		Global.ERROR_CODES.TIMEOUT,
-		"Failed to connect to server.",
-		"Leave",
-		func():
-			CoreGui.hideConnect()
-			get_tree().change_scene_to_file("res://scenes/INIT.tscn")
-	)
+	#Global.errorMessage(
+	#	"Error",
+	#	Global.ERROR_CODES.TIMEOUT,
+	#	"Failed to connect to server.",
+	#	"Leave",
+	#	func():
+	#		CoreGui.hideConnect()
+	#		get_tree().change_scene_to_file("res://scenes/INIT.tscn")
+	#)
 	print("Failed to connect to server")
 	serverUID = ""
 	is_connected = false
+	
+	# we just retry
+	get_tree().change_scene_to_file("res://scenes/mainGame.tscn")
+	Client.requestServer()
 
 func _on_server_disconnected():
 	Global.localPlayer = null

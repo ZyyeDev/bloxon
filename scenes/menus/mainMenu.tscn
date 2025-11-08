@@ -56,10 +56,8 @@ variation_embolden = 0.7
 default_font = SubResource("FontVariation_l2vun")
 default_font_size = 20
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2brji"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l2vun"]
-bg_color = Color(0.305925, 0.641728, 1, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxjkf"]
+bg_color = Color(0.2, 0.6, 1, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -72,17 +70,17 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wxjkf"]
-bg_color = Color(0.2, 0.6, 1, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_l2vun"]
+bg_color = Color(0.305925, 0.641728, 1, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wxjkf"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2brji"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4wfs"]
-bg_color = Color(0.214703, 0.214703, 0.214703, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lj2uh"]
+bg_color = Color(0.166853, 0.166853, 0.166853, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -95,15 +93,17 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lj2uh"]
-bg_color = Color(0.166853, 0.166853, 0.166853, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4wfs"]
+bg_color = Color(0.214703, 0.214703, 0.214703, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2yjtc"]
-bg_color = Color(0.789827, 2.79158e-06, 1.2514e-06, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wxjkf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lgdhf"]
+bg_color = Color(0.601261, 2.02149e-06, 4.33177e-07, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -116,8 +116,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lgdhf"]
-bg_color = Color(0.601261, 2.02149e-06, 4.33177e-07, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2yjtc"]
+bg_color = Color(0.789827, 2.79158e-06, 1.2514e-06, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -353,10 +353,8 @@ _data = {
 &"idle": SubResource("Animation_xxwsn")
 }
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2yjtc"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u8qvy"]
-bg_color = Color(3.1285e-06, 0.781368, 0.322069, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lqecb"]
+bg_color = Color(0, 0.72191, 0.295262, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -369,15 +367,17 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lqecb"]
-bg_color = Color(0, 0.72191, 0.295262, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u8qvy"]
+bg_color = Color(3.1285e-06, 0.781368, 0.322069, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xau2e"]
-bg_color = Color(1, 0.271799, 0.303581, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2yjtc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hiueo"]
+bg_color = Color(1, 0.184575, 0.254974, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -390,8 +390,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hiueo"]
-bg_color = Color(1, 0.184575, 0.254974, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xau2e"]
+bg_color = Color(1, 0.271799, 0.303581, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -400,10 +400,8 @@ corner_radius_bottom_left = 8
 [sub_resource type="ViewportTexture" id="ViewportTexture_2yjtc"]
 viewport_path = NodePath("Control/AvatarPage/SubViewport")
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lgdhf"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ix6wq"]
-bg_color = Color(0.1812, 0.1812, 0.1812, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h7pc7"]
+bg_color = Color(0.166853, 0.166853, 0.166853, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -416,14 +414,21 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h7pc7"]
-bg_color = Color(0.166853, 0.166853, 0.166853, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ix6wq"]
+bg_color = Color(0.1812, 0.1812, 0.1812, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_403wm"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lgdhf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eye00"]
+bg_color = Color(0.128344, 0.128344, 0.128344, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u2f7n"]
 bg_color = Color(0.1812, 0.1812, 0.1812, 1)
@@ -432,12 +437,7 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eye00"]
-bg_color = Color(0.128344, 0.128344, 0.128344, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_403wm"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k7u30"]
 
@@ -462,10 +462,8 @@ func updateScale():
 	scale = Vector2(scaleX, scaleY)
 "
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xxwsn"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2jyg"]
-bg_color = Color(0, 0.606154, 0.862043, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuba"]
+bg_color = Color(0, 0.552941, 0.788235, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -478,12 +476,14 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 15
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lfuba"]
-bg_color = Color(0, 0.552941, 0.788235, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_m2jyg"]
+bg_color = Color(0, 0.606154, 0.862043, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 15
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xxwsn"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_5grun"]
 
@@ -495,11 +495,11 @@ bg_color = Color(0.133196, 0.133196, 0.133196, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lfuba"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m2jyg"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_exsfm"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_m2jyg"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_lfuba"]
 
 [sub_resource type="Animation" id="Animation_u8qvy"]
 length = 0.001
@@ -572,8 +572,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_403wm"]
-bg_color = Color(0.0987284, 0.0987284, 0.0987284, 0.627451)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yic8r"]
+bg_color = Color(0.054902, 0.054902, 0.054902, 0.627451)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -586,8 +586,8 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yic8r"]
-bg_color = Color(0.054902, 0.054902, 0.054902, 0.627451)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_403wm"]
+bg_color = Color(0.0987284, 0.0987284, 0.0987284, 0.627451)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
@@ -713,7 +713,6 @@ text = "𝔹"
 flat = true
 
 [node name="HomePage" type="Panel" parent="Control"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -792,10 +791,10 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
-theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "Join Game"
 
 [node name="_VBoxContainer_27" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
@@ -879,10 +878,10 @@ horizontal_alignment = 1
 [node name="ChangeUsername" type="Button" parent="Control/ConfigPage/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
-theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
-theme_override_styles/hover = SubResource("StyleBoxFlat_y4wfs")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_nwx3a")
 theme_override_styles/normal = SubResource("StyleBoxFlat_lj2uh")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nwx3a")
+theme_override_styles/hover = SubResource("StyleBoxFlat_y4wfs")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
 text = "Change username"
 
 [node name="SEPARATION" type="Label" parent="Control/ConfigPage/VBoxContainer"]
@@ -910,10 +909,10 @@ vertical_alignment = 1
 
 [node name="LogOut" type="Button" parent="Control/ConfigPage/VBoxContainer"]
 layout_mode = 2
-theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
-theme_override_styles/hover = SubResource("StyleBoxFlat_2yjtc")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_xxwsn")
 theme_override_styles/normal = SubResource("StyleBoxFlat_lgdhf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xxwsn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_2yjtc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wxjkf")
 text = "Log Out"
 
 [node name="AvatarPage" type="Panel" parent="Control"]
@@ -1075,10 +1074,10 @@ offset_right = 266.0
 offset_bottom = 555.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2yjtc")
-theme_override_styles/hover = SubResource("StyleBoxFlat_u8qvy")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_38x55")
 theme_override_styles/normal = SubResource("StyleBoxFlat_lqecb")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_38x55")
+theme_override_styles/hover = SubResource("StyleBoxFlat_u8qvy")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2yjtc")
 text = "Apply"
 
 [node name="CancelAvatar" type="Button" parent="Control/AvatarPage/AvatarEditor/AvatarColors"]
@@ -1089,10 +1088,10 @@ offset_right = 256.0
 offset_bottom = 591.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2yjtc")
-theme_override_styles/hover = SubResource("StyleBoxFlat_xau2e")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_2uljy")
 theme_override_styles/normal = SubResource("StyleBoxFlat_hiueo")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2uljy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_xau2e")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2yjtc")
 text = "Cancel"
 
 [node name="AvatarViewport" type="Sprite2D" parent="Control/AvatarPage/AvatarEditor"]
@@ -1121,10 +1120,10 @@ layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 22
-theme_override_styles/focus = SubResource("StyleBoxEmpty_lgdhf")
-theme_override_styles/hover = SubResource("StyleBoxFlat_ix6wq")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_17okl")
 theme_override_styles/normal = SubResource("StyleBoxFlat_h7pc7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_17okl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ix6wq")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_lgdhf")
 text = "Accessories"
 
 [node name="Avatar Colors" type="Button" parent="Control/AvatarPage/AvatarEditor/Tabs"]
@@ -1133,10 +1132,10 @@ layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 22
-theme_override_styles/focus = SubResource("StyleBoxEmpty_403wm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
 theme_override_styles/normal = SubResource("StyleBoxFlat_h7pc7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
+theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_403wm")
 text = "Edit Colors"
 
 [node name="AvatarPages" type="HBoxContainer" parent="Control/AvatarPage"]
@@ -1154,19 +1153,19 @@ alignment = 1
 [node name="InventoryButton" type="Button" parent="Control/AvatarPage/AvatarPages"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-theme_override_styles/focus = SubResource("StyleBoxEmpty_k7u30")
-theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
 theme_override_styles/normal = SubResource("StyleBoxFlat_h7pc7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
+theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k7u30")
 text = "Inventory"
 
 [node name="Marketplace" type="Button" parent="Control/AvatarPage/AvatarPages"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-theme_override_styles/focus = SubResource("StyleBoxEmpty_k7u30")
-theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
 theme_override_styles/normal = SubResource("StyleBoxFlat_h7pc7")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_eye00")
+theme_override_styles/hover = SubResource("StyleBoxFlat_u2f7n")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_k7u30")
 text = "Marketplace"
 
 [node name="ItemPage" type="Panel" parent="Control"]
@@ -1232,10 +1231,10 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 25
-theme_override_styles/focus = SubResource("StyleBoxEmpty_xxwsn")
-theme_override_styles/hover = SubResource("StyleBoxFlat_m2jyg")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_7vwwl")
 theme_override_styles/normal = SubResource("StyleBoxFlat_lfuba")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7vwwl")
+theme_override_styles/hover = SubResource("StyleBoxFlat_m2jyg")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_xxwsn")
 text = "BUY"
 
 [node name="ProfilePage" type="Panel" parent="Control"]
@@ -1360,14 +1359,14 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="backFriendList" type="Button" parent="Control/FriendsPage/Control"]
-layout_mode = 2
+layout_mode = 0
 offset_left = 12.0
 offset_top = 98.0
 offset_right = 180.0
 offset_bottom = 129.0
-theme_override_colors/font_hover_pressed_color = Color(0.351342, 0.597707, 0.773707, 1)
 theme_override_colors/font_color = Color(0.255922, 0.477791, 0.63383, 1)
 theme_override_colors/font_pressed_color = Color(0.208883, 0.408456, 0.547767, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.351342, 0.597707, 0.773707, 1)
 theme_override_styles/focus = SubResource("StyleBoxEmpty_cv8r1")
 text = "Go back to friend list"
 flat = true
@@ -1385,6 +1384,7 @@ theme_override_colors/font_color = Color(0.73859, 0.73859, 0.73859, 1)
 text = "  No friends :("
 
 [node name="CurrencyPurchase" type="Panel" parent="Control"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1466,7 +1466,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_k7u30")
 
 [node name="_VBoxContainer_33" type="VBoxContainer" parent="Control/FriendInfo/bg"]
-layout_mode = 2
+layout_mode = 0
 offset_top = 37.0
 offset_right = 1153.0
 offset_bottom = 297.0
@@ -1477,10 +1477,10 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
-theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "Join Friend"
 
 [node name="_HSeparator_20" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
@@ -1491,10 +1491,10 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
-theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "View Profile"
 
 [node name="_HSeparator_21" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
@@ -1505,23 +1505,23 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
-theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
 theme_override_styles/normal = SubResource("StyleBoxFlat_wxjkf")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_bemoo")
+theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "Cancel"
 
 [node name="hide" type="Button" parent="Control/FriendInfo"]
 custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
+layout_mode = 0
 offset_top = -1.0
 offset_right = 1153.0
 offset_bottom = 345.0
 theme = SubResource("Theme_bemoo")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_lfuba")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_exsfm")
 theme_override_styles/normal = SubResource("StyleBoxEmpty_m2jyg")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_exsfm")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_lfuba")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="Control/FriendInfo"]
 libraries = {
@@ -1560,10 +1560,10 @@ grow_horizontal = 0
 rotation = -1.57079
 theme_override_colors/font_color = Color(0, 0.629095, 0.662462, 1)
 theme_override_font_sizes/font_size = 20
-theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
-theme_override_styles/hover = SubResource("StyleBoxFlat_403wm")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_nk6lk")
 theme_override_styles/normal = SubResource("StyleBoxFlat_yic8r")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nk6lk")
+theme_override_styles/hover = SubResource("StyleBoxFlat_403wm")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
 text = "+"
 expand_icon = true
 

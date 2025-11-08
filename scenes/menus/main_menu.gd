@@ -523,6 +523,10 @@ func _on_buy_item_button_pressed() -> void:
 	ItemPage.visible = false
 	var success = await Client.buyAccessory(currentAccessoryId,Global.token)
 	print(success)
+	if checkOwnsAccessory(successAc,currentAccessoryId):
+		buyAccessoryButton.text = "Owned"
+	else:
+		buyAccessoryButton.text = "Buy"
 	loadingSpinner.queue_free()
 	ItemPage.visible = true
 	if success.get("success",false):
@@ -752,7 +756,18 @@ func _on_history_button_pressed():
 		history_text += "Verified: " + ("Yes" if payment.verified else "No") + "\n\n"
 
 func _on_ad_button_small_pressed() -> void:
-	Client.show_rewarded_ad(func():
+	var spinner = createLoadingSpinner()
+	var watched = false
+	await Client.show_rewarded_ad(func():
+		watched = true
 		var ad_unit_id = "test"
 		var response = await Client.processAdReward(Global.token, "admob", ad_unit_id, 10)
-		print(response))
+		print(response)
+		if response.get("success",false):
+			playSound(load("res://assets/sounds/UI/PurchaseSuccess.wav"))
+		spinner.queue_free()
+		)
+	await get_tree().create_timer(1)
+	if !watched:
+		spinner.queue_free()
+	
