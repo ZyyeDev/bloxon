@@ -132,6 +132,9 @@ func _ready():
 		
 		print("original_mesh_positions ",original_mesh_positions)
 		print("original_mesh_rotations ",original_mesh_rotations)
+		
+		for i in 9:
+			inventory[i] = -1
 	
 	is_mobile = OS.has_feature("android")
 	
@@ -755,7 +758,8 @@ func changeBrainrotHolding(newHolding):
 func syncInventory(inventory_data: Dictionary):
 	if str(uid) == Global.UID:
 		print("Received inventory: ", inventory_data)
-		Global.currentInventory = inventory_data
+		inventory = inventory_data.duplicate(true)
+		Global.currentInventory = inventory_data.duplicate(true)
 		if CoreGui:
 			CoreGui.updateInv()
 

@@ -150,11 +150,11 @@ var RARITIES = {
 	MYTHIC = 4
 }
 var RARITIES_PERCENT = {
-	0 : 80,
-	1 : 60,
-	2 : 50,
-	3 : 30,
-	4 : 10
+	0 : 100,
+	1 : 40,
+	2 : 20,
+	3 : 8,
+	4 : 3
 }
 
 var RARITIES_STRING = {
@@ -356,7 +356,6 @@ func spawnBrainrotLoop():
 	print("Brainrot spawn loop started")
 
 func getRandomBrainrot():
-	var tries = 0
 	var weighted_list = []
 	
 	for brainrot in brainrotTypes:
@@ -365,25 +364,16 @@ func getRandomBrainrot():
 		
 		if temp.chanceOverride != -1:
 			percent = temp.chanceOverride
-			
+		
 		for i in range(percent):
 			weighted_list.append(brainrot)
-			
-	var brainrot = "noobini pizzanini"
-	while tries < 10:
-		brainrot = weighted_list[randi_range(0, weighted_list.size() - 1)]
-		var temp = load("res://brainrots/" + brainrot + ".tscn").instantiate()
-		var percent = RARITIES_PERCENT[temp.rarity]
 		
-		if temp.chanceOverride != -1:
-			percent = temp.chanceOverride
-			
-		if randi_range(0, 100) <= percent:
-			return brainrot
-			
-		tries += 1
-		
-	return brainrot
+		temp.queue_free()
+	
+	if weighted_list.is_empty():
+		return "noobini pizzanini"
+	
+	return weighted_list[randi() % weighted_list.size()]
 
 @rpc("authority", "call_remote", "reliable")
 func spawnBrainrot(brUID="", brData={}): 
@@ -430,7 +420,6 @@ func spawnBrainrot(brUID="", brData={}):
 		return
 	var brainrot = loaded.instantiate()
 	brainrot.UID = brUID
-	Game.workspace.get_node("brainrots").add_child(brainrot)
 	
 	if brData.has("position"):
 		brainrot.global_position = brData.position
@@ -444,6 +433,8 @@ func spawnBrainrot(brUID="", brData={}):
 	if brData.has("target_position") and brData.has("has_target"):
 		brainrot.target_position = brData.target_position
 		brainrot.has_target = brData.has_target
+	
+	Game.workspace.get_node("brainrots").call_deferred("add_child", brainrot)
 	
 	brainrots[brUID] = brainrot 
 	
@@ -823,13 +814,10 @@ func sendChatMessage(message: String, senderUID: String, senderToken: String):
 @rpc("authority", "call_remote", "reliable")
 func receiveChatMessage(message: String, senderUID: String):
 	if isClient:
-		var player = getPlayer(senderUID)
-		var username = "Unknown"
-		if player and player.username:
-			username = player.username
-			player.addBubbleBox(message)
-		elif senderUID in allPlayers:
-			username = allPlayers[senderUID].get("username", "Unknown")
+		var plr = getPlayer(senderUID)
+		var username = allPlayers[senderUID].get("username", "Unknown")
+		if plr:
+			plr.addBubbleBox(message)
 		
 		CoreGui.addChatMessage(username, message)
 		
@@ -843,11 +831,8 @@ func changeHoldingItem(invId, itemId, myId, mytoken):
 			var server = get_parent().get_node("Server")
 			var user_id = int(server.uidToUserId.get(str(sender)))
 			
-			if user_id and server.playerData.has(user_id):
-				var player_inventory = server.playerData[user_id].get("inventory", {})
-				
+			if user_id:
 				if invId == -1:
-					server.playerData[user_id]["holdingItem"] = -1
 					rpc("syncHoldingItem", str(sender), -1, -1)
 					syncHoldingItem(str(sender), -1, -1)
 					
@@ -858,19 +843,23 @@ func changeHoldingItem(invId, itemId, myId, mytoken):
 					return
 				
 				if invId >= 0 and invId < 9:
-					var slot_item_id = player_inventory.get(invId, -1)
+					var tools_for_rebirth = getToolsForRebirth(server.playerData[user_id].get("rebirths", 0))
 					
-					if slot_item_id == itemId or itemId == -1:
-						server.playerData[user_id]["holdingItem"] = itemId
-						rpc("syncHoldingItem", str(sender), invId, itemId)
-						syncHoldingItem(str(sender), invId, itemId)
+					if invId < tools_for_rebirth.size():
+						var expected_item_id = tools_for_rebirth[invId]
 						
-						var plr = getPlayer(str(sender))
-						if plr:
-							plr.toolHolding = itemId
-							plr.currentSlot = invId
+						if expected_item_id == itemId or itemId == -1:
+							rpc("syncHoldingItem", str(sender), invId, itemId)
+							syncHoldingItem(str(sender), invId, itemId)
+							
+							var plr = getPlayer(str(sender))
+							if plr:
+								plr.toolHolding = itemId
+								plr.currentSlot = invId
+						else:
+							print("Player tried to equip item ", itemId, " from slot ", invId, " but expected ", expected_item_id)
 					else:
-						print("Player tried to equip item ", itemId, " from slot ", invId, " but slot contains ", slot_item_id)
+						print("Player tried to equip from invalid slot ", invId, " with rebirth level ", server.playerData[user_id].get("rebirths", 0))
 		else:
 			printerr("server dont have server script???")
 	else:
@@ -878,18 +867,7 @@ func changeHoldingItem(invId, itemId, myId, mytoken):
 
 @rpc("any_peer", "call_remote", "reliable")
 func giveItemToPlayer(pUID: String, itemId: int, pToken: String):
-	var sender:int = multiplayer.get_remote_sender_id()
-	if !isClient:
-		if get_parent().has_node("Server"):
-			var server = get_parent().get_node("Server")
-			var user_id = int(server.uidToUserId.get(str(sender)))
-			if user_id and server.playerData.has(user_id):
-				var slot = server.giveItemToPlayerSlot(user_id, itemId)
-				
-				if slot != -1:
-					print("Gave item ", itemId, " to player ", user_id, " in slot ", slot)
-				else:
-					print("Failed to give item ", itemId, " to player ", user_id, " - inventory full")
+	pass
 
 func giveRebirthTools(pUID: String, rebirthLevel: int):
 	if isClient: return
@@ -899,21 +877,19 @@ func giveRebirthTools(pUID: String, rebirthLevel: int):
 		var user_id = int(server.uidToUserId.get(pUID))
 		
 		if user_id and server.playerData.has(user_id):
-			var tools = getToolsForRebirth(rebirthLevel)
-			var new_inventory = {}
-			
-			for i in 9:
-				new_inventory[i] = -1
-			
-			for i in range(min(tools.size(), 9)):
-				new_inventory[i] = tools[i]
-			
-			server.playerData[user_id]["inventory"] = new_inventory
-			
 			var player = getPlayer(pUID)
 			if player:
-				player.rpc("syncInventory", new_inventory)
-				print("Gave rebirth tools to player ", pUID, ": ", new_inventory)
+				var inventory_data = {}
+				var tools = getToolsForRebirth(rebirthLevel)
+				
+				for i in 9:
+					if i < tools.size():
+						inventory_data[i] = tools[i]
+					else:
+						inventory_data[i] = -1
+				
+				player.rpc("syncInventory", inventory_data)
+				print("Gave rebirth tools to player ", pUID, ": ", inventory_data)
 
 @rpc("authority", "call_remote", "reliable")
 func syncHoldingItem(pUID: String, invId, itemId: int):
@@ -975,19 +951,26 @@ func rebirth(token):
 		
 		plr.rebirthsVal.Value += 1
 		
+		if get_parent().has_node("Server"):
+			var server = get_parent().get_node("Server")
+			var user_id = int(server.uidToUserId.get(str(sender)))
+			if user_id and server.playerData.has(user_id):
+				server.playerData[user_id]["rebirths"] = plr.rebirthsVal.Value
+				server.playerData[user_id]["money"] = plr.moneyValue.Value
+				server.updatePlayerMoney(str(sender), plr.moneyValue.Value)
+		
 		giveRebirthTools(str(sender), plr.rebirthsVal.Value)
+		plr.rpc("syncMoney", plr.moneyValue.Value)
 
 func getToolsForRebirth(rebirthLevel: int) -> Array:
-	if rebirthLevel < 0:
-		return [1]
-	elif rebirthLevel == 0:
+	if rebirthLevel <= 0:
 		return [1]
 	elif rebirthLevel == 1:
 		return [1, 2, 3]
 	elif rebirthLevel == 2:
-		return [1, 2, 3, 4, 5, 6]
+		return [1, 2, 3, 4]
 	else:
-		return [1, 2, 3, 4, 5, 6, 7]
+		return [1, 2, 3, 4]
 
 @rpc("any_peer")
 func trySteal(slot_name, plruid):
@@ -1059,30 +1042,7 @@ func trySteal(slot_name, plruid):
 				print("Steal initiated - Brainrot: ", brainrot_id, " | Slot name: ", slot_name, " | Slot index: ", slot_index)
 
 func server_give_item(pUID: String, itemId: int, quantity: int = 1):
-	if isClient:
-		return
-	
-	if get_parent().has_node("Server"):
-		var server = get_parent().get_node("Server")
-		var user_id = int(server.uidToUserId.get(pUID))
-		
-		if user_id and server.playerData.has(user_id):
-			if not server.playerData[user_id].has("inventory"):
-				server.playerData[user_id]["inventory"] = {}
-			
-			var inventory = server.playerData[user_id]["inventory"]
-			var item_key = str(itemId)
-			
-			if inventory.has(item_key):
-				inventory[item_key] += quantity
-			else:
-				inventory[item_key] = quantity
-			
-			var player = getPlayer(pUID)
-			if player:
-				player.rpc("syncInventory", inventory)
-			
-			print("Gave ", quantity, "x item ", itemId, " to player ", pUID)
+	pass
 
 @rpc("authority","call_remote","reliable")
 func updateMyPlrData(npdata):

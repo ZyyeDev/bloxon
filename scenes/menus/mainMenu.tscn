@@ -1417,6 +1417,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="currencyButtonSmall" parent="Control/CurrencyPurchase/VBoxContainer/HBoxContainer" instance=ExtResource("12_k7u30")]
+visible = false
 layout_mode = 2
 blips = 10
 
@@ -1456,10 +1457,13 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_k7u30")
 
 [node name="_VBoxContainer_33" type="VBoxContainer" parent="Control/FriendInfo/bg"]
-layout_mode = 0
-offset_top = 37.0
-offset_right = 1153.0
-offset_bottom = 297.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 29.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 10
 
 [node name="Join Friend" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
@@ -1529,11 +1533,11 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -122.0
-offset_top = 1.0
-offset_right = -42.0
-offset_bottom = 24.0
+offset_left = -236.99994
+offset_right = -135.24554
+offset_bottom = 23.0
 grow_horizontal = 0
+scale = Vector2(1.3330613, 1.3330613)
 theme_override_styles/normal = SubResource("StyleBoxFlat_exsfm")
 text = "???"
 horizontal_alignment = 1

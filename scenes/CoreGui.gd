@@ -176,7 +176,6 @@ func _on_jump_pressed() -> void:
 	Input.action_press("jump")
 	await get_tree().process_frame
 	Input.action_release("jump")
-	JumpButton.icon = load("res://assets/images/UI/Mobile/jumpPressed.png")
 
 func _on_jump_button_button_up() -> void:
 	pass #JumpButton.icon = load("res://assets/images/UI/Mobile/jump.png")

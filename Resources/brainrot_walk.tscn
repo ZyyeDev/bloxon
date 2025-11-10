@@ -11,6 +11,7 @@ size = Vector3(10, 10, 10)
 
 [node name="brainrotWalk" type="Node3D"]
 script = ExtResource("1_uh474")
+speed = 10.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_h5axs")

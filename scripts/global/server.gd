@@ -313,6 +313,18 @@ func _on_peer_disconnected(id):
 				house_node.locked = false
 				if house_node.has_node("Timer") and house_node.get_node("Timer").time_left > 0:
 					house_node.get_node("Timer").stop()
+				if house_node.has_node("MoneyTimer"):
+					house_node.get_node("MoneyTimer").stop()
+				
+				var slots_to_clear = []
+				for slot_name in house_node.brainrots:
+					if house_node.brainrots[slot_name]["brainrot"]["id"] != "":
+						slots_to_clear.append(slot_name)
+				
+				for slot_name in slots_to_clear:
+					house_node.removeBrainrot(slot_name)
+				
+				await get_tree().process_frame
 			Global.rpc("client_house_assigned", house_id, "")
 			print("House ", house_id, " freed and broadcasted")
 		
@@ -322,7 +334,7 @@ func _on_peer_disconnected(id):
 		Global.avatarData.erase(str(id))
 		broadcastAllPlayers()
 		
-		## We don’t want to close the server!
+		## We don't want to close the server!
 		## Closing it will completely break the backend.
 		## The server still exists for the main server, so it will return this server,
 		## even though it no longer exists because it was closed.
@@ -398,9 +410,6 @@ func savePlayerData(user_id: int):
 	current_data["money"] = money_to_save
 	current_data["rebirths"] = rebirth_to_save
 	
-	if current_data.has("inventory"):
-		current_data.erase("inventory")
-	
 	var house_id = current_data.get("house_id")
 	if house_id and house_id in Global.houses:
 		var house_node = Global.getHouse(house_id)
@@ -444,6 +453,8 @@ func savePlayerData(user_id: int):
 	if success:
 		print("Successfully saved data for user_id: ", user_id, " with money: $", current_data["money"])
 		playerData[user_id] = current_data
+		var session_time = Time.get_unix_time_from_system() - connectedPlayers[user_id].get("connected_at",0)
+		playerData[user_id]["sessions_played"] = playerData[user_id].get("statistics", {}).get("sessions_played", 0) + 1
 		return true
 	else:
 		print("Failed to save player data for user_id: ", user_id)
@@ -557,21 +568,13 @@ func loadPlayerData(user_id: int, peer_id: int):
 			loaded_money = 100
 		
 		data["money"] = loaded_money
-		
-		var inventory = createDefaultInventory()
-		var tools_for_rebirth = Global.getToolsForRebirth(loaded_rebirths)
-		
-		for i in range(min(tools_for_rebirth.size(), 9)):
-			inventory[i] = tools_for_rebirth[i]
-		
-		data["inventory"] = inventory
+		data["rebirths"] = loaded_rebirths
 		
 		playerData[user_id] = data.duplicate(true)
 		
 		print("Loaded data for user_id: ", user_id)
 		print("Money: $", loaded_money)
 		print("Rebirths: ", loaded_rebirths)
-		print("Inventory: ", inventory)
 		
 		if plr.moneyValue:
 			plr.moneyValue.Value = loaded_money
@@ -582,9 +585,18 @@ func loadPlayerData(user_id: int, peer_id: int):
 			plr.rebirthsVal.Value = loaded_rebirths
 			print("Set player rebirths to: ", loaded_rebirths)
 		
+		var inventory_data = {}
+		var tools = Global.getToolsForRebirth(loaded_rebirths)
+		
+		for i in 9:
+			if i < tools.size():
+				inventory_data[i] = tools[i]
+			else:
+				inventory_data[i] = -1
+		
 		if plr.has_method("rpc"):
-			plr.rpc("syncInventory", inventory)
-			print("Synced inventory to player: ", inventory)
+			plr.rpc("syncInventory", inventory_data)
+			print("Synced inventory to player: ", inventory_data)
 		
 		var house_id = data.get("house_id")
 		
@@ -633,12 +645,6 @@ func loadPlayerData(user_id: int, peer_id: int):
 				print("ERROR: House node not found for house_id: ", house_id)
 	else:
 		print("No saved data for user_id: ", user_id, ", creating new")
-		var new_inventory = createDefaultInventory()
-		var tools = Global.getToolsForRebirth(0)
-		
-		for i in range(min(tools.size(), 9)):
-			new_inventory[i] = tools[i]
-		
 		playerData[user_id] = {
 			"money": 100,
 			"rebirths": 0,
@@ -647,7 +653,6 @@ func loadPlayerData(user_id: int, peer_id: int):
 			"house_id": null,
 			"house_data": {"brainrots": {}},
 			"brainrots_collected": {},
-			"inventory": new_inventory,
 			"indexBrainrots": createBrainrotsIndex(),
 			"statistics": {
 				"sessions_played": 0,
@@ -666,9 +671,18 @@ func loadPlayerData(user_id: int, peer_id: int):
 			playerData[user_id]["house_id"] = current_house.id
 			print("New player assigned to house ", current_house.id)
 		
+		var inventory_data = {}
+		var tools = Global.getToolsForRebirth(0)
+		
+		for i in 9:
+			if i < tools.size():
+				inventory_data[i] = tools[i]
+			else:
+				inventory_data[i] = -1
+		
 		if plr.has_method("rpc"):
-			plr.rpc("syncInventory", new_inventory)
-			print("New player, synced inventory: ", new_inventory)
+			plr.rpc("syncInventory", inventory_data)
+			print("New player, synced inventory: ", inventory_data)
 	
 	Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
 	

@@ -672,9 +672,6 @@ func previewCharacter(userId: int, characterNode: Node3D = null):
 	
 	await loadCharacterAvatar(userId, characterNode)
 
-func createCurrencyPackages():
-	var packages = await Client.getCurrencyPackages()
-
 func getAvatar(getAvatarFromServer:bool):
 	if getAvatarFromServer:
 		Global.avatarData = await Client.getAvatar(Global.user_id,Global.token)
@@ -691,6 +688,7 @@ func getOffers():
 		
 		for i in packData:
 			var product_id = i["product_id"]
+			print("product_id ",product_id)
 			var amount = i["amount"]
 			var price_usd = i["price_usd"]
 			var currencyButton:Button = load("res://scenes/menus/currency/currency_button_small.tscn").instantiate()
@@ -698,6 +696,7 @@ func getOffers():
 			currencyButton.cost = price_usd
 			currencyButton.z_index = amount
 			currencyButton.pressed.connect(func():
+				print("called buy offer")
 				Client.buy(product_id))
 			CurrencyGridContainer.add_child(currencyButton)
 

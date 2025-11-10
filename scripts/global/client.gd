@@ -54,8 +54,8 @@ func _ready():
 		Client.subscribeToGlobalMessages(_on_global_message)
 		
 		if OS.has_feature("android"):
-			create_admob_thing()
 			_setup_payment_system()
+			create_admob_thing()
 
 func create_admob_thing():
 	while not get_tree().current_scene and not get_tree().current_scene.has_node("Admob"):
@@ -76,13 +76,18 @@ func show_rewarded_ad(reward:Callable):
 	admob.load_rewarded_ad()
 	if reward:
 		rewardAdCallable = reward
-	await admob.rewarded_ad_loaded
+	while !admob.is_rewarded_interstitial_ad_loaded():
+		await get_tree().process_frame
+	
+	if !admob.is_rewarded_interstitial_ad_loaded():
+		printerr("Admob: Rewarded interstitial didnt load")
+		return false
 	admob.show_rewarded_ad()
 
 func _setup_payment_system():
 	if Engine.has_singleton("GodotGooglePlayBilling"):
 		print("Google Play Billing singleton found!!!")
-		payment = Engine.get_singleton("GodotGooglePlayBilling")
+		payment = BillingClient.new() #Engine.get_singleton("GodotGooglePlayBilling")
 		
 		if not payment:
 			print("ERROR: Failed to get GodotGooglePlayBilling singleton")
@@ -93,20 +98,27 @@ func _setup_payment_system():
 		payment.connected.connect(_on_payment_connected)
 		payment.disconnected.connect(_on_payment_disconnected)
 		payment.connect_error.connect(_on_payment_connect_error)
+		payment.query_product_details_response.connect(_on_product_details_query_completed)
 		payment.query_purchases_response.connect(_on_query_purchases_response)
 		payment.on_purchase_updated.connect(_on_purchase_updated)
-		payment.query_product_details_response.connect(_on_product_details_query_completed)
 		
 		print("starting billing")
-		payment.startConnection()
-	else:
-		print("Google Play Billing plugin not available")
-		paymentConnected = false
+		payment.start_connection()
 
 func _on_payment_connected():
 	paymentConnected = true
+	var data = await Client.getCurrencyPackages()
+	var packData = data.get("data",{}).get("packages",[])
 	
-	var query_result = payment.queryPurchasesAsync("inapp")
+	var products = []
+	
+	if !packData.is_empty():
+		for i in packData:
+			var product_id:String = i["product_id"]
+			products.append(product_id)
+	payment.query_product_details(products, BillingClient.ProductType.INAPP)
+	print("quering ",products)
+	#var query_result = payment.queryPurchasesAsync("inapp")
 
 func _on_payment_disconnected():
 	print("Billing disconnected")
@@ -117,44 +129,40 @@ func _on_payment_connect_error(error_code: int, error_message: String):
 	paymentConnected = false
 	purchase_failed.emit("Failed to connect to payment system: " + error_message)
 
-func _on_product_details_query_completed(products: Array):
-	print("Product details query completed: ", products.size(), " products")
-	for product in products:
-		var product_id = product.get("productId", "")
-		if product_id != "":
-			queried_product_details[product_id] = product
-			print("Added product: ", product_id)
+func _on_product_details_query_completed(query_result: Dictionary):
+	print("Product details query completed: ", query_result.size(), " products")
+	if query_result.response_code == BillingClient.BillingResponseCode.OK:
+		print("Product details query success")
+		for available_product in query_result.product_details:
+			queried_product_details[available_product.get("product_id", "")] = available_product
+			print(available_product)
+	else:
+		print("Product details query failed")
+		print("response_code: ", query_result.response_code, "debug_message: ", query_result.debug_message)
 
 func _on_purchase_updated(response: Dictionary):
-	var purchases = response.get("purchases", [])
-	print("Processing ", purchases.size(), " purchases")
-	for purchase in purchases:
-		if purchase.purchase_state == 1:
-			var product_id = purchase.products[0]
-			if product_id not in purchased_products_ids:
-				print("purchase detected")
-				_verify_and_consume_purchase(purchase)
-			else:
-				print("Purchase already processed")
+	if response.response_code == BillingClient.BillingResponseCode.OK:
+		print("Purchase update received")
+		for purchase in response.purchases:
+			_verify_and_consume_purchase(purchase)
+	else:
+		print("Purchase update error")
+		print("response_code: ", response.response_code, "debug_message: ", response.debug_message)
+
+func _query_purchases():
+	payment.query_purchases(BillingClient.ProductType.INAPP)
 
 func _on_query_purchases_response(query_result: Dictionary):
 	print("Query purchases response: ", query_result)
-	var status = query_result.get("status", -1)
 	var response_code = query_result.get("response_code", -1)
 	
-	print("Status: ", status, " Response code: ", response_code)
-	
-	if status == OK and response_code == 0:
-		var purchases = query_result.get("purchases", [])
-		print("Found ", purchases.size(), " existing purchases")
-		for purchase in purchases:
-			if purchase.purchase_state == 1:
-				var product_id = purchase.products[0]
-				print("Unprocessed purchase found: ", product_id)
-				if product_id not in purchased_products_ids:
-					_verify_and_consume_purchase(purchase)
+	if response_code == BillingClient.BillingResponseCode.OK:
+		print("purchase query success")
+		for purchase in query_result.purchases:
+			_verify_and_consume_purchase(purchase)
 	else:
-		print("Query failed or no purchases found")
+		print("Purchase query failed")
+		print("response_code: ", query_result.response_code, "debug_message: ", query_result.debug_message)
 
 func _verify_and_consume_purchase(purchase: Dictionary):
 	var product_id = purchase.products[0]
@@ -162,7 +170,7 @@ func _verify_and_consume_purchase(purchase: Dictionary):
 	
 	print("Verifying purchase: ", product_id)
 	
-	var result = await processPurchase(Global.token, product_id, purchase_token)
+	var result = await processPurchase(Global.token, product_id, purchase_token, purchase)
 	
 	if result.get("success", false):
 		purchased_products_ids.append(product_id)
@@ -1233,7 +1241,8 @@ func addAccessoryToPlayer(accessoryId:int,charRef:Node3D):
 	mesh_instance.mesh = mesh
 	var possibleLimbs = {}
 	if !is_instance_valid(charRef):
-		printerr("charRef is not valid!!!!")
+		printerr("charRef is not valid!!??")
+		return
 	for v in charRef.get_children():
 		possibleLimbs[v.name.to_lower()] = v
 	print(equipSlot.to_lower())
@@ -1444,14 +1453,16 @@ func changePassword(old_password: String, new_password: String, token: String) -
 		"error": "Request failed with code: " + str(response[1])
 	}
 
-func processPurchase(token: String, product_id: String, purchase_token: String) -> Dictionary:
+func processPurchase(token: String, product_id: String, purchase_token: String, allData) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
 	add_child(httpRequest)
 	
 	var requestData = {
 		"token": token,
 		"product_id": product_id,
-		"purchase_token": purchase_token
+		"purchase_token": purchase_token,
+		"purchase_time": allData.get("purchase_time", 0),
+		"allData": allData
 	}
 	
 	var headers = ["Content-Type: application/json"]
@@ -1528,10 +1539,10 @@ func getCurrencyPackages(justReturn:bool=false) -> Dictionary:
 					var product_id = i["product_id"]
 					products.append(product_id)
 				
-				if OS.get_name() == "Android" and payment and paymentConnected:
-					payment.queryProductDetails(products, "inapp")
-					await get_tree().create_timer(1.0).timeout
-					payment.queryPurchasesAsync("inapp")
+				#if OS.get_name() == "Android" and payment and paymentConnected:
+				#	payment.queryProductDetails(products, "inapp")
+				#	await get_tree().create_timer(1.0).timeout
+				#	payment.queryPurchasesAsync("inapp")
 		return jsonResponse if jsonResponse != null else {}
 	
 	return {"error":"no_data"}
@@ -1559,27 +1570,30 @@ func getPaymentHistory(token: String) -> Dictionary:
 	return {}
 
 func buy(product_id, purchase_type = ""):
+	print("call buy product")
 	if !paymentConnected or !payment:
+		print("Payment system not initialized")
 		purchase_failed.emit("Payment system not initialized")
 		return false
 	
 	if !queried_product_details.has(product_id):
 		print("Product details not loaded, attempting to reload...")
-		await getCurrencyPackages()
-		await get_tree().create_timer(2.0).timeout
+		await _on_payment_connected()
+		await get_tree().create_timer(.5).timeout
 		
 		if !queried_product_details.has(product_id):
+			print("Product details not loaded. Please try again.")
 			purchase_failed.emit("Product details not loaded. Please try again.")
 			return false
 	
 	recent_product_id = product_id
 	recent_purchase_type = purchase_type
 	
-	var product_details = queried_product_details[product_id]
-	var result = payment.purchase(product_details)
+	var result = payment.purchase(product_id)
 	
-	if result.status != OK:
-		purchase_failed.emit("Failed to initiate purchase: " + str(result))
+	if result.response_code != BillingClient.BillingResponseCode.OK:
+		print("Failed to initiate purchase: ", result.debug_message)
+		purchase_failed.emit("Failed to initiate purchase: " + result.debug_message)
 		return false
 	
 	return true
