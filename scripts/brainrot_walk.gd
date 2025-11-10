@@ -25,8 +25,8 @@ func _ready() -> void:
 		add_child(proximity_prompt)
 		#print("ProximityPrompt added to brainrot: ", UID)
 	
-	if !Global.isClient:
-		rpc("syncCurrentPos", position)
+	#if !Global.isClient:
+	#	rpc("syncCurrentPos", position)
 	
 	$Cost.text = "$"+str(cost)
 	$Generate.text = str(generate) + " $/s"
