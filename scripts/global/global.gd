@@ -17,6 +17,8 @@ var currentInventory = {}
 
 var allPlayers = {}
 
+var brainrotsCache = {}
+
 var brainrotTypes = [
 	"noobini pizzanini",  
 	"lirilì larilà",
@@ -414,12 +416,16 @@ func spawnBrainrot(brUID="", brData={}):
 		return
 	
 	var randomBrainrot = brData.get("bName", getRandomBrainrot())
-	var loaded = load("res://brainrots/"+randomBrainrot+".tscn")
+	if !brainrotsCache.find_key(randomBrainrot):
+		brainrotsCache[randomBrainrot] = load("res://brainrots/"+randomBrainrot+".tscn")
+	var loaded = brainrotsCache[randomBrainrot]
 	if not loaded:
 		print("[ERROR]: Uhhhhh, loaded brainrot is null?? random brainrot was: ",randomBrainrot, " and path is ","res://brainrots/"+randomBrainrot+".tscn")
 		return
 	var brainrot = loaded.instantiate()
 	brainrot.UID = brUID
+	
+	Game.workspace.get_node("brainrots").call_deferred("add_child", brainrot)
 	
 	if brData.has("position"):
 		brainrot.global_position = brData.position
@@ -433,8 +439,6 @@ func spawnBrainrot(brUID="", brData={}):
 	if brData.has("target_position") and brData.has("has_target"):
 		brainrot.target_position = brData.target_position
 		brainrot.has_target = brData.has_target
-	
-	Game.workspace.get_node("brainrots").call_deferred("add_child", brainrot)
 	
 	brainrots[brUID] = brainrot 
 	
