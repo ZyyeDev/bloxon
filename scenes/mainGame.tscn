@@ -96,10 +96,10 @@ shadow_bias = 0.0
 [node name="brainrots" type="Node3D" parent="."]
 
 [node name="bspawn" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -310, 6, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -318, 6, 4)
 
 [node name="bbye" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 225.356, 6, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 232.356, 6, 4)
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
 navigation_mesh = SubResource("NavigationMesh_gb8pf")
