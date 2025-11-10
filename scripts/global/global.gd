@@ -346,7 +346,7 @@ func spawnBrainrotLoop():
 		return
 	var timer = Timer.new()
 	timer.autostart = true
-	timer.wait_time = 1.5
+	timer.wait_time = 2.5
 	timer.timeout.connect(func():
 		if Server.inMaintenance:
 			return
