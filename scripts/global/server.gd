@@ -303,30 +303,10 @@ func _on_peer_disconnected(id):
 		print("Saving data for user_id: ", user_id)
 		await savePlayerData(user_id)
 		
-		var house_id = playerData[user_id].get("house_id")
+		var house_id = Global.getHouse(user_id)
 		if house_id and house_id in Global.houses:
 			print("Clearing house ", house_id, " for disconnected player ", id)
-			Global.houses[house_id]["plr"] = ""
-			var house_node = Global.getHouse(house_id)
-			if house_node:
-				house_node.plrAssigned = ""
-				house_node.locked = false
-				if house_node.has_node("Timer") and house_node.get_node("Timer").time_left > 0:
-					house_node.get_node("Timer").stop()
-				if house_node.has_node("MoneyTimer"):
-					house_node.get_node("MoneyTimer").stop()
-				
-				var slots_to_clear = []
-				for slot_name in house_node.brainrots:
-					if house_node.brainrots[slot_name]["brainrot"]["id"] != "":
-						slots_to_clear.append(slot_name)
-				
-				for slot_name in slots_to_clear:
-					house_node.removeBrainrot(slot_name)
-				
-				await get_tree().process_frame
-			Global.rpc("client_house_assigned", house_id, "")
-			print("House ", house_id, " freed and broadcasted")
+			Global.resetHouse(house_id)
 		
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)

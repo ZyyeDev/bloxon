@@ -288,9 +288,44 @@ func initializeHouses():
 func addHouse(id):
 	houses[id] = {"plr": "", "brainrots": {}}
 
+func resetHouse(house_id):
+	houses[house_id]["plr"] = ""
+	var house_node = Global.getHouse(house_id)
+	if house_node:
+		house_node.plrAssigned = ""
+		house_node.locked = false
+		if house_node.has_node("Timer") and house_node.get_node("Timer").time_left > 0:
+			house_node.get_node("Timer").stop()
+		if house_node.has_node("MoneyTimer"):
+			house_node.get_node("MoneyTimer").stop()
+		
+		var slots_to_clear = []
+		for slot_name in house_node.brainrots:
+			if house_node.brainrots[slot_name]["brainrot"]["id"] != "":
+				slots_to_clear.append(slot_name)
+		
+		for slot_name in slots_to_clear:
+			house_node.removeBrainrot(slot_name)
+		
+		await get_tree().process_frame
+	Global.rpc("client_house_assigned", house_id, "")
+	print("House ", house_id, " freed and broadcasted")
+
 func assignHouse(playerUID):
 	if !isClient:
 		for house_id in houses:
+			if not houses[house_id]["plr"] in allPlayers:
+				push_warning("plr assigned to a plr that doesnt exist? did we add this player, or the player leave?")
+				if not houses[house_id]["plr"] in multiplayer.get_peers():
+					push_warning("plr doesnt exist")
+					resetHouse(house_id)
+				else:
+					push_warning("plr does exist, but for some reason it wasnt on allPlayers")
+					Global.allPlayers[str(houses[house_id]["plr"])] = {
+						## we dont have these here, we should in the future add a way to get them
+						#"username": username_str,
+						#"user_id": user_id
+					}
 			if houses[house_id]["plr"] == "" or houses[house_id]["plr"] == playerUID:
 				if houses[house_id]["plr"] == playerUID:
 					print("WARNING: Player ", playerUID, " trying to get house ", house_id, " but already assigned!")
