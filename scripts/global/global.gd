@@ -254,6 +254,7 @@ func saveLocal():
 		"username": username,
 		"volume" : volume,
 		"graphics": graphics,
+		"unprocessedPurchases": Client.unprocessedPurchases
 	}
 	LocalData.saveData("data.dat",data)
 

@@ -71,6 +71,13 @@ func _ready() -> void:
 	add_child(updateCurrencyTimer)
 	updateCurrencyTimer.start()
 	
+	# TODO: why isnt this being called?
+	Client.avatarUpdated.connect(func(_data):
+		var pfpTex = await Client.getPlayerPfpTexture(Global.user_id, Global.token)
+		print("pfpTex: ",pfpTex)
+		selfPfp.texture = pfpTex
+		)
+	
 	$Control/AvatarPage/SubViewport/AnimationPlayer.play("idle")
 	
 	CoreGui.updateGraphics()
@@ -356,8 +363,8 @@ func _on_friend_requests_pressed() -> void:
 		button.uId = i
 		button.isOnline = data.get("serverId",null)!=null and data.get("serverId","")!=""
 		button.pressed.connect(func():
-			Client.acceptFriendRequest(Global.user_id,i,Global.token)
 			button.queue_free()
+			await Client.acceptFriendRequest(Global.user_id,i,Global.token)
 			updateSmallFriends()
 			
 			var snd = AudioStreamPlayer.new()
@@ -550,7 +557,12 @@ func _on_apply_avatar_pressed() -> void:
 	avatarColorsPage.visible = false
 	avatarLoadingSpinner.visible = true
 	Global.avatarData = newAvatarColor.duplicate(true)
-	await Client.updateAvatar(Global.user_id,newAvatarColor,Global.token)
+	
+	## if we await here we will wait until the pfp is updated
+	## i dont really recommend awaiting for that as it will wait for about 5-10secs
+	var thread = Thread.new()
+	thread.start(func():
+		Client.updateAvatar(Global.user_id,newAvatarColor,Global.token))
 	avatarLoadingSpinner.visible = false
 	avatarColorsPage.visible = false
 	inventoryContainer.visible = true
@@ -558,7 +570,7 @@ func _on_apply_avatar_pressed() -> void:
 	avatarTabs.visible = true
 	await get_tree().process_frame
 	await get_tree().process_frame
-	selfPfp.texture = await Client.getPlayerPfpTexture(Global.user_id,Global.token)
+	# selfPfp.texture = await Client.getPlayerPfpTexture(Global.user_id,Global.token)
 
 func _on_cancel_avatar_pressed() -> void:
 	avatarColorsPage.visible = false

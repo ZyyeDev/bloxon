@@ -81,6 +81,9 @@ func _process(delta: float) -> void:
 	#if pGet != "":
 	#	speed = fastSpeed
 	
+	if pGet != "":
+		speed = 25
+	
 	if !has_target:
 		if !Global.isClient:
 			set_initial_target()

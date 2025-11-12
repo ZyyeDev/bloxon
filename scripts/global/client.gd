@@ -19,6 +19,7 @@ var recent_product_id
 var recent_purchase_type
 var purchased_products_ids = []
 var queried_product_details = {}
+var unprocessedPurchases = {}
 
 var admobInit = false
 
@@ -41,6 +42,7 @@ signal serverlist_update
 signal bought_product(product_id: String)
 signal purchase_completed(success: bool, product_id: String, message: String)
 signal purchase_failed(error_message: String)
+signal avatarUpdated(data)
 
 func _ready():
 	var args = OS.get_cmdline_args()
@@ -165,24 +167,33 @@ func _on_query_purchases_response(query_result: Dictionary):
 		print("response_code: ", query_result.response_code, "debug_message: ", query_result.debug_message)
 
 func _verify_and_consume_purchase(purchase: Dictionary):
-	var product_id = purchase.products[0]
+	var product_id = purchase.get("product_ids", [])[0] if purchase.get("product_ids", []).size() > 0 else ""
 	var purchase_token = purchase.purchase_token
 	
-	print("Verifying purchase: ", product_id)
+	if purchase.purchase_state != BillingClient.PurchaseState.PURCHASED:
+		push_error("purchase is not purchased??")
+		return false
+	
+	print("Verifying purchase: ", purchase_token, " | ", product_id, " | ", purchase)
 	
 	var result = await processPurchase(Global.token, product_id, purchase_token, purchase)
 	
+	print("purchase result: ",result)
+	
 	if result.get("success", false):
+		if purchase_token in unprocessedPurchases:
+			unprocessedPurchases.erase(purchase_token)
 		purchased_products_ids.append(product_id)
 		
 		if payment and paymentConnected:
-			payment.consumePurchase(purchase_token)
+			payment.consume_purchase(purchase_token)
 		
 		var currency_granted = result.get("data", {}).get("currency_granted", 0)
 		print("Purchase verified and consumed! Currency granted: ", currency_granted)
 		bought_product.emit(product_id)
 		purchase_completed.emit(true, product_id, "Purchase successful! Granted " + str(currency_granted) + " currency")
 	else:
+		unprocessedPurchases[purchase_token] = purchase
 		var error_msg = result.get("error", {}).get("message", "Unknown error")
 		printerr("Failed to verify purchase: ", error_msg)
 		purchase_failed.emit(error_msg)
@@ -1115,7 +1126,10 @@ func unequipAccessory(accessoryId: int, token: String) -> Dictionary:
 
 func updateAvatar(userId: int, avatarData: Dictionary, token: String) -> Dictionary:
 	var httpRequest = HTTPRequest.new()
-	add_child(httpRequest)
+	call_deferred("add_child",httpRequest)
+	
+	while !httpRequest.is_inside_tree():
+		await get_tree().process_frame
 	
 	var requestData = {
 		"token": token,
@@ -1133,8 +1147,15 @@ func updateAvatar(userId: int, avatarData: Dictionary, token: String) -> Diction
 	
 	if response[1] == 200:
 		var jsonResponse = JSON.parse_string(response[3].get_string_from_utf8())
+		avatarUpdated.emit(jsonResponse)
 		return jsonResponse if jsonResponse != null else {}
-	
+	avatarUpdated.emit({
+		"success": false,
+		"error": {
+			"code": "HTTP_ERROR",
+			"message": "Request failed with code: " + str(response[1])
+		}
+	})
 	return {
 		"success": false,
 		"error": {

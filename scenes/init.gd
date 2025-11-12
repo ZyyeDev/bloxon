@@ -59,6 +59,7 @@ func _ready():
 		Global.token = data.get("token", "")
 		Global.volume = data.get("volume", 9)
 		Global.graphics = data.get("graphics", 9)
+		Client.unprocessedPurchases = data.get("unprocessedPurchases", {})
 		CoreGui.updateVolume()
 		CoreGui.updateGraphics()
 		print(data)
