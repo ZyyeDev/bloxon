@@ -32,7 +32,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_7otbo")
 
-[node name="LoadingSpinner" type="Sprite2D" parent="."]
+[node name="LoadingSpinner" type="Sprite2D" parent="Panel"]
 position = Vector2(591, 316)
 texture = ExtResource("1_ydy5h")
 script = SubResource("GDScript_3hk78")
