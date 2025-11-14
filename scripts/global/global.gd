@@ -265,6 +265,16 @@ func _notification(what):
 
 func startClient():
 	set_process(true)
+	var paymentCheck = Timer.new()
+	add_child(paymentCheck)
+	paymentCheck.wait_time = 60
+	paymentCheck.timeout.connect(func():
+		if !Client.inPaymentCheck:
+			for i in Client.unprocessedPurchases:
+				Client._verify_and_consume_purchase(Client.unprocessedPurchases[i])
+		paymentCheck.start()
+		)
+	paymentCheck.start()
 
 func _process_client(delta):
 	pass 

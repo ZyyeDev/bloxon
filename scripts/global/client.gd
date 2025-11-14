@@ -20,6 +20,7 @@ var recent_purchase_type
 var purchased_products_ids = []
 var queried_product_details = {}
 var unprocessedPurchases = {}
+var inPaymentCheck = false
 
 var admobInit = false
 
@@ -176,6 +177,8 @@ func _verify_and_consume_purchase(purchase: Dictionary):
 	
 	print("Verifying purchase: ", purchase_token, " | ", product_id, " | ", purchase)
 	
+	inPaymentCheck = true
+	
 	var result = await processPurchase(Global.token, product_id, purchase_token, purchase)
 	
 	print("purchase result: ",result)
@@ -192,11 +195,13 @@ func _verify_and_consume_purchase(purchase: Dictionary):
 		print("Purchase verified and consumed! Currency granted: ", currency_granted)
 		bought_product.emit(product_id)
 		purchase_completed.emit(true, product_id, "Purchase successful! Granted " + str(currency_granted) + " currency")
+		inPaymentCheck = false
 	else:
 		unprocessedPurchases[purchase_token] = purchase
 		var error_msg = result.get("error", {}).get("message", "Unknown error")
 		printerr("Failed to verify purchase: ", error_msg)
 		purchase_failed.emit(error_msg)
+		inPaymentCheck = false
 
 func _on_global_message(message: Dictionary):
 	var msg_type = message.get("type")
