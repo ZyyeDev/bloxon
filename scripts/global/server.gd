@@ -188,12 +188,6 @@ func _on_heartbeat_completed(result, code, headers, body):
 				await cleanup_server()
 				get_tree().quit()
 
-func _on_request_completed(result, code, headers, body):
-	if code == 200:
-		print("Server operation successful")
-	else:
-		print("Server operation failed, code: ", code)
-
 @rpc("any_peer","call_remote","reliable")
 func register_client_account(user_id, token):
 	var sender_id = get_tree().get_multiplayer().get_remote_sender_id()
@@ -298,22 +292,25 @@ func _on_peer_disconnected(id):
 	var user_id = uidToUserId.get(str(id))
 	if user_id:
 		var plr = Global.getPlayer(str(id))
+		var house_id = Global.getHouse(user_id)
 		if plr and plr.moneyValue:
 			playerData[user_id]["money"] = plr.moneyValue.Value
 			print("Captured money before save: $", plr.moneyValue.Value)
 		
 		print("Saving data for user_id: ", user_id)
-		await savePlayerData(user_id)
-		
-		var house_id = Global.getHouse(user_id)
-		if house_id and house_id in Global.houses:
-			print("Clearing house ", house_id, " for disconnected player ", id)
-			Global.resetHouse(house_id)
 		
 		uidToUserId.erase(str(id))
 		connectedPlayers.erase(user_id)
 		Global.allPlayers.erase(str(id))
 		Global.avatarData.erase(str(id))
+		
+		await savePlayerData(user_id)
+		
+		if house_id and house_id in Global.houses:
+			print("Clearing house ", house_id, " for disconnected player ", id)
+			Global.resetHouse(house_id)
+		else:
+			print("House doesnt exist: ",user_id)
 		broadcastAllPlayers()
 		
 		## We don't want to close the server!
