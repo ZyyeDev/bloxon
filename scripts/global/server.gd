@@ -151,9 +151,7 @@ func _on_heartbeat_timer():
 		print("Server not running, skipping heartbeat")
 		return
 	
-	var player_uids = []
-	for peer_id in uidToUserId:
-		player_uids.append(int(peer_id))
+	var allPeers = multiplayer.get_peers()
 	
 	var url = Global.masterIp + "/vm/heartbeat"
 	var headers = ["Content-Type: application/json"]
@@ -162,11 +160,11 @@ func _on_heartbeat_timer():
 		"servers": [{
 			"uid": uid,
 			"port": port,
-			"player_count": player_uids.size(),
+			"player_count": allPeers.size(),
 			"status": "running"
 		}],
 		"timestamp": Time.get_unix_time_from_system(),
-		"total_players": player_uids.size()
+		"total_players": allPeers.size()
 	}
 	
 	var http_hb = HTTPRequest.new()
@@ -225,8 +223,12 @@ func register_client_account(user_id, token):
 	avatar_data = await Client.getAvatar(user_id, token)
 	Global.avatarData[str(sender_id)] = avatar_data
 	
-	var house_id = Global.assignHouse(str(sender_id))
+	var house_id = await Global.assignHouse(str(sender_id))
 	var spawn_pos = Vector3.ZERO
+	
+	while not house_id:
+		push_warning("HOUSE ID IS INVALID!")
+		house_id = await Global.assignHouse(str(sender_id))
 	
 	if house_id:
 		var house_node = Global.getHouse(house_id)
