@@ -196,8 +196,6 @@ var ERROR_CODES = {
 var alrHasError = false
 
 func _ready() -> void:
-	if ".onrender.com" in masterIp:
-		masterIp = masterIp.replace("http://","https://")
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args:
 		print("Pfp rendering")
