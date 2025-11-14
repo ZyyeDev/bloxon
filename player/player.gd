@@ -763,10 +763,17 @@ func syncInventory(inventory_data: Dictionary):
 		if CoreGui:
 			CoreGui.updateInv()
 
-@rpc("authority")
+@rpc("authority","call_remote","reliable")
 func kick(msg:String):
-	Global.errorMessage(msg,Global.ERROR_CODES.DISCONNECT,"Kicked","Leave",func():
-		get_tree().change_scene_to_file("res://scenes/INIT.tscn"))
+	if !Global.isClient:
+		multiplayer.multiplayer_peer.disconnect_peer(int(uid), true)
+		rpc_id(int(uid), "kick_client", msg)
+
+@rpc("authority")
+func kick_client(msg:String):
+	if multiplayer.multiplayer_peer.get_unique_id() == int(uid):
+		Global.errorMessage(msg,Global.ERROR_CODES.DISCONNECT,"Kicked","Leave",func():
+			get_tree().change_scene_to_file("res://scenes/INIT.tscn"))
 
 @rpc("authority")
 func syncToolAnim(animName):
@@ -799,3 +806,7 @@ func server_start_ragdoll(duration: float, initial_velocity: Vector3):
 @rpc("authority", "call_remote", "reliable")
 func server_end_ragdoll():
 	end_ragdoll()
+
+@rpc("authority", "call_remote", "reliable")
+func syncMoney(money):
+	moneyValue.Value = money
