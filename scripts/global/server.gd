@@ -127,16 +127,6 @@ func get_external_ip():
 			return addr
 	return Global.noportIp
 
-func _on_register_completed(result, code, headers, body):
-	var sender = get_children().back()
-	if sender is HTTPRequest:
-		sender.queue_free()
-	
-	if code == 200:
-		print("Server registration successful")
-	else:
-		print("Server registration failed, code: ", code, " body: ", body.get_string_from_utf8())
-
 func startHeartbeat():
 	if !server_running:
 		return
@@ -187,6 +177,12 @@ func _on_heartbeat_completed(result, code, headers, body):
 				print("Master server requested shutdown")
 				await cleanup_server()
 				get_tree().quit()
+
+func _on_request_completed(result, code, headers, body):
+	if code == 200:
+		print("Server operation successful")
+	else:
+		print("Server operation failed, code: ", code)
 
 @rpc("any_peer","call_remote","reliable")
 func register_client_account(user_id, token):
