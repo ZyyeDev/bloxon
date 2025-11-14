@@ -35,7 +35,7 @@ class_name player
 @export var step_check_distance : float = 1.0
 
 @export var spring_arm_pivot : Node3D
-@export var spawn_position : Vector3
+@export var spawn_position = Vector3(0, 50, 0)
 
 @export_group("Mobile Controls")
 @export var mobile_sensitivity : float = 1
