@@ -325,13 +325,13 @@ func resetHouse(house_id):
 func assignHouse(playerUID):
 	if !isClient:
 		for house_id in houses:
-			if not houses[house_id]["plr"] in allPlayers:
-				push_warning("plr assigned to a plr that doesnt exist? did we add this player, or the player leave?")
+			if houses[house_id]["plr"] != "" and not houses[house_id]["plr"] in allPlayers:
+				#print("WARN: plr assigned to a plr that doesnt exist? did we add this player, or the player leave?")
 				if not houses[house_id]["plr"] in multiplayer.get_peers():
-					push_warning("plr doesnt exist")
+					print("WARN: plr doesnt exist")
 					resetHouse(house_id)
 				else:
-					push_warning("plr does exist, but for some reason it wasnt on allPlayers")
+					print("WARN: plr does exist, but for some reason it wasnt on allPlayers")
 					Global.allPlayers[str(houses[house_id]["plr"])] = {
 						## we dont have these here, we should in the future add a way to get them
 						#"username": username_str,

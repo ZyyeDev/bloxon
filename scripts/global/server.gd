@@ -227,8 +227,8 @@ func register_client_account(user_id, token):
 	var spawn_pos = Vector3.ZERO
 	
 	while not house_id:
-		push_warning("HOUSE ID IS INVALID!")
 		house_id = await Global.assignHouse(str(sender_id))
+		await get_tree().process_frame
 	
 	if house_id:
 		var house_node = Global.getHouse(house_id)
