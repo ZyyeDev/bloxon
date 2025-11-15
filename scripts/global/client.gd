@@ -175,6 +175,12 @@ func _verify_and_consume_purchase(purchase: Dictionary):
 		push_error("purchase is not purchased??")
 		return false
 	
+	if product_id in purchased_products_ids:
+		print("Purchase already processed: ", product_id)
+		if payment and paymentConnected:
+			payment.consume_purchase(purchase_token)
+		return true
+	
 	print("Verifying purchase: ", purchase_token, " | ", product_id, " | ", purchase)
 	
 	inPaymentCheck = true
@@ -186,22 +192,30 @@ func _verify_and_consume_purchase(purchase: Dictionary):
 	if result.get("success", false):
 		if purchase_token in unprocessedPurchases:
 			unprocessedPurchases.erase(purchase_token)
-		purchased_products_ids.append(product_id)
 		
 		if payment and paymentConnected:
-			payment.consume_purchase(purchase_token)
+			var consume_result = payment.consume_purchase(purchase_token)
+			print("Consume result: ", consume_result)
+			
+			await get_tree().process_frame
+		
+		purchased_products_ids.append(product_id)
 		
 		var currency_granted = result.get("data", {}).get("currency_granted", 0)
 		print("Purchase verified and consumed! Currency granted: ", currency_granted)
 		bought_product.emit(product_id)
 		purchase_completed.emit(true, product_id, "Purchase successful! Granted " + str(currency_granted) + " currency")
 		inPaymentCheck = false
+		
+		Global.saveLocal()
 	else:
 		unprocessedPurchases[purchase_token] = purchase
 		var error_msg = result.get("error", {}).get("message", "Unknown error")
 		printerr("Failed to verify purchase: ", error_msg)
 		purchase_failed.emit(error_msg)
 		inPaymentCheck = false
+		
+		Global.saveLocal()
 
 func _on_global_message(message: Dictionary):
 	var msg_type = message.get("type")
