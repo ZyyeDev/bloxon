@@ -322,49 +322,53 @@ func resetHouse(house_id):
 
 func assignHouse(playerUID):
 	if !isClient:
+		var server = get_parent().get_node("Server") if get_parent().has_node("Server") else null
+		var user_id_for_uid = null
+		
+		if server and str(playerUID) in server.uidToUserId:
+			user_id_for_uid = server.uidToUserId[str(playerUID)]
+		
 		for house_id in houses:
-			if houses[house_id]["plr"] != "" and not houses[house_id]["plr"] in allPlayers:
-				#print("WARN: plr assigned to a plr that doesnt exist? did we add this player, or the player leave?")
-				if not houses[house_id]["plr"] in multiplayer.get_peers():
-					print("WARN: plr doesnt exist")
-					resetHouse(house_id)
-				else:
-					print("WARN: plr does exist, but for some reason it wasnt on allPlayers")
-					Global.allPlayers[str(houses[house_id]["plr"])] = {
-						## we dont have these here, we should in the future add a way to get them
-						#"username": username_str,
-						#"user_id": user_id
-					}
-			if houses[house_id]["plr"] == "" or houses[house_id]["plr"] == playerUID:
-				if houses[house_id]["plr"] == playerUID:
-					print("WARNING: Player ", playerUID, " trying to get house ", house_id, " but already assigned!")
-					
-					var is_actually_connected = false
-					if get_parent().has_node("Server"):
-						var server = get_parent().get_node("Server")
-						if str(playerUID) in server.uidToUserId:
-							is_actually_connected = true
-					
-					if not is_actually_connected:
-						print("Player not actually connected, reassigning house ", house_id)
-						houses[house_id]["plr"] = ""
-						var house_node = getHouse(house_id)
-						if house_node:
-							house_node.plrAssigned = ""
-							house_node.locked = false
-					else:
-						return house_id
+			if houses[house_id]["plr"] != "":
+				var house_owner_uid = houses[house_id]["plr"]
+				var house_owner_user_id = null
 				
-				if houses[house_id]["plr"] == "":
+				if server and str(house_owner_uid) in server.uidToUserId:
+					house_owner_user_id = server.uidToUserId[str(house_owner_uid)]
+				
+				if user_id_for_uid and house_owner_user_id and user_id_for_uid == house_owner_user_id:
+					print("player ", playerUID, " reconnecting to their house ", house_id, " (was uid ", house_owner_uid, ")")
 					houses[house_id]["plr"] = playerUID
 					var house_node = getHouse(house_id)
 					if house_node:
 						house_node.plrAssigned = playerUID
 						house_node.locked = false
-					print("Assigned house ", house_id, " to player ", playerUID)
 					rpc("client_house_assigned", house_id, playerUID)
 					return house_id
-		print("No available houses for player ", playerUID)
+				
+				if not int(house_owner_uid) in multiplayer.get_peers():
+					var owner_still_connected = false
+					if server:
+						for peer_uid in server.uidToUserId:
+							if server.uidToUserId[peer_uid] == house_owner_user_id:
+								owner_still_connected = true
+								break
+					
+					if not owner_still_connected:
+						print("player ", house_owner_uid, " not connected, but waiting for potential reconnect...")
+						continue
+			
+			if houses[house_id]["plr"] == "":
+				houses[house_id]["plr"] = playerUID
+				var house_node = getHouse(house_id)
+				if house_node:
+					house_node.plrAssigned = playerUID
+					house_node.locked = false
+				print("assigned house ", house_id, " to player ", playerUID)
+				rpc("client_house_assigned", house_id, playerUID)
+				return house_id
+		
+		print("no available houses for player ", playerUID)
 		return null
 
 func getHouse(id):
@@ -761,6 +765,12 @@ func getPlayer(pUID):
 	for i in Game.workspace.playersContainer.get_children():
 		if str(i.uid) == str(pUID):
 			return i
+	if PlayerManager.players.find_key(pUID):
+		return PlayerManager.players[pUID]
+	print("PlayerManager.players ",PlayerManager.players)
+	print("playerData ",Server.playerData)
+	print("uidToUserId ",Server.uidToUserId)
+	print("connectedPlayers ",Server.connectedPlayers)
 	print("Player not found with UID: ", pUID)
 	return null
 

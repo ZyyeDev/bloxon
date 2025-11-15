@@ -85,7 +85,7 @@ func createPlayer(UID, position: Vector3, isLocal = false, avatar_data = {}):
 	if not avatar_data.is_empty():
 		playerClone.changeColors(avatar_data)
 	else:
-		var user_id = int(get_user_id_for_uid(UID))
+		var user_id = int(await get_user_id_for_uid(UID))
 		if user_id > 0:
 			pending_avatar_data[UID] = true
 			var avatarData = await Client.getAvatar(user_id, Global.token)
@@ -132,17 +132,19 @@ func _on_peer_connected(id):
 		
 		await get_tree().process_frame
 		
-		var user_id = int(get_user_id_for_uid(str(id)))
+		var user_id = int(await get_user_id_for_uid(str(id)))
 		var avatar_data = {}
 		if user_id > 0:
 			print("Pre-fetching avatar data for peer ", id)
 			avatar_data = await Client.getAvatar(user_id, Global.token)
 			Global.avatarData[str(id)] = avatar_data
+		else:
+			push_error("user_id < 0? ", user_id)
 		
 		for existing_uid in players:
 			var existing_player = players[existing_uid]
 			if existing_player and is_instance_valid(existing_player):
-				var existing_user_id = int(get_user_id_for_uid(existing_uid))
+				var existing_user_id = int(await get_user_id_for_uid(existing_uid))
 				var existing_avatar = Global.avatarData.get(existing_uid, {})
 				if existing_avatar.is_empty() and existing_user_id > 0:
 					existing_avatar = await Client.getAvatar(existing_user_id, Global.token)
@@ -153,7 +155,7 @@ func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dicti
 	if Global.isClient:
 		return null
 	
-	print("PlayerManager: Creating player for peer ", peer_id, " at ", spawn_pos)
+	print("creating player for peer ", peer_id, " at ", spawn_pos)
 	
 	var new_player = await createPlayer(str(peer_id), spawn_pos, false, avatar_data)
 	if new_player:
@@ -164,7 +166,7 @@ func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dicti
 			new_player.moneyValue.Value = saved_money
 			if new_player.rebirthsVal:
 				new_player.rebirthsVal.Value = saved_rebirths
-			print("Set new player stats - Money: $", saved_money, " Rebirths: ", saved_rebirths)
+			print("set new player stats - money: $", saved_money, " rebirths: ", saved_rebirths)
 		
 		await get_tree().process_frame
 		
@@ -174,9 +176,9 @@ func create_player_for_peer(peer_id: int, spawn_pos: Vector3, avatar_data: Dicti
 			if other_peer_id != peer_id:
 				rpc_id(other_peer_id, "createPlayer", str(peer_id), spawn_pos, false, avatar_data)
 		
-		print("PlayerManager: Player ", peer_id, " created and synced to all clients")
+		print("player ", peer_id, " created and synced to all clients")
 	else:
-		print("ERROR: Failed to create player for peer ", peer_id)
+		print("failed to create player for peer ", peer_id)
 	
 	return new_player
 
@@ -208,6 +210,8 @@ func createLocalPlayer():
 			print("CRITICAL: Failed to create local player after ", max_retries, " attempts")
 
 func get_user_id_for_uid(uid: String) -> int:
+	while not Server.uidToUserId.has(uid):
+		await Global.wait(.1)
 	if Global.isClient:
 		if uid == Global.UID:
 			return Global.user_id

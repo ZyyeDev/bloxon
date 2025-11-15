@@ -188,16 +188,43 @@ func _on_request_completed(result, code, headers, body):
 func register_client_account(user_id, token):
 	var sender_id = get_tree().get_multiplayer().get_remote_sender_id()
 	
+	var existing_peer_for_user = -1
+	for peer_uid in uidToUserId:
+		if uidToUserId[peer_uid] == user_id and int(peer_uid) != sender_id:
+			existing_peer_for_user = int(peer_uid)
+			break
+	
+	if existing_peer_for_user != -1:
+		print("user ", user_id, " reconnecting with new peer id ", sender_id, " (old was ", existing_peer_for_user, ")")
+		var old_house = Global.whatHousePlr(str(existing_peer_for_user))
+		if old_house:
+			print("transferring house ", old_house.id, " from old peer to new peer")
+			Global.houses[old_house.id]["plr"] = str(sender_id)
+			if old_house.ref:
+				old_house.ref.plrAssigned = str(sender_id)
+		uidToUserId.erase(str(existing_peer_for_user))
+		Global.allPlayers.erase(str(existing_peer_for_user))
+	
 	if str(sender_id) in uidToUserId:
-		print("Player ", sender_id, " already registered, ignoring duplicate")
-		return
+		print("player ", sender_id, " already registered, checking if valid...")
+		var plr = Global.getPlayer(str(sender_id))
+		if not plr:
+			print("player exists in uidToUserId but no player node found, cleaning up...")
+			uidToUserId.erase(str(sender_id))
+			if user_id in connectedPlayers:
+				connectedPlayers.erase(user_id)
+			Global.allPlayers.erase(str(sender_id))
+		else:
+			print("player already valid, reloading data...")
+			await loadPlayerData(user_id, sender_id)
+			return
 	
 	if sender_id in pending_registrations:
-		print("Player ", sender_id, " registration already in progress")
+		print("player ", sender_id, " registration already in progress")
 		return
 	
 	pending_registrations[sender_id] = true
-	print("Registering client - user_id: ", user_id, " peer_id: ", sender_id)
+	print("registering client - user_id: ", user_id, " peer_id: ", sender_id)
 	
 	uidToUserId[str(sender_id)] = user_id
 	connectedPlayers[user_id] = {
@@ -209,6 +236,13 @@ func register_client_account(user_id, token):
 	var pdata = await Client.getPlayerDataById(user_id,token)
 	var username_str = pdata.get("data",{}).get("username","NIL")
 	
+	Global.allPlayers[str(sender_id)] = {
+		"username": username_str,
+		"user_id": user_id
+	}
+	
+	print("player registered, fetching avatar...")
+	
 	var avatar_data = {}
 	avatar_data = await Client.getAvatar(user_id, token)
 	Global.avatarData[str(sender_id)] = avatar_data
@@ -216,15 +250,26 @@ func register_client_account(user_id, token):
 	var house_id = await Global.assignHouse(str(sender_id))
 	var spawn_pos = Vector3.ZERO
 	
-	while not house_id:
-		house_id = await Global.assignHouse(str(sender_id))
+	var max_house_attempts = 50
+	var house_attempts = 0
+	while not house_id and house_attempts < max_house_attempts:
 		await get_tree().process_frame
+		house_id = await Global.assignHouse(str(sender_id))
+		house_attempts += 1
+	
+	if not house_id:
+		print("could not assign house after ", max_house_attempts, " attempts!")
+		pending_registrations.erase(sender_id)
+		uidToUserId.erase(str(sender_id))
+		connectedPlayers.erase(user_id)
+		Global.allPlayers.erase(str(sender_id))
+		return
 	
 	if house_id:
 		var house_node = Global.getHouse(house_id)
 		if house_node and house_node.plrSpawn:
 			spawn_pos = house_node.plrSpawn.global_position
-		print("Assigned house ", house_id, " with spawn at ", spawn_pos)
+		print("assigned house ", house_id, " with spawn at ", spawn_pos)
 	
 	if PlayerManager:
 		var new_player:player = await PlayerManager.create_player_for_peer(sender_id, spawn_pos, avatar_data)
@@ -232,23 +277,35 @@ func register_client_account(user_id, token):
 			new_player.user_id = user_id
 			new_player.username = username_str
 			
-			Global.allPlayers[str(sender_id)] = {
-				"username": username_str,
-				"user_id": user_id
-			}
-			
 			await get_tree().process_frame
+			await get_tree().process_frame
+			
+			var plr = Global.getPlayer(str(sender_id))
+			if not plr or not is_instance_valid(plr) or not plr.is_inside_tree():
+				print("player node not valid after creation!")
+				pending_registrations.erase(sender_id)
+				uidToUserId.erase(str(sender_id))
+				connectedPlayers.erase(user_id)
+				Global.allPlayers.erase(str(sender_id))
+				return
+			
 			broadcastAllPlayers()
 		else:
-			print("ERROR: Failed to create player for peer ", sender_id)
+			print("failed to create player for peer ", sender_id)
 			pending_registrations.erase(sender_id)
+			uidToUserId.erase(str(sender_id))
+			connectedPlayers.erase(user_id)
+			Global.allPlayers.erase(str(sender_id))
 			return
 	else:
-		print("ERROR: PlayerManager not found!")
+		print("PlayerManager not found!")
 		pending_registrations.erase(sender_id)
+		uidToUserId.erase(str(sender_id))
+		connectedPlayers.erase(user_id)
+		Global.allPlayers.erase(str(sender_id))
 		return
 	
-	print("now loading player data")
+	print("loading player data...")
 	await loadPlayerData(user_id, sender_id)
 	pending_registrations.erase(sender_id)
 
@@ -269,12 +326,39 @@ func broadcastAllPlayers():
 func _on_peer_connected(id):
 	print("Peer connected: ", id)
 	
+	print("uidToUserId: ", uidToUserId)
+	print("connectedPlayers: ", connectedPlayers)
+	
+	if str(id) in PlayerManager.players:
+		var old_player = PlayerManager.players[str(id)]
+		if old_player and is_instance_valid(old_player):
+			old_player.queue_free()
+		PlayerManager.players.erase(str(id))
+	
 	var plr = Global.getPlayer(str(id))
+	var wait_count = 0
+	var max_wait = 200
+	
 	if not plr:
 		print("WARNING: Player ", id, " not found yet, will wait for registration")
-		while not plr:
+		while not plr and wait_count < max_wait:
+			await get_tree().create_timer(0.5).timeout
 			plr = Global.getPlayer(str(id))
-			await Global.wait(.5)
+			wait_count += 1
+			if wait_count % 10 == 0:
+				print("Still waiting for player ", id, " (", wait_count * 0.5, "s)")
+	
+	if not plr:
+		print("ERROR: Player ", id, " never created after ", max_wait * 0.5, " seconds")
+		return
+	
+	if not is_instance_valid(plr) or not plr.is_inside_tree():
+		print("ERROR: Player ", id, " exists but is not valid or in tree")
+		return
+	
+	print("Player ", id, " found and verified, sending game state")
+	
+	await get_tree().process_frame
 	
 	var game_state = Global.get_full_game_state()
 	print("Sending game state to peer ", id)
@@ -288,39 +372,42 @@ func _on_peer_disconnected(id):
 	var user_id = uidToUserId.get(str(id))
 	if user_id:
 		var plr = Global.getPlayer(str(id))
-		var house_id = Global.getHouse(user_id)
+		var house_data = Global.whatHousePlr(str(id))
 		if plr and plr.moneyValue:
 			playerData[user_id]["money"] = plr.moneyValue.Value
 			print("Captured money before save: $", plr.moneyValue.Value)
 		
 		print("Saving data for user_id: ", user_id)
 		
-		uidToUserId.erase(str(id))
-		connectedPlayers.erase(user_id)
-		Global.allPlayers.erase(str(id))
-		Global.avatarData.erase(str(id))
-		
 		await savePlayerData(user_id)
 		
-		if house_id and house_id in Global.houses:
-			print("Clearing house ", house_id, " for disconnected player ", id)
-			Global.resetHouse(house_id)
+		uidToUserId.erase(str(id))
+		connectedPlayers.erase(user_id)
+		Global.avatarData.erase(str(id))
+		
+		if house_data and house_data.id in Global.houses:
+			print("player disconnected, keeping house ", house_data.id, " reserved for 30 seconds")
+			await get_tree().create_timer(30.0).timeout
+			
+			var still_disconnected = true
+			for peer_uid in uidToUserId:
+				if uidToUserId[peer_uid] == user_id:
+					still_disconnected = false
+					break
+			
+			if still_disconnected:
+				print("player didnt reconnect, freeing house ", house_data.id)
+				Global.resetHouse(house_data.id)
+			else:
+				print("player reconnected, keeping house ", house_data.id)
 		else:
-			print("House doesnt exist: ",user_id)
+			print("house doesnt exist: ", user_id)
+		
+		Global.allPlayers.erase(str(id))
 		broadcastAllPlayers()
 		
-		## We don't want to close the server!
-		## Closing it will completely break the backend.
-		## The server still exists for the main server, so it will return this server,
-		## even though it no longer exists because it was closed.
-		## now master server handles all of this
-		#if connectedPlayers.size() == 0:
-		#	print("No players left, shutting down in 30 seconds...")
-		#	await get_tree().create_timer(30.0).timeout
-		#	if connectedPlayers.size() == 0:
-		#		print("Still no players, shutting down now")
-		#		await cleanup_server()
-		#		get_tree().quit()
+		if PlayerManager.players[id]:
+			PlayerManager.players.erase(id)
 	
 	if str(id) in PlayerManager.players:
 		PlayerManager.removePlayer(str(id))
@@ -516,12 +603,14 @@ func loadPlayerData(user_id: int, peer_id: int):
 	
 	var plr = Global.getPlayer(str(peer_id))
 	var wait_count = 0
-	while (not plr or not is_instance_valid(plr) or not plr.is_inside_tree()) and wait_count < 100:
+	var max_wait = 100
+	
+	while (not plr or not is_instance_valid(plr) or not plr.is_inside_tree()) and wait_count < max_wait:
 		await get_tree().create_timer(0.1).timeout
 		plr = Global.getPlayer(str(peer_id))
 		wait_count += 1
 		if wait_count % 10 == 0:
-			print("Still waiting for player... (", wait_count, "/100)")
+			print("Still waiting for player in loadPlayerData... (", wait_count, "/", max_wait, ")")
 	
 	if not plr or not is_instance_valid(plr):
 		print("ERROR: Player ", peer_id, " not found after waiting ", wait_count * 0.1, " seconds")
@@ -530,6 +619,8 @@ func loadPlayerData(user_id: int, peer_id: int):
 	if not plr.is_inside_tree():
 		print("ERROR: Player ", peer_id, " exists but not in tree!")
 		return
+	
+	print("Player verified, proceeding with data load")
 	
 	if data != null:
 		var loaded_money = data.get("money", 100)
@@ -554,7 +645,14 @@ func loadPlayerData(user_id: int, peer_id: int):
 		if plr.moneyValue:
 			plr.moneyValue.Value = loaded_money
 			print("Set player money to: $", loaded_money)
+		
+		await get_tree().process_frame
+		
+		if is_instance_valid(plr) and plr.is_inside_tree():
 			plr.rpc("syncMoney", loaded_money)
+		else:
+			print("ERROR: Player became invalid before syncMoney RPC")
+			return
 		
 		if plr.rebirthsVal:
 			plr.rebirthsVal.Value = loaded_rebirths
@@ -569,9 +667,14 @@ func loadPlayerData(user_id: int, peer_id: int):
 			else:
 				inventory_data[i] = -1
 		
-		if plr.has_method("rpc"):
+		await get_tree().process_frame
+		
+		if is_instance_valid(plr) and plr.is_inside_tree() and plr.has_method("rpc"):
 			plr.rpc("syncInventory", inventory_data)
 			print("Synced inventory to player: ", inventory_data)
+		else:
+			print("ERROR: Player became invalid before syncInventory RPC")
+			return
 		
 		var house_id = data.get("house_id")
 		
@@ -637,8 +740,16 @@ func loadPlayerData(user_id: int, peer_id: int):
 			"last_save": Time.get_unix_time_from_system()
 		}
 		
+		if not is_instance_valid(plr) or not plr.is_inside_tree():
+			print("ERROR: Player became invalid during new data creation")
+			return
+		
 		if plr.moneyValue:
 			plr.moneyValue.Value = 100
+		
+		await get_tree().process_frame
+		
+		if is_instance_valid(plr) and plr.is_inside_tree():
 			plr.rpc("syncMoney", 100)
 		
 		var current_house = Global.whatHousePlr(str(peer_id))
@@ -655,11 +766,16 @@ func loadPlayerData(user_id: int, peer_id: int):
 			else:
 				inventory_data[i] = -1
 		
-		if plr.has_method("rpc"):
+		await get_tree().process_frame
+		
+		if is_instance_valid(plr) and plr.is_inside_tree() and plr.has_method("rpc"):
 			plr.rpc("syncInventory", inventory_data)
 			print("New player, synced inventory: ", inventory_data)
 	
-	Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
+	if is_instance_valid(plr) and plr.is_inside_tree():
+		Global.rpc_id(peer_id,"updateMyPlrData",playerData[user_id])
+	else:
+		print("ERROR: Player invalid before updateMyPlrData RPC")
 	
 	var total_time = Time.get_ticks_msec() - load_start
 	print("Total load time: ", total_time, "ms")
