@@ -30,7 +30,7 @@ func _ready():
 	print("maintenance ",maintenance)
 	if maintenance:
 		$Error.play()
-		var box = Global.errorMessage(
+		Global.errorMessage(
 			"Servers are currently on maintenance. Please come back later!",
 			Global.ERROR_CODES.MAINTENANCE,
 			"Servers Maintenance",
@@ -85,7 +85,7 @@ func checkAuth():
 		http.queue_free()
 	)
 
-func _on_validate_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+func _on_validate_completed(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
 	Client.http.request_completed.disconnect(_on_validate_completed)
 	
 	print(result,response_code)
@@ -142,6 +142,9 @@ func _on_timer_timeout() -> void:
 	connectionError()
 
 func changeTo(path):
+	for i in get_children():
+		if i.is_in_group("ErrorBox"):
+			i.queue_free()
 	var thing = load(path).instantiate()
 	oldScene.queue_free()
 	oldScene = thing
@@ -150,10 +153,10 @@ func changeTo(path):
 func _on_music_finished() -> void:
 	$Music.play()
 
-func _on_admob_initialization_completed(status_data: InitializationStatus) -> void:
+func _on_admob_initialization_completed(_status_data: InitializationStatus) -> void:
 	if Client.admobInit: return
 	Client.admobInit = true
 
-func _on_admob_rewarded_ad_user_earned_reward(ad_id: String, reward_data: RewardItem) -> void:
+func _on_admob_rewarded_ad_user_earned_reward(_ad_id: String, _reward_data: RewardItem) -> void:
 	if Client.rewardAdCallable:
 		Client.rewardAdCallable.call()

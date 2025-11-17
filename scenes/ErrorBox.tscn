@@ -14,10 +14,8 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7tkpy"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jp0v5"]
-bg_color = Color(1, 1, 1, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jagoy"]
+bg_color = Color(0.9, 0.9, 0.9, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -30,14 +28,16 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jagoy"]
-bg_color = Color(0.9, 0.9, 0.9, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jp0v5"]
+bg_color = Color(1, 1, 1, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[node name="ErrorBox" type="Control" node_paths=PackedStringArray("titleLbl", "primaryLbl", "errorLbl", "leaveBtn")]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7tkpy"]
+
+[node name="ErrorBox" type="Control" node_paths=PackedStringArray("titleLbl", "primaryLbl", "errorLbl", "leaveBtn") groups=["ErrorBox"]]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -161,18 +161,18 @@ offset_right = 135.0
 offset_bottom = 15.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_disabled_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
-theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 1)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_font_sizes/font_size = 14
-theme_override_styles/focus = SubResource("StyleBoxEmpty_7tkpy")
-theme_override_styles/hover = SubResource("StyleBoxFlat_jp0v5")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_7tkpy")
 theme_override_styles/normal = SubResource("StyleBoxFlat_jagoy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7tkpy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jp0v5")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_7tkpy")
 text = "Leave"
 
 [connection signal="pressed" from="_Panel_5/_VBoxContainer_6/_Control_14/_Button_15" to="." method="_on__button_15_pressed"]
