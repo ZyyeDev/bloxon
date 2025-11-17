@@ -110,6 +110,7 @@ func _setup_payment_system():
 
 func _on_payment_connected():
 	paymentConnected = true
+	
 	var data = await Client.getCurrencyPackages()
 	var packData = data.get("data",{}).get("packages",[])
 	
@@ -122,6 +123,9 @@ func _on_payment_connected():
 	payment.query_product_details(products, BillingClient.ProductType.INAPP)
 	print("quering ",products)
 	#var query_result = payment.queryPurchasesAsync("inapp")
+	
+	print("checking for existing purchases")
+	payment.query_purchases(BillingClient.ProductType.INAPP)
 
 func _on_payment_disconnected():
 	print("Billing disconnected")
@@ -160,8 +164,18 @@ func _on_query_purchases_response(query_result: Dictionary):
 	var response_code = query_result.get("response_code", -1)
 	
 	if response_code == BillingClient.BillingResponseCode.OK:
-		print("purchase query success")
+		print("Purchase query success, found ", query_result.purchases.size(), " purchases")
+		
 		for purchase in query_result.purchases:
+			var product_id = purchase.get("product_ids", [])[0] if purchase.get("product_ids", []).size() > 0 else ""
+			var purchase_token = purchase.purchase_token
+			
+			if not inPaymentCheck:
+				print("Found existing purchase to consume: ", product_id)
+				if payment and paymentConnected:
+					payment.consume_purchase(purchase_token)
+				continue
+			
 			_verify_and_consume_purchase(purchase)
 	else:
 		print("Purchase query failed")
