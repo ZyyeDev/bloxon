@@ -71,6 +71,8 @@ func _ready() -> void:
 	add_child(updateCurrencyTimer)
 	updateCurrencyTimer.start()
 	
+	$Control/ConfigPage/VBoxContainer/AudioBar.Value = Global.volume
+	
 	# TODO: why isnt this being called?
 	Client.avatarUpdated.connect(func(_data):
 		var pfpTex = await Client.getPlayerPfpTexture(Global.user_id, Global.token)
@@ -451,7 +453,7 @@ func updateMarketplace():
 		var createdAt = myData["createdAt"]
 		var equipSlot = myData["equipSlot"]
 		
-		print("checking cached ",downloadUrl)
+		#print("checking cached ",downloadUrl)
 		
 		if !Client.alrCached(downloadUrl):
 			print("not cached")
