@@ -60,6 +60,11 @@ func _ready():
 			_setup_payment_system()
 			create_admob_thing()
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		print("QUIT GAME")
+		Global.saveLocal()
+
 func create_admob_thing():
 	while not get_tree().current_scene and not get_tree().current_scene.has_node("Admob"):
 		await get_tree().process_frame
