@@ -45,22 +45,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_7tkpy")
-titleLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_7/_Label_8")
-primaryLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11/_Label_12")
-errorLbl = NodePath("_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11/_Label_13")
-leaveBtn = NodePath("_Panel_5/_VBoxContainer_6/_Control_14/_Button_15")
+titleLbl = NodePath("Panel/VBoxContainer/Control/TitleText")
+primaryLbl = NodePath("Panel/VBoxContainer/Control2/VBox/Descr")
+errorLbl = NodePath("Panel/VBoxContainer/Control2/VBox/ErrorCode")
+leaveBtn = NodePath("Panel/VBoxContainer/Control3/LeaveButton")
 
-[node name="_ColorRect_4" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_npie7")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 1.0
+offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.4)
 
-[node name="_Panel_5" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="."]
 custom_minimum_size = Vector2(350, 200)
 layout_mode = 1
 anchors_preset = 8
@@ -76,17 +78,17 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_002qg")
 
-[node name="_VBoxContainer_6" type="VBoxContainer" parent="_Panel_5"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/separation = 0
 
-[node name="_Control_7" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+[node name="Control" type="Control" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 
-[node name="_Label_8" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_7"]
+[node name="TitleText" type="Label" parent="Panel/VBoxContainer/Control"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -105,15 +107,15 @@ text = "Disconnected"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="_HSeparator_9" type="HSeparator" parent="_Panel_5/_VBoxContainer_6"]
+[node name="Separator" type="HSeparator" parent="Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="_Control_10" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+[node name="Control2" type="Control" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="_VBoxContainer_11" type="VBoxContainer" parent="_Panel_5/_VBoxContainer_6/_Control_10"]
+[node name="VBox" type="VBoxContainer" parent="Panel/VBoxContainer/Control2"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -128,7 +130,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="_Label_12" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11"]
+[node name="Descr" type="Label" parent="Panel/VBoxContainer/Control2/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 13
@@ -136,18 +138,18 @@ text = "You have been kicked due to unexpected client behavior."
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="_Label_13" type="Label" parent="_Panel_5/_VBoxContainer_6/_Control_10/_VBoxContainer_11"]
+[node name="ErrorCode" type="Label" parent="Panel/VBoxContainer/Control2/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
 theme_override_font_sizes/font_size = 11
 text = "(Error Code: 268)"
 horizontal_alignment = 1
 
-[node name="_Control_14" type="Control" parent="_Panel_5/_VBoxContainer_6"]
+[node name="Control3" type="Control" parent="Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 
-[node name="_Button_15" type="Button" parent="_Panel_5/_VBoxContainer_6/_Control_14"]
+[node name="LeaveButton" type="Button" parent="Panel/VBoxContainer/Control3"]
 custom_minimum_size = Vector2(270, 35)
 layout_mode = 1
 anchors_preset = 8
@@ -175,4 +177,4 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_jp0v5")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_7tkpy")
 text = "Leave"
 
-[connection signal="pressed" from="_Panel_5/_VBoxContainer_6/_Control_14/_Button_15" to="." method="_on__button_15_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Control3/LeaveButton" to="." method="_on_disconnect_pressed"]

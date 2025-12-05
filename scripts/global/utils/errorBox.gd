@@ -27,7 +27,7 @@ func updateDialog():
 	if leaveBtn:
 		leaveBtn.text = btnText
 
-func _on__button_15_pressed() -> void:
+func _on_disconnect_pressed() -> void:
 	Global.alrHasError = false
 	leavePressed.emit()
 	if !binded:
