@@ -601,10 +601,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_rb2ri")
-serverListContainter = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27/_VBoxContainer_29")
-nameLabel = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/NameLabel")
+serverListContainter = NodePath("Control/HomePage/ScrollContainer/VBoxContainer/ServerList/VBoxContainer")
+nameLabel = NodePath("Control/leftBar/Container/ProfileButton/NameLabel")
 currencyLabel = NodePath("Control/Currency")
-selfPfp = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton/Sprite2D")
+selfPfp = NodePath("Control/leftBar/Container/ProfileButton/ProfilePageButton/Sprite2D")
 homePage = NodePath("Control/HomePage")
 avatarPage = NodePath("Control/AvatarPage")
 configPage = NodePath("Control/ConfigPage")
@@ -614,13 +614,13 @@ FriendInfo = NodePath("Control/FriendInfo")
 ItemPage = NodePath("Control/ItemPage")
 CurrencyPurchase = NodePath("Control/CurrencyPurchase")
 CurrencyGridContainer = NodePath("Control/CurrencyPurchase/VBoxContainer/HBoxContainer/CurrencyGridContainer")
-friendContainterSmall = NodePath("Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall")
+friendContainterSmall = NodePath("Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/friendContainterSmall")
 friendsContainer = NodePath("Control/FriendsPage/GridContainer")
 marketplaceContainer = NodePath("Control/AvatarPage/MarketContainer")
 inventoryContainer = NodePath("Control/AvatarPage/AvatarEditor/InvContainer")
-homePageButton = NodePath("Control/leftBar/_VBoxContainer_6/homePageButton")
-profilePageButton = NodePath("Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton")
-configPageButton = NodePath("Control/leftBar/_VBoxContainer_6/configPageButton")
+homePageButton = NodePath("Control/leftBar/Container/homePageButton")
+profilePageButton = NodePath("Control/leftBar/Container/ProfileButton/ProfilePageButton")
+configPageButton = NodePath("Control/leftBar/Container/configPageButton")
 avatarLoadingSpinner = NodePath("Control/LoadingSpinner")
 itemNameLabel = NodePath("Control/ItemPage/NameLabel")
 itemCostLabel = NodePath("Control/ItemPage/CostLabel")
@@ -640,22 +640,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="_ColorRect_4" type="ColorRect" parent="Control"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.101961, 0.101961, 0.101961, 0)
-
 [node name="leftBar" type="Panel" parent="Control"]
 layout_mode = 0
 offset_right = 80.0
 offset_bottom = 648.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ie7uq")
 
-[node name="_VBoxContainer_6" type="VBoxContainer" parent="Control/leftBar"]
+[node name="Container" type="VBoxContainer" parent="Control/leftBar"]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 80.0
@@ -663,7 +654,7 @@ offset_right = 70.0
 offset_bottom = 480.0
 theme_override_constants/separation = 20
 
-[node name="homePageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+[node name="homePageButton" type="Button" parent="Control/leftBar/Container"]
 modulate = Color(0.701961, 0.701961, 0.701961, 1)
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
@@ -672,15 +663,15 @@ theme_override_styles/focus = SubResource("StyleBoxEmpty_l2vun")
 icon = ExtResource("3_5grun")
 flat = true
 
-[node name="_VBoxContainer_12" type="VBoxContainer" parent="Control/leftBar/_VBoxContainer_6"]
+[node name="ProfileButton" type="VBoxContainer" parent="Control/leftBar/Container"]
 layout_mode = 2
 
-[node name="ProfilePageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12"]
+[node name="ProfilePageButton" type="Button" parent="Control/leftBar/Container/ProfileButton"]
 custom_minimum_size = Vector2(50, 60)
 layout_mode = 2
 theme_override_styles/focus = SubResource("StyleBoxEmpty_bemoo")
 
-[node name="Sprite2D" type="Sprite2D" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton"]
+[node name="Sprite2D" type="Sprite2D" parent="Control/leftBar/Container/ProfileButton/ProfilePageButton"]
 material = SubResource("ShaderMaterial_wxjkf")
 position = Vector2(30, 31)
 scale = Vector2(0.064, 0.064)
@@ -688,14 +679,14 @@ texture = ExtResource("4_5grun")
 script = SubResource("GDScript_cv8r1")
 targetSize = Vector2(64, 64)
 
-[node name="NameLabel" type="Label" parent="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12"]
+[node name="NameLabel" type="Label" parent="Control/leftBar/Container/ProfileButton"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 8
 text = "{USERNAME}"
 horizontal_alignment = 1
 
-[node name="configPageButton" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+[node name="configPageButton" type="Button" parent="Control/leftBar/Container"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
@@ -704,7 +695,7 @@ icon = ExtResource("5_xxwsn")
 flat = true
 expand_icon = true
 
-[node name="blipsPageButton2" type="Button" parent="Control/leftBar/_VBoxContainer_6"]
+[node name="blipsPageButton2" type="Button" parent="Control/leftBar/Container"]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.629095, 0.662462, 1)
@@ -724,7 +715,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1s7wt")
 metadata/_edit_use_anchors_ = true
 
-[node name="_ScrollContainer_16" type="ScrollContainer" parent="Control/HomePage"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/HomePage"]
 custom_minimum_size = Vector2(1000, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -734,60 +725,60 @@ grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
 
-[node name="_VBoxContainer_17" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/HomePage/ScrollContainer"]
 clip_contents = true
 custom_minimum_size = Vector2(1050, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 30
 
-[node name="_VBoxContainer_18" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+[node name="TopBar" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="_Label_19" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_18"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/TopBar"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "Home"
 
-[node name="_HSeparator_20" type="HSeparator" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_18"]
+[node name="Separator" type="HSeparator" parent="Control/HomePage/ScrollContainer/VBoxContainer/TopBar"]
 layout_mode = 2
 
-[node name="_VBoxContainer_21" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+[node name="FriendsContainer" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="_HBoxContainer_22" type="HBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21"]
+[node name="_HBoxContainer_22" type="HBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer"]
 layout_mode = 2
 
-[node name="_Label_23" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/_HBoxContainer_22"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 text = "   Friends"
 
-[node name="_Control_24" type="Control" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+[node name="SeparatorThing" type="Control" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/_HBoxContainer_22"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SeeAllFriends" type="Button" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22"]
+[node name="SeeAllFriends" type="Button" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/_HBoxContainer_22"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.7, 1, 1)
 theme_override_styles/focus = SubResource("StyleBoxEmpty_cv8r1")
 text = "See All"
 flat = true
 
-[node name="friendContainterSmall" type="GridContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21"]
+[node name="friendContainterSmall" type="GridContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer"]
 layout_mode = 2
 theme_override_constants/h_separation = 15
 theme_override_constants/v_separation = 15
 columns = 6
 
-[node name="AddFriends" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall" groups=["addFriends"] instance=ExtResource("6_5grun")]
+[node name="AddFriends" parent="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/friendContainterSmall" groups=["addFriends"] instance=ExtResource("6_5grun")]
 layout_mode = 2
 
-[node name="Join Game" type="Button" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+[node name="Join Game" type="Button" parent="Control/HomePage/ScrollContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
@@ -798,42 +789,42 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "Join Game"
 
-[node name="_VBoxContainer_27" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+[node name="ServerList" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="_Label_28" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/ServerList"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 text = "Servers"
 
-[node name="_VBoxContainer_29" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer/ServerList"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_27/_VBoxContainer_29"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/ServerList/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.526423, 0.526423, 0.526423, 1)
 theme_override_font_sizes/font_size = 10
 text = "Fetching servers..."
 
-[node name="_VBoxContainer_30" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17"]
+[node name="PrivateServerList" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="_Label_31" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/PrivateServerList"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 20
 text = "Private Servers"
 
-[node name="_VBoxContainer_32" type="VBoxContainer" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/HomePage/ScrollContainer/VBoxContainer/PrivateServerList"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Label" type="Label" parent="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_30/_VBoxContainer_32"]
+[node name="Label" type="Label" parent="Control/HomePage/ScrollContainer/VBoxContainer/PrivateServerList/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.526423, 0.526423, 0.526423, 1)
 theme_override_font_sizes/font_size = 10
@@ -1405,7 +1396,7 @@ offset_top = 110.0
 offset_right = 1059.0
 offset_bottom = 626.0
 
-[node name="_Label_10" type="Label" parent="Control/CurrencyPurchase/VBoxContainer"]
+[node name="TopText" type="Label" parent="Control/CurrencyPurchase/VBoxContainer"]
 custom_minimum_size = Vector2(988, 23)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
@@ -1456,7 +1447,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_k7u30")
 
-[node name="_VBoxContainer_33" type="VBoxContainer" parent="Control/FriendInfo/bg"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/FriendInfo/bg"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1466,7 +1457,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="Join Friend" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+[node name="Join Friend" type="Button" parent="Control/FriendInfo/bg/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
@@ -1477,10 +1468,10 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "Join Friend"
 
-[node name="_HSeparator_20" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+[node name="Separator" type="HSeparator" parent="Control/FriendInfo/bg/VBoxContainer"]
 layout_mode = 2
 
-[node name="View Friend Profile" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+[node name="View Friend Profile" type="Button" parent="Control/FriendInfo/bg/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
@@ -1491,10 +1482,10 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_l2vun")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_2brji")
 text = "View Profile"
 
-[node name="_HSeparator_21" type="HSeparator" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+[node name="Separator2" type="HSeparator" parent="Control/FriendInfo/bg/VBoxContainer"]
 layout_mode = 2
 
-[node name="Cancel" type="Button" parent="Control/FriendInfo/bg/_VBoxContainer_33"]
+[node name="Cancel" type="Button" parent="Control/FriendInfo/bg/VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme = SubResource("Theme_bemoo")
@@ -1567,13 +1558,13 @@ autostart = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 
-[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/homePageButton" to="." method="_on_home_page_button_pressed"]
-[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/_VBoxContainer_12/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]
-[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/configPageButton" to="." method="_on_config_page_button_pressed"]
-[connection signal="pressed" from="Control/leftBar/_VBoxContainer_6/blipsPageButton2" to="." method="_on_blips_page_button_2_pressed"]
-[connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/_HBoxContainer_22/SeeAllFriends" to="." method="_on_see_all_friends_pressed"]
-[connection signal="Pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/_VBoxContainer_21/friendContainterSmall/AddFriends" to="." method="_on_addFriends_pressed"]
-[connection signal="pressed" from="Control/HomePage/_ScrollContainer_16/_VBoxContainer_17/Join Game" to="." method="_on_join_game_pressed"]
+[connection signal="pressed" from="Control/leftBar/Container/homePageButton" to="." method="_on_home_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/Container/ProfileButton/ProfilePageButton" to="." method="_on_avatar_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/Container/configPageButton" to="." method="_on_config_page_button_pressed"]
+[connection signal="pressed" from="Control/leftBar/Container/blipsPageButton2" to="." method="_on_blips_page_button_2_pressed"]
+[connection signal="pressed" from="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/_HBoxContainer_22/SeeAllFriends" to="." method="_on_see_all_friends_pressed"]
+[connection signal="Pressed" from="Control/HomePage/ScrollContainer/VBoxContainer/FriendsContainer/friendContainterSmall/AddFriends" to="." method="_on_addFriends_pressed"]
+[connection signal="pressed" from="Control/HomePage/ScrollContainer/VBoxContainer/Join Game" to="." method="_on_join_game_pressed"]
 [connection signal="pressed" from="Control/ConfigPage/VBoxContainer/HBoxContainer/ChangeUsername" to="." method="_on_change_username_pressed"]
 [connection signal="changed" from="Control/ConfigPage/VBoxContainer/AudioBar" to="." method="_on_audio_bar_changed"]
 [connection signal="pressed" from="Control/ConfigPage/VBoxContainer/LogOut" to="." method="_on_log_out_pressed"]
@@ -1590,9 +1581,9 @@ autostart = true
 [connection signal="pressed" from="Control/FriendsPage/FriendRequests" to="." method="_on_friend_requests_pressed"]
 [connection signal="pressed" from="Control/FriendsPage/Control/backFriendList" to="." method="_on_back_friend_list_pressed"]
 [connection signal="pressed" from="Control/CurrencyPurchase/VBoxContainer/HBoxContainer/currencyButtonSmall" to="." method="_on_ad_button_small_pressed"]
-[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Join Friend" to="." method="_on_join_friend_pressed"]
-[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
-[connection signal="pressed" from="Control/FriendInfo/bg/_VBoxContainer_33/Cancel" to="." method="hideFriendInfo"]
+[connection signal="pressed" from="Control/FriendInfo/bg/VBoxContainer/Join Friend" to="." method="_on_join_friend_pressed"]
+[connection signal="pressed" from="Control/FriendInfo/bg/VBoxContainer/View Friend Profile" to="." method="_on_view_friend_profile_pressed"]
+[connection signal="pressed" from="Control/FriendInfo/bg/VBoxContainer/Cancel" to="." method="hideFriendInfo"]
 [connection signal="pressed" from="Control/FriendInfo/hide" to="." method="hideFriendInfo"]
 [connection signal="pressed" from="Control/Currency/blipsPageButton3" to="." method="_on_blips_page_button_2_pressed"]
 [connection signal="timeout" from="UpdateServers" to="." method="_on_update_servers_timeout"]
