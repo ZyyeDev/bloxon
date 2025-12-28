@@ -176,7 +176,7 @@ var brainrots = {}
 
 var noportIp = ""
 var port = ":8080"
-var masterIp = "http://"+noportIp+port
+var masterIp = ""
 var localPlayer:player = null
 var currentInvSelect = -1
 
@@ -206,6 +206,7 @@ func _ready() -> void:
 		push_error("CANT FIND config.json!!!!!")
 	if noportIp == "":
 		get_tree().quit()
+	masterIp = "http://"+noportIp+port
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args:
 		print("Pfp rendering")
