@@ -22,8 +22,10 @@ func saveData(filename: String, data: Dictionary) -> bool:
 	file.close()
 	return true
 
-func loadData(filename: String) -> Dictionary:
-	var path = SAVE_DIR + filename
+# HACK: overrideSaveDir is just temp, should be changed in the future to have another function to just load data
+# but im lazy now to do this for some reason, it just works, why would i make the effort?
+func loadData(filename: String, overrideSaveDir:String=SAVE_DIR) -> Dictionary:
+	var path = overrideSaveDir + filename
 	
 	if not FileAccess.file_exists(path):
 		return {}
@@ -45,6 +47,11 @@ func loadData(filename: String) -> Dictionary:
 	
 	return json.data if json.data is Dictionary else {}
 
+# same here as above
+func fileExists(filename: String, overrideSaveDir:String=SAVE_DIR) -> bool:
+	var path = overrideSaveDir + filename
+	return FileAccess.file_exists(path)
+
 func deleteData(filename: String) -> bool:
 	var path = SAVE_DIR + filename
 	
@@ -55,7 +62,3 @@ func deleteData(filename: String) -> bool:
 			return true
 	
 	return false
-
-func fileExists(filename: String) -> bool:
-	var path = SAVE_DIR + filename
-	return FileAccess.file_exists(path)

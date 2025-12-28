@@ -174,7 +174,7 @@ var currentServer = "test"
 var houses = {}
 var brainrots = {}
 
-var noportIp = "46.224.26.214"
+var noportIp = ""
 var port = ":8080"
 var masterIp = "http://"+noportIp+port
 var localPlayer:player = null
@@ -196,6 +196,16 @@ var ERROR_CODES = {
 var alrHasError = false
 
 func _ready() -> void:
+	if LocalData.fileExists("config.json", "res://"):
+		var data = LocalData.loadData("config.json", "res://")
+		noportIp = data.get("ip", "NONE")
+		if noportIp == "NONE" or noportIp == "YOUR_IP_HERE":
+			noportIp = ""
+			push_error("Invalid ip!")
+	else:
+		push_error("CANT FIND config.json!!!!!")
+	if noportIp == "":
+		get_tree().quit()
 	var args = OS.get_cmdline_args()
 	if "--pfp-render" in args:
 		print("Pfp rendering")
