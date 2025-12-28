@@ -71,7 +71,7 @@ func _ready() -> void:
 	add_child(updateCurrencyTimer)
 	updateCurrencyTimer.start()
 	
-	$Control/ConfigPage/VBoxContainer/AudioBar.Value = Global.volume
+	$Control/ConfigPage/VBoxContainer/AudioBar.value = Global.volume
 	
 	# TODO: why isnt this being called?
 	Client.avatarUpdated.connect(func(_data):
