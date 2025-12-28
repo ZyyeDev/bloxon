@@ -658,6 +658,7 @@ func errorMessage(
 			)
 	
 	CoreGui.add_child(box)
+	CoreGui.move_child(box,0)
 	return box
 
 func getAllServers():

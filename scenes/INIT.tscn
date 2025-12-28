@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://d0ry0d5l4cfns" path="res://assets/images/UI/Menu/LoadingSpinner.png" id="1_cw3mg"]
 [ext_resource type="Script" uid="uid://b68l3qd2uv0ev" path="res://scenes/init.gd" id="1_y3eay"]
-[ext_resource type="AudioStream" uid="uid://bnh0njqqfn0di" path="res://assets/sounds/menuSong.wav" id="3_47vhm"]
+[ext_resource type="AudioStream" uid="uid://dt0oossy2salg" path="res://assets/sounds/menuSong.mp3" id="3_nqtka"]
 [ext_resource type="AudioStream" uid="uid://vwx7j0muuk3a" path="res://assets/sounds/UI/ButtonPress.wav" id="5_47vhm"]
 [ext_resource type="PackedScene" uid="uid://ce5bdp5lcqap1" path="res://scenes/menuBg.tscn" id="5_dbdea"]
 [ext_resource type="Texture2D" uid="uid://cpqrrjm00e5qh" path="res://assets/images/sky/spaceSkybox.png" id="6_47vhm"]
@@ -206,8 +206,9 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
-stream = ExtResource("3_47vhm")
+stream = ExtResource("3_nqtka")
 volume_db = -28.804
+autoplay = true
 
 [node name="Done" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("5_47vhm")
